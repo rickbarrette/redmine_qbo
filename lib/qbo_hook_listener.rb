@@ -17,11 +17,11 @@ class QboHookListener < Redmine::Hook::ViewListener
  
     # Check to see if there is a quickbooks user attached to the issue
     if not context[:issue].qbo_customer_id.nil? then
-      selected = QboCustomers.find_by_id(context[:issue].qbo_customer_id).name
+      selected = context[:issue].qbo_customer_id
     end
 
     # Generate the drop down list of quickbooks contacts
-    select = context[:form].select :qbo_customer_id, QboCustomers.all.pluck(:name, :id), include_blank: true, selected: selected
+    select = context[:form].select :qbo_customer_id, QboCustomers.all.pluck(:name, :id), :selected => selected, include_blank: true
     return "<p>#{select}</p>"
 
     #TODO save selection to Issues.qbp_customer_id
