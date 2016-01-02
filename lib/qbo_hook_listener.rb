@@ -67,7 +67,7 @@ class QboHookListener < Redmine::Hook::ViewListener
      
       # If the issue is closed, then create a new billable time activty for the customer
       # TODO Add configuration settings for employee_id, hourly_rate, item_id
-      if issue.status.is_closed? then
+      if issue.status.is_closed? and not issue.qbo_customer_id.nil? then
          time_entry.description = issue.subject
          time_entry.employee_id = 59
          time_entry.customer_id = issue.qbo_customer_id
