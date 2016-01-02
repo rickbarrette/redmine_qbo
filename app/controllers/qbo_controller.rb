@@ -11,20 +11,24 @@
 class QboController < ApplicationController
   unloadable
 
+  # Load OAuth Token
   QB_KEY = Setting.plugin_redmine_qbo['settingsOAuthConsumerKey']
   QB_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
 
   $qb_oauth_consumer = OAuth::Consumer.new(QB_KEY, QB_SECRET, {
-      :site                 => "https://oauth.intuit.com",
-      :request_token_path   => "/oauth/v1/get_request_token",
-      :authorize_url        => "https://appcenter.intuit.com/Connect/Begin",
-      :access_token_path    => "/oauth/v1/get_access_token"
-   })
-
+    :site                 => "https://oauth.intuit.com",
+    :request_token_path   => "/oauth/v1/get_request_token",
+    :authorize_url        => "https://appcenter.intuit.com/Connect/Begin",
+    :access_token_path    => "/oauth/v1/get_access_token"
+  })
+          
 
   def index
   end
 
+  #
+  # Called when the user requests that Redmine to connect to QBO
+  #
   def authenticate
     callback = "https://rickbarrette.org/redmine/oauth_callback"
     token = $qb_oauth_consumer.get_request_token(:oauth_callback => callback)
@@ -32,6 +36,9 @@ class QboController < ApplicationController
     redirect_to("https://appcenter.intuit.com/Connect/Begin?oauth_token=#{token.token}") and return
   end
 
+  #
+  # Called by QBO after authentication has been processed
+  #
   def oauth_callback
     at = session[:qb_request_token].get_access_token(:oauth_verifier => params[:oauth_verifier])
     token = at.token
@@ -40,7 +47,8 @@ class QboController < ApplicationController
     
     #There can only be one...
     Qbo.destroy_all
- 
+
+    # Save the authentication information 
     qbo = Qbo.new
     qbo.token = token
     qbo.secret = secret
@@ -55,6 +63,9 @@ class QboController < ApplicationController
 
   end
 
+  #
+  # Synchronizes the QboCustomer table with QBO
+  #
   def sync
     if Qbo.exists? then
       qbo = Qbo.first
