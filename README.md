@@ -1,10 +1,10 @@
-= redmine_qbo
-
-# redmine_qbo
+#redmine_qbo
 
 ##About
 
 This is a simple plugin for Redmine to connect to Quickbooks Online
+
+This is under heavy development
 
 ##The Install
 
