@@ -12,6 +12,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 <body>
 
-    <h2>QboController#index</h2>
+    <h1> Redmine Quickbooks</h1>
+
+    Customer Count: <%=  @qbo_customer_count %>
+
+    <br/>
+    <br/>
+    <%= link_to "Sync", qbo_sync_path %>
 
 </body>

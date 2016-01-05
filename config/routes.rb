@@ -14,4 +14,5 @@
 get 'qbo', :to=> 'qbo#index'
 get 'qbo/authenticate', :to => 'qbo#authenticate'
 get 'qbo/oauth_callback', :to => 'qbo#oauth_callback'
-get 'qop/qbo_sync', :to => 'qbo#sync'
+get 'qbo/sync', :to => 'qbo#sync'
+

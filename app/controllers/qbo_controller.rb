@@ -22,8 +22,11 @@ class QboController < ApplicationController
     :access_token_path    => "/oauth/v1/get_access_token"
   })
           
-
+  #
+  # Called when the QBO Top Menu us shown
+  #
   def index
+    @qbo_customer_count = QboCustomers.count
   end
 
   #
@@ -82,6 +85,6 @@ class QboController < ApplicationController
       }
     end
 
-    redirect_to plugin_settings_path(:redmine_qbo), :flash => { :notice => "Successfully synced to Quickbooks" }
+    redirect_to qbo_path(:redmine_qbo), :flash => { :notice => "Successfully synced to Quickbooks" }
   end
 end
