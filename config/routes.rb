@@ -12,7 +12,7 @@
 # See: http://guides.rubyonrails.org/routing.html
 #
 
-get 'authenticate', :to => 'qbo#authenticate'
-get 'oauth_callback', :to => 'qbo#oauth_callback'
+get 'qbo/authenticate', :to => 'qbo#authenticate'
+get 'qbo/oauth_callback', :to => 'qbo#oauth_callback'
 
- get 'qbo_sync', :to => 'qbo#sync'
+get 'qop/qbo_sync', :to => 'qbo#sync'

@@ -30,7 +30,7 @@ class QboController < ApplicationController
   # Called when the user requests that Redmine to connect to QBO
   #
   def authenticate
-    callback = "https://rickbarrette.org/redmine/oauth_callback"
+    callback = request.base_url + qbo_oauth_callback_path
     token = $qb_oauth_consumer.get_request_token(:oauth_callback => callback)
     session[:qb_request_token] = token
     redirect_to("https://appcenter.intuit.com/Connect/Begin?oauth_token=#{token.token}") and return
@@ -58,7 +58,7 @@ class QboController < ApplicationController
     if qbo.save!
       redirect_to plugin_settings_path(:redmine_qbo), :flash => { :notice => "Successfully connected to Quickbooks" }
     else
-      redirect_to plugin_settings_path(:redmine_qbo), :flash => { :error => "Errorn_settings_path" }
+      redirect_to plugin_settings_path(:redmine_qbo), :flash => { :error => "Error" }
     end
 
   end
