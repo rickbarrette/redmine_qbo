@@ -16,6 +16,8 @@ class QboController < ApplicationController
   #
   def index
     @qbo_customer_count = QboCustomers.count
+    @qbo_item_count = QboItem.count
+    @qbo_employee_count = QboEmployee.count
   end
 
   #
@@ -61,6 +63,8 @@ class QboController < ApplicationController
   def sync
     if Qbo.exists? then
       QboCustomers.update_all
+      QboItem.update_all
+	  QboEmployee.update_all
     end
 
     redirect_to qbo_path(:redmine_qbo), :flash => { :notice => "Successfully synced to Quickbooks" }
