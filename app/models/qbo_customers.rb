@@ -12,4 +12,16 @@ class QboCustomers < ActiveRecord::Base
   unloadable
   has_many :issues
   attr_accessible :name
+
+  def self.update_all 
+    qbo = Qbo.first
+    service = Quickbooks::Service::Customer.new(:company_id => qbo.realmId, :access_token => Qbo.get_auth_token)
+    
+    # Update the customer table
+    service.all.each { |customer|
+      qbo_customer = QboCustomers.find_or_create_by(id: customer.id)
+      qbo_customer.name = customer.display_name
+      qbo_customer.save!
+    }
+  end
 end

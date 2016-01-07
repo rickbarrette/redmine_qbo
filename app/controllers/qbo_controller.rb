@@ -11,17 +11,6 @@
 class QboController < ApplicationController
   unloadable
 
-  # Load OAuth Token
-  QB_KEY = Setting.plugin_redmine_qbo['settingsOAuthConsumerKey']
-  QB_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
-
-  $qb_oauth_consumer = OAuth::Consumer.new(QB_KEY, QB_SECRET, {
-    :site                 => "https://oauth.intuit.com",
-    :request_token_path   => "/oauth/v1/get_request_token",
-    :authorize_url        => "https://appcenter.intuit.com/Connect/Begin",
-    :access_token_path    => "/oauth/v1/get_access_token"
-  })
-          
   #
   # Called when the QBO Top Menu us shown
   #
@@ -34,7 +23,7 @@ class QboController < ApplicationController
   #
   def authenticate
     callback = request.base_url + qbo_oauth_callback_path
-    token = $qb_oauth_consumer.get_request_token(:oauth_callback => callback)
+    token = Qbo.get_oauth_consumer.get_request_token(:oauth_callback => callback)
     session[:qb_request_token] = token
     redirect_to("https://appcenter.intuit.com/Connect/Begin?oauth_token=#{token.token}") and return
   end
@@ -71,18 +60,7 @@ class QboController < ApplicationController
   #
   def sync
     if Qbo.exists? then
-      qbo = Qbo.first
-      oauth_client = OAuth::AccessToken.new($qb_oauth_consumer, qbo.token, qbo.secret)
-      service = Quickbooks::Service::Customer.new(:company_id => qbo.realmId, :access_token => oauth_client)
-
-      customers = service.all
-
-      #update the customer table
-      customers.each { |customer|
-        qbo_customer = QboCustomers.find_or_create_by(id: customer.id)
-        qbo_customer.name = customer.display_name
-        qbo_customer.save!
-      }
+      QboCustomers.update_all
     end
 
     redirect_to qbo_path(:redmine_qbo), :flash => { :notice => "Successfully synced to Quickbooks" }

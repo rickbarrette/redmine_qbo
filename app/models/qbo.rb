@@ -11,4 +11,23 @@
 class Qbo < ActiveRecord::Base
   unloadable
   validates_presence_of :token, :secret, :realmId, :token_expires_at, :reconnect_token_at
+
+  QB_KEY = Setting.plugin_redmine_qbo['settingsOAuthConsumerKey']
+  QB_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
+
+  $qb_oauth_consumer = OAuth::Consumer.new(QB_KEY, QB_SECRET, {
+    :site                 => "https://oauth.intuit.com",
+    :request_token_path   => "/oauth/v1/get_request_token",
+    :authorize_url        => "https://appcenter.intuit.com/Connect/Begin",
+    :access_token_path    => "/oauth/v1/get_access_token"
+  })
+
+  def self.get_auth_token
+    qbo = first
+    return OAuth::AccessToken.new($qb_oauth_consumer, qbo.token, qbo.secret)
+  end
+
+  def self.get_oauth_consumer
+    return $qb_oauth_consumer
+  end
 end

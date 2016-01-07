@@ -28,4 +28,5 @@ Redmine::Plugin.register :redmine_qbo do
 
   # Register QBO top menu item
   menu :top_menu, :qbo, { :controller => 'qbo', :action => 'index' }, :caption => 'Quickbooks'
+
 end
