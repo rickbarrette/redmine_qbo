@@ -10,7 +10,8 @@
 
 class CreateQboCustomers < ActiveRecord::Migration
   def change
-    create_table :qbo_customers do |t|
+    create_table :qbo_customers, id: false do |t|
+      t.integer :id, :options => 'PRIMARY KEY'
       t.string :name
     end
   end

@@ -12,6 +12,7 @@ class QboCustomers < ActiveRecord::Base
   unloadable
   has_many :issues
   attr_accessible :name
+  validates_presence_of :id, :name
 
   def self.update_all 
     qbo = Qbo.first
@@ -20,6 +21,7 @@ class QboCustomers < ActiveRecord::Base
     # Update the customer table
     service.all.each { |customer|
       qbo_customer = QboCustomers.find_or_create_by(id: customer.id)
+      qbo_customer.id = customer.id
       qbo_customer.name = customer.display_name
       qbo_customer.save!
     }

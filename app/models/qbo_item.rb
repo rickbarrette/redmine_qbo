@@ -11,6 +11,7 @@
 class QboItem < ActiveRecord::Base
   unloadable
    attr_accessible :name
+   validates_presence_of :id, :name
   
   def self.update_all 
     qbo = Qbo.first
@@ -20,6 +21,7 @@ class QboItem < ActiveRecord::Base
     service.all.each { |item|
       qbo_item = QboItem.find_or_create_by(id: item.id)
       qbo_item.name = item.name
+      qbo_item.id = item.id
       qbo_item.save!
     }
   end

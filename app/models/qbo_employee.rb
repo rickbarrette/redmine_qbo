@@ -11,6 +11,7 @@
 class QboEmployee < ActiveRecord::Base
   unloadable
    attr_accessible :name
+   validates_presence_of :id, :name
   
   def self.update_all 
     qbo = Qbo.first
@@ -19,7 +20,8 @@ class QboEmployee < ActiveRecord::Base
     # Update the item table
     service.all.each { |employee|
       qbo_employee = QboEmployee.find_or_create_by(id: employee.id)
-      qbo_employee.name = employee.display_name 
+      qbo_employee.name = employee.display_name
+      qbo_employee.id = employee.id
       qbo_employee.save!
     }
   end
