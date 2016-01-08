@@ -44,20 +44,11 @@ class QboHookListener < Redmine::Hook::ViewListener
     issue = context[:issue]
     qbo = Qbo.first
 
-   qb_oauth_consumer = OAuth::Consumer.new(Setting.plugin_redmine_qbo['settingsOAuthConsumerKey'], Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret'], {
-     :site                 => "https://oauth.intuit.com",
-     :request_token_path   => "/oauth/v1/get_request_token",
-     :authorize_url        => "https://appcenter.intuit.com/Connect/Begin",
-     :access_token_path    => "/oauth/v1/get_access_token"
-   })
-
     # Check to see if we have registered with QBO
     if not qbo.nil? then
-      # Connect to QBO  
-      oauth_client = OAuth::AccessToken.new(qb_oauth_consumer, qbo.token, qbo.secret)
-
+      
       # Prepare to create a new Time Activity
-      time_service = Quickbooks::Service::TimeActivity.new(:company_id => qbo.realmId, :access_token => oauth_client)
+      time_service = Quickbooks::Service::TimeActivity.new(:company_id => qbo.realmId, :access_token => Qbo.get_auth_token)
       time_entry = Quickbooks::Model::TimeActivity.new
 
       # Convert float spent time to hours and minutes
