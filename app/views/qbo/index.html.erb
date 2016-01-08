@@ -15,6 +15,29 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <p>Customer Count: <%= @qbo_customer_count %></p>
     <p>Item Count:         <%= @qbo_item_count %></p>
     <p>Employee Count: <%= @qbo_employee_count %></P>
+    
+    <%= form_for @qbo do |f|%>   
+      <div>
+        <%= f.label "Customers" %>
+        <br/>
+        <%= f.select :qbo_customer_id, QboCustomers.all.pluck(:name, :id), :selected => @selected_customer, include_blank: true %>
+      </div>
+      
+      <div>
+        <%= f.label "Items" %>
+        <br/>
+        <%= f.select :qbo_item_id, QboItem.all.pluck(:name, :id), :selected => @selected_item, include_blank: true %>
+      </div>
+      
+      <div>
+        <%= f.label "Employees" %>
+        <br/>
+        <%= f.select :qbo_employee_id, QboEmployee.all.pluck(:name, :id), :selected => @selected_employee, include_blank: true %>
+      </div>
+      
+      <%= f.submit %>
+    <% end %>
+    
     <br/>
     <br/>
     <%= link_to "Sync", qbo_sync_path %>

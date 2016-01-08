@@ -15,9 +15,13 @@ class QboController < ApplicationController
   # Called when the QBO Top Menu us shown
   #
   def index
+    @qbo = Qbo.first
     @qbo_customer_count = QboCustomers.count
     @qbo_item_count = QboItem.count
     @qbo_employee_count = QboEmployee.count
+    @selected_customer
+    @selected_item
+    @selected_employee
   end
 
   #
