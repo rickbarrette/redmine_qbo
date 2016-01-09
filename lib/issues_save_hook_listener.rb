@@ -24,10 +24,20 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
       time_entry = Quickbooks::Model::TimeActivity.new
       item = item_service.fetch_by_id issue.qbo_item_id
 
+      # Get unbilled time entries
+      spent_time = issue.time_entries.where(qbo_billed: [false, nil])
+      spent_hours ||= spent_time.sum(:hours) || 0
+      
       # Convert float spent time to hours and minutes
-      hours = issue.spent_hours.to_i
-      minutesDecimal = (( issue.spent_hours - hours) * 60)
+      hours  = spent_hours.to_i
+      minutesDecimal = (( spent_hours - hours) * 60)
       minutes = minutesDecimal.to_i
+      
+      # update time entries billed status
+      spent_time.each do |entry|
+        entry.qbo_billed = true
+        entry.save
+      end
       
       employee_id = User.find_by_id(issue.assigned_to_id).qbo_employee_id
      

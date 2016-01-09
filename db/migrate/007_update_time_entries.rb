@@ -8,31 +8,8 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-Redmine::Plugin.register :redmine_qbo do
-
- require_dependency 'issues_form_hook_listener'
- require_dependency 'issues_save_hook_listener'
- require_dependency 'issues_show_hook_listener'
- require_dependency 'users_show_hook_listener'
-
-  name 'Redmine Quickbooks Online plugin'
-  author 'Rick Barrette'
-  description 'This is a plugin for Redmine to intergrate with Quickbooks Online to allow for seamless intergration CRM and invoicing of completed issues'
-  version '0.0.1'
-  url 'https://github.com/rickbarrette/redmine_qbo'
-  author_url 'http://rickbarrette.org'
-  settings :default => {'empty' => true}, :partial => 'qbo/settings'
-
-  # Add safe attributes
-  Issue.safe_attributes 'qbo_customer_id'
-  Issue.safe_attributes 'qbo_item_id'
-  User.safe_attributes 'qbo_employee_id'
-  TimeEntry.safe_attributes 'qbo_billed'
-  
-  # We are playing in the sandbox 
-  Quickbooks.sandbox_mode = true
-
-  # Register QBO top menu item
-  menu :top_menu, :qbo, { :controller => 'qbo', :action => 'index' }, :caption => 'Quickbooks'
-
+class UpdateTimeEntries < ActiveRecord::Migration
+  def change
+    add_column :time_entries, :qbo_billed, :boolean, :default => false
+  end
 end
