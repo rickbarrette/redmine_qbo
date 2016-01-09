@@ -22,9 +22,13 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
   
     output = content_tag(:div, content_tag(:div, content_tag(:div, content_tag(:span,"Customer") + ":", class:"label") +  content_tag(:div, value, class:"value") , class:"qbo_customer_id attribute"), class:"attributes")
     
-    # Check to see if there is a quickbooks user attached to the issue
-    if not context[:issue].qbo_customer_id.nil? then
-      value = QboItem.find_by_id(context[:issue].qbo_item_id).name
+    value = ""
+    
+    # Check to see if there is a quickbooks item attached to the issue
+    if not context[:issue].qbo_customer_id.nil?  then
+      if not QboItem.find_by_id(context[:issue].qbo_item_id).nil? then
+        value = QboItem.find_by_id(context[:issue].qbo_item_id).name
+      end
     end
     
     output << content_tag(:div, content_tag(:div, content_tag(:div, content_tag(:span,"Item") + ":", class:"label") +  content_tag(:div, value, class:"value") , class:"qbo_item_id attribute"), class:"attributes")

@@ -22,8 +22,7 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
       time_service = Quickbooks::Service::TimeActivity.new(:company_id => qbo.realmId, :access_token => Qbo.get_auth_token)
       item_service = Quickbooks::Service::Item.new(:company_id => qbo.realmId, :access_token => Qbo.get_auth_token)
       time_entry = Quickbooks::Model::TimeActivity.new
-      item = item_service.fetch_by_id issue.qbo_item_id
-
+      
       # Get unbilled time entries
       spent_time = issue.time_entries.where(qbo_billed: [false, nil])
       spent_hours ||= spent_time.sum(:hours) || 0
@@ -44,6 +43,7 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
       # If the issue is closed, then create a new billable time activty for the customer
       # TODO Add configuration settings for employee_id, hourly_rate, item_id
       if issue.status.is_closed? and not issue.qbo_customer_id.nil? and not issue.qbo_item_id.nil? and not employee_id.nil? and spent_hours > 0 then
+        item = item_service.fetch_by_id issue.qbo_item_id
         time_entry.description = "#{issue.tracker} ##{issue.id}: #{issue.subject}"
         time_entry.employee_id = employee_id
         time_entry.customer_id = issue.qbo_customer_id

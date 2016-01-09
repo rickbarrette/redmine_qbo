@@ -30,7 +30,7 @@ Redmine::Plugin.register :redmine_qbo do
   TimeEntry.safe_attributes 'qbo_billed'
   
   # We are playing in the sandbox 
-  Quickbooks.sandbox_mode = true
+  #Quickbooks.sandbox_mode = true
 
   # Register QBO top menu item
   menu :top_menu, :qbo, { :controller => 'qbo', :action => 'index' }, :caption => 'Quickbooks'
