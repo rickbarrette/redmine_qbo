@@ -8,51 +8,9 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class QboHookListener < Redmine::Hook::ViewListener
+class IssuesSaveHookListener < Redmine::Hook::ViewListener
 
-  # Edit Issue Form
-  # Show a dropdown for quickbooks contacts
-  def view_issues_form_details_bottom(context={})
-    selected = ""
- 
-    # Check to see if there is a quickbooks user attached to the issue
-    if not context[:issue].qbo_customer_id.nil? then
-      selected_customer = context[:issue].qbo_customer_id
-      selected_item = context[:issue].qbo_item_id
-    end
-
-    # Generate the drop down list of quickbooks contacts
-    select_customer = context[:form].select :qbo_customer_id, QboCustomers.all.pluck(:name, :id), :selected => selected_customer, include_blank: true
-  
-    # Generate the drop down list of quickbooks contacts
-    select_item = context[:form].select :qbo_item_id, QboItem.all.pluck(:name, :id), :selected => selected_item, include_blank: true
-    return "<p>#{select_customer}</p> <p>#{select_item}</p>"
-  end
-
-  # View Issue
-  # Display the quickbooks contact in the issue
-  def view_issues_show_details_bottom(context={})
-    value = ""
-
-    # Check to see if there is a quickbooks user attached to the issue
-    if not context[:issue].qbo_customer_id.nil? then
-      value = QboCustomers.find_by_id(context[:issue].qbo_customer_id).name
-    end
-  
-    output = content_tag(:div, content_tag(:div, content_tag(:div, content_tag(:span,"Customer") + ":", class:"label") +  content_tag(:div, value, class:"value") , class:"qbo_customer_id attribute"), class:"attributes")
-    
-    # Check to see if there is a quickbooks user attached to the issue
-    if not context[:issue].qbo_customer_id.nil? then
-      value = QboItem.find_by_id(context[:issue].qbo_item_id).name
-    end
-    
-    output << content_tag(:div, content_tag(:div, content_tag(:div, content_tag(:span,"Item") + ":", class:"label") +  content_tag(:div, value, class:"value") , class:"qbo_item_id attribute"), class:"attributes")
-  
-    # Display the Customers name in the Issue attributes
-    return  output
-  end
-
-  # New Issue Saved
+   # New Issue Saved
   def controller_issues_edit_after_save(context={})
     issue = context[:issue]
     qbo = Qbo.first

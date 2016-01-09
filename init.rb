@@ -10,7 +10,9 @@
 
 Redmine::Plugin.register :redmine_qbo do
 
- require_dependency 'qbo_hook_listener'
+ require_dependency 'issues_form_hook_listener'
+ require_dependency 'issues_save_hook_listener'
+ require_dependency 'issues_show_hook_listener'
 
   name 'Redmine Quickbooks Online plugin'
   author 'Rick Barrette'
