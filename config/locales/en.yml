@@ -12,3 +12,4 @@
 en:
   # my_label: "My label"
   field_qbo_customer: "Customer"
+  field_qbo_item: "Item"

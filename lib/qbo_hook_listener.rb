@@ -17,12 +17,16 @@ class QboHookListener < Redmine::Hook::ViewListener
  
     # Check to see if there is a quickbooks user attached to the issue
     if not context[:issue].qbo_customer_id.nil? then
-      selected = context[:issue].qbo_customer_id
+      selected_customer = context[:issue].qbo_customer_id
+      selected_item = context[:issue].qbo_item_id
     end
 
     # Generate the drop down list of quickbooks contacts
-    select = context[:form].select :qbo_customer_id, QboCustomers.all.pluck(:name, :id), :selected => selected, include_blank: true
-    return "<p>#{select}</p>"
+    select_customer = context[:form].select :qbo_customer_id, QboCustomers.all.pluck(:name, :id), :selected => selected_customer, include_blank: true
+  
+    # Generate the drop down list of quickbooks contacts
+    select_item = context[:form].select :qbo_item_id, QboItem.all.pluck(:name, :id), :selected => selected_item, include_blank: true
+    return "<p>#{select_customer}</p> <p>#{select_item}</p>"
   end
 
   # View Issue
@@ -34,9 +38,18 @@ class QboHookListener < Redmine::Hook::ViewListener
     if not context[:issue].qbo_customer_id.nil? then
       value = QboCustomers.find_by_id(context[:issue].qbo_customer_id).name
     end
-
+  
+    output = content_tag(:div, content_tag(:div, content_tag(:div, content_tag(:span,"Customer") + ":", class:"label") +  content_tag(:div, value, class:"value") , class:"qbo_customer_id attribute"), class:"attributes")
+    
+    # Check to see if there is a quickbooks user attached to the issue
+    if not context[:issue].qbo_customer_id.nil? then
+      value = QboItem.find_by_id(context[:issue].qbo_item_id).name
+    end
+    
+    output << content_tag(:div, content_tag(:div, content_tag(:div, content_tag(:span,"Item") + ":", class:"label") +  content_tag(:div, value, class:"value") , class:"qbo_item_id attribute"), class:"attributes")
+  
     # Display the Customers name in the Issue attributes
-    return  content_tag(:div, content_tag(:div, content_tag(:div, content_tag(:span,"Customer") + ":", class:"label") +  content_tag(:div, value, class:"value") , class:"qbo_customer_id attribute"), class:"attributes")
+    return  output
   end
 
   # New Issue Saved
@@ -49,7 +62,9 @@ class QboHookListener < Redmine::Hook::ViewListener
       
       # Prepare to create a new Time Activity
       time_service = Quickbooks::Service::TimeActivity.new(:company_id => qbo.realmId, :access_token => Qbo.get_auth_token)
+      item_service = Quickbooks::Service::Item.new(:company_id => qbo.realmId, :access_token => Qbo.get_auth_token)
       time_entry = Quickbooks::Model::TimeActivity.new
+      item = item_service.fetch_by_id issue.qbo_item_id
 
       # Convert float spent time to hours and minutes
       hours = issue.spent_hours.to_i
@@ -58,7 +73,7 @@ class QboHookListener < Redmine::Hook::ViewListener
      
       # If the issue is closed, then create a new billable time activty for the customer
       # TODO Add configuration settings for employee_id, hourly_rate, item_id
-      if issue.status.is_closed? and not issue.qbo_customer_id.nil? then
+      if issue.status.is_closed? and not issue.qbo_customer_id.nil? and not issue.qbo_item_id.nil? then
          time_entry.description = issue.subject
          time_entry.employee_id = 59
          time_entry.customer_id = issue.qbo_customer_id
@@ -67,8 +82,8 @@ class QboHookListener < Redmine::Hook::ViewListener
          time_entry.minutes = minutes
          time_entry.name_of = "Employee"
          time_entry.txn_date = Date.today
-         time_entry.hourly_rate = 50
-         time_entry.item_id = 19 
+         time_entry.hourly_rate = item.unit_price
+         time_entry.item_id = issue.qbo_item_id 
          time_entry.start_time = issue.start_date
          time_entry.end_time = Time.now
          time_service.create(time_entry)

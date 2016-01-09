@@ -11,5 +11,6 @@
 class UpdateIssues < ActiveRecord::Migration
   def change
     add_reference :issues, :qbo_customer, index: true
+    add_reference :issues, :qbo_item, index: true
   end
 end

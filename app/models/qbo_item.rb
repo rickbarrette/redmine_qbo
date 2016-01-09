@@ -10,8 +10,9 @@
 
 class QboItem < ActiveRecord::Base
   unloadable
-   attr_accessible :name
-   validates_presence_of :id, :name
+  has_many :issues
+  attr_accessible :name
+  validates_presence_of :id, :name
   
   def self.update_all 
     qbo = Qbo.first

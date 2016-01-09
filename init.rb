@@ -22,6 +22,7 @@ Redmine::Plugin.register :redmine_qbo do
 
   # Add qbo_customer to the safe Issue Attributes list
   Issue.safe_attributes 'qbo_customer_id'
+  Issue.safe_attributes 'qbo_item_id'
 
   # We are playing in the sandbox 
   Quickbooks.sandbox_mode = true
