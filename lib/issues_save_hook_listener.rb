@@ -28,23 +28,25 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
       hours = issue.spent_hours.to_i
       minutesDecimal = (( issue.spent_hours - hours) * 60)
       minutes = minutesDecimal.to_i
+      
+      employee_id = User.find_by_id(issue.assigned_to_id).qbo_employee_id
      
       # If the issue is closed, then create a new billable time activty for the customer
       # TODO Add configuration settings for employee_id, hourly_rate, item_id
-      if issue.status.is_closed? and not issue.qbo_customer_id.nil? and not issue.qbo_item_id.nil? then
-         time_entry.description = issue.subject
-         time_entry.employee_id = 59
-         time_entry.customer_id = issue.qbo_customer_id
-         time_entry.billable_status = "Billable"
-         time_entry.hours = hours
-         time_entry.minutes = minutes
-         time_entry.name_of = "Employee"
-         time_entry.txn_date = Date.today
-         time_entry.hourly_rate = item.unit_price
-         time_entry.item_id = issue.qbo_item_id 
-         time_entry.start_time = issue.start_date
-         time_entry.end_time = Time.now
-         time_service.create(time_entry)
+      if issue.status.is_closed? and not issue.qbo_customer_id.nil? and not issue.qbo_item_id.nil? and not employee_id.nil? then
+        time_entry.description = "Ticket ##{issue.id}: #{issue.subject}"
+        time_entry.employee_id = employee_id
+        time_entry.customer_id = issue.qbo_customer_id
+        time_entry.billable_status = "Billable"
+        time_entry.hours = hours
+        time_entry.minutes = minutes
+        time_entry.name_of = "Employee"
+        time_entry.txn_date = Date.today
+        time_entry.hourly_rate = item.unit_price
+        time_entry.item_id = issue.qbo_item_id 
+        time_entry.start_time = issue.start_date
+        time_entry.end_time = Time.now
+        time_service.create(time_entry)
       end
     end
   end

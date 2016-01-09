@@ -10,8 +10,9 @@
 
 class QboEmployee < ActiveRecord::Base
   unloadable
-   attr_accessible :name
-   validates_presence_of :id, :name
+  has_many :users
+  attr_accessible :name
+  validates_presence_of :id, :name
   
   def self.update_all 
     qbo = Qbo.first
@@ -25,5 +26,4 @@ class QboEmployee < ActiveRecord::Base
       qbo_employee.save!
     }
   end
-  
 end

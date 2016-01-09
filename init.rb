@@ -13,6 +13,7 @@ Redmine::Plugin.register :redmine_qbo do
  require_dependency 'issues_form_hook_listener'
  require_dependency 'issues_save_hook_listener'
  require_dependency 'issues_show_hook_listener'
+ require_dependency 'users_show_hook_listener'
 
   name 'Redmine Quickbooks Online plugin'
   author 'Rick Barrette'
@@ -22,9 +23,10 @@ Redmine::Plugin.register :redmine_qbo do
   author_url 'http://rickbarrette.org'
   settings :default => {'empty' => true}, :partial => 'qbo/settings'
 
-  # Add qbo_customer to the safe Issue Attributes list
+  # Add safe attributes
   Issue.safe_attributes 'qbo_customer_id'
   Issue.safe_attributes 'qbo_item_id'
+  User.safe_attributes 'qbo_employee_id'
 
   # We are playing in the sandbox 
   Quickbooks.sandbox_mode = true
