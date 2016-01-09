@@ -4,13 +4,27 @@
 
 This is a simple plugin for Redmine to connect to Quickbooks Online
 
-This is under heavy development
+The goal of this project is to allow redmine to connect with Quickbooks Online to create time activity entries for completed work when an issue is closed.
+
+####How it works
+* A QBO customer and service item can now be assigned to an issue. 
+* When a issue is closed, a new QBO Time Activity is created
+  - The total time for the Time Activity will be total spent time.
+  - The rate will be the set be the service item
+
+*Warning: * This is under heavy development
+
+##Prerequisites
+
+Sign up to become a developer for Intuit https://developer.intuit.com/
 
 ##The Install
 
 To install, clone into your plugin folder and migrate your database. Then navigate to the plugin configuration page (https://your.redmine.com/settings/plugin/redmine_qbo) and suppy your own OAuth key & secret. 
 
 After saving your key & secret, you need to click on the Authenticate link on the plugin configuration page to authenticate with QBO.
+
+Once you are authenticated with QBO, you need to synchronize your database with QBO by clicking the sync link in the Quickbooks top menu (https://your.redmine.com/redmine/qbo)
 
 ##License
 
