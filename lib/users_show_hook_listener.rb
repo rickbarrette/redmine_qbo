@@ -13,6 +13,8 @@ class UsersShowHookListener < Redmine::Hook::ViewListener
   # View User
   def view_users_form(context={})
     selected = ""
+    
+    QboEmployee.update_all
  
     # Check to see if there is a quickbooks user attached to the issue
     if not context[:user].qbo_employee_id.nil? then

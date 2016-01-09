@@ -14,6 +14,9 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
   # Show a dropdown for quickbooks contacts
   def view_issues_form_details_bottom(context={})
     selected = ""
+    
+    QboCustomers.update_all
+    QboItem.update_all
  
     # Check to see if there is a quickbooks user attached to the issue
     if not context[:issue].qbo_customer_id.nil? then
