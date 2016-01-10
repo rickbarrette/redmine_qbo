@@ -12,25 +12,25 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 <body>
     <h1> Redmine Quickbooks</h1>
-    <p>Customer Count: <%= @qbo_customer_count %></p>
-    <p>Item Count:         <%= @qbo_item_count %></p>
-    <p>Employee Count: <%= @qbo_employee_count %></P>
-    
     <%= form_for @qbo do |f|%>   
       <div>
-        <%= f.label "Customers" %>
+        <%= f.label "Customer Count:"+@qbo_customer_count.to_s%>
         <br/>
         <%= f.select :qbo_customer_id, QboCustomers.all.pluck(:name, :id), :selected => @selected_customer, include_blank: true %>
       </div>
       
+      <br/>
+      
       <div>
-        <%= f.label "Items" %>
+        <%= f.label "Item Count: "+@qbo_item_count.to_s %>
         <br/>
         <%= f.select :qbo_item_id, QboItem.all.pluck(:name, :id).reverse, :selected => @selected_item, include_blank: true %>
       </div>
       
+      <br/>
+      
       <div>
-        <%= f.label "Employees" %>
+        <%= f.label "Employee Count: "+@qbo_employee_count.to_s %>
         <br/>
         <%= f.select :qbo_employee_id, QboEmployee.all.pluck(:name, :id), :selected => @selected_employee, include_blank: true %>
       </div>
@@ -40,3 +40,4 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <br/>
     <%= link_to "Sync", qbo_sync_path %>
 </body>
+t
