@@ -1,8 +1,6 @@
 #Redmine Quickbooks Online
 
-##About
-
-This is a simple plugin for Redmine to connect to Quickbooks Online
+A simple plugin for Redmine to connect to Quickbooks Online
 
 The goal of this project is to allow redmine to connect with Quickbooks Online to create time activity entries for completed work when an issue is closed.
 
@@ -32,12 +30,12 @@ The goal of this project is to allow redmine to connect with Quickbooks Online t
   ' rake redmine:plugins:migrate RAILS_ENV=production '
   
 3. Navigate to the plugin configuration page (https://your.redmine.com/settings/plugin/redmine_qbo) and suppy your own OAuth key & secret. 
+
 4. After saving your key & secret, you need to click on the Authenticate link on the plugin configuration page to authenticate with QBO.
+
 5. Enjoy
 
-Note: Customers and Employees with automaticly update during normail usage of redmine i.e. a page refresh
-
-Note:nService Items do not automaticly update at this time, if you add/remove service items you will need to synchronize your database with QBO by clicking the sync link in the Quickbooks top menu (https://your.redmine.com/redmine/qbo)
+Note: Customers, Employees, and Service Items with automaticly update during normal usage of redmine i.e. a page refresh. You can also manualy force redmine to sync its database with QBO clicking the sync link in the Quickbooks top menu page (https://your.redmine.com/redmine/qbo)
 
 ##License
 
