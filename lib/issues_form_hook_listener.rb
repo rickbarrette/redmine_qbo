@@ -28,7 +28,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     select_customer = context[:form].select :qbo_customer_id, QboCustomers.all.pluck(:name, :id), :selected => selected_customer, include_blank: true
   
     # Generate the drop down list of quickbooks contacts
-    select_item = context[:form].select :qbo_item_id, QboItem.all.pluck(:name, :id), :selected => selected_item, include_blank: true
+    select_item = context[:form].select :qbo_item_id, QboItem.all.pluck(:name, :id).reverse, :selected => selected_item, include_blank: true
     return "<p>#{select_customer}</p> <p>#{select_item}</p>"
   end
 

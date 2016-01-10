@@ -26,7 +26,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
       <div>
         <%= f.label "Items" %>
         <br/>
-        <%= f.select :qbo_item_id, QboItem.all.pluck(:name, :id), :selected => @selected_item, include_blank: true %>
+        <%= f.select :qbo_item_id, QboItem.all.pluck(:name, :id).reverse, :selected => @selected_item, include_blank: true %>
       </div>
       
       <div>
