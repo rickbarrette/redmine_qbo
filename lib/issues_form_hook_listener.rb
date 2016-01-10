@@ -16,7 +16,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     selected = ""
     
     QboCustomers.update_all
-    #QboItem.update_all
+    QboItem.update_all
  
     # Check to see if there is a quickbooks user attached to the issue
     if not context[:issue].qbo_customer_id.nil? then

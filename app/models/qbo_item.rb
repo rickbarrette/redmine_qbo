@@ -19,7 +19,7 @@ class QboItem < ActiveRecord::Base
     service = Quickbooks::Service::Item.new(:company_id => qbo.realmId, :access_token => Qbo.get_auth_token)
     
     # Update the item table
-    service.all.each { |item|
+    service.find_by(:type, "Service").each { |item|
       qbo_item = QboItem.find_or_create_by(id: item.id)
       qbo_item.name = item.name
       qbo_item.id = item.id
