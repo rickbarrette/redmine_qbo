@@ -30,4 +30,8 @@ class Qbo < ActiveRecord::Base
   def self.get_oauth_consumer
     return $qb_oauth_consumer
   end
+  
+  def self.get_realm_id
+    return first.realmId
+  end
 end

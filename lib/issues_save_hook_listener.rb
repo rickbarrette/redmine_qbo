@@ -13,20 +13,33 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
    # New Issue Saved
   def controller_issues_edit_after_save(context={})
     issue = context[:issue]
-    qbo = Qbo.first
+    employee_id = User.find_by_id(issue.assigned_to_id).qbo_employee_id
 
     # Check to see if we have registered with QBO
-    if not qbo.nil? then
-      
+    unless Qbo.first.nil? then
+     
+      # If the issue is closed, then create a new billable time activty for the customer
+      # TODO Add configuration settings for employee_id, hourly_rate, item_id
+      if issue.status.is_closed? and not issue.qbo_customer_id.nil? and not issue.qbo_item_id.nil? and not employee_id.nil? then
+          bill_time(issue, employee_id)
+      end
+    end
+  end
+  
+  # Create billable time entries
+  def bill_time(issue, employee_id)
+  
+    # Get unbilled time entries
+    spent_time = issue.time_entries.where(qbo_billed: [false, nil])
+    spent_hours ||= spent_time.sum(:hours) || 0
+    
+    if spent_hours > 0 then
+    
       # Prepare to create a new Time Activity
-      time_service = Quickbooks::Service::TimeActivity.new(:company_id => qbo.realmId, :access_token => Qbo.get_auth_token)
-      item_service = Quickbooks::Service::Item.new(:company_id => qbo.realmId, :access_token => Qbo.get_auth_token)
+      time_service = Quickbooks::Service::TimeActivity.new(:company_id => Qbo.get_realm_id, :access_token => Qbo.get_auth_token)
+      item_service = Quickbooks::Service::Item.new(:company_id => Qbo.get_realm_id, :access_token => Qbo.get_auth_token)
       time_entry = Quickbooks::Model::TimeActivity.new
-      
-      # Get unbilled time entries
-      spent_time = issue.time_entries.where(qbo_billed: [false, nil])
-      spent_hours ||= spent_time.sum(:hours) || 0
-      
+    
       # Convert float spent time to hours and minutes
       hours  = spent_hours.to_i
       minutesDecimal = (( spent_hours - hours) * 60)
@@ -37,27 +50,21 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
         entry.qbo_billed = true
         entry.save
       end
-      
-      employee_id = User.find_by_id(issue.assigned_to_id).qbo_employee_id
-     
-      # If the issue is closed, then create a new billable time activty for the customer
-      # TODO Add configuration settings for employee_id, hourly_rate, item_id
-      if issue.status.is_closed? and not issue.qbo_customer_id.nil? and not issue.qbo_item_id.nil? and not employee_id.nil? and spent_hours > 0 then
-        item = item_service.fetch_by_id issue.qbo_item_id
-        time_entry.description = "#{issue.tracker} ##{issue.id}: #{issue.subject}"
-        time_entry.employee_id = employee_id
-        time_entry.customer_id = issue.qbo_customer_id
-        time_entry.billable_status = "Billable"
-        time_entry.hours = hours
-        time_entry.minutes = minutes
-        time_entry.name_of = "Employee"
-        time_entry.txn_date = Date.today
-        time_entry.hourly_rate = item.unit_price
-        time_entry.item_id = issue.qbo_item_id 
-        time_entry.start_time = issue.start_date
-        time_entry.end_time = Time.now
-        time_service.create(time_entry)
-      end
+    
+      item = item_service.fetch_by_id issue.qbo_item_id
+      time_entry.description = "#{issue.tracker} ##{issue.id}: #{issue.subject}"
+      time_entry.employee_id = employee_id
+      time_entry.customer_id = issue.qbo_customer_id
+      time_entry.billable_status = "Billable"
+      time_entry.hours = hours
+      time_entry.minutes = minutes
+      time_entry.name_of = "Employee"
+      time_entry.txn_date = Date.today
+      time_entry.hourly_rate = item.unit_price
+      time_entry.item_id = issue.qbo_item_id 
+      time_entry.start_time = issue.start_date
+      time_entry.end_time = Time.now
+      time_service.create(time_entry)
     end
   end
 end
