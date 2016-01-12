@@ -19,7 +19,7 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
     unless Qbo.first.nil? and issue.qbo_customer_id.nil? and issue.qbo_item_id.nil? and employee_id.nil? then
      
       # if this is a quote, lets create a new estimate based off estimated hours
-        if issue.tracker.name = "Quote" and issue.status.name = "New" and cf_estimate.nil? then
+        if issue.tracker.name = "Quote" and issue.status.name = "New" and issue.custom_field_value(CustomField.find_by_name("Estimate").id).empty? then
         
           item_service = Quickbooks::Service::Item.new(:company_id => Qbo.get_realm_id, :access_token => Qbo.get_auth_token)
           
@@ -63,16 +63,7 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
       end
     end
   end
-  
-  # returns a new custom value
-  def create_custom_value(name, value)
-    custom_value = CustomValue.new
-    custom_value.custom_field_id = 
-    custom_value.value = value
-    custom_value.customized_type = "Issue"
-    return custom_value
-  end
-  
+    
   # Create billable time entries
   def bill_time(issue, employee_id)
   
