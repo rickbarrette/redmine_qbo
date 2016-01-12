@@ -15,35 +15,38 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
     issue = context[:issue]
     cf_estimate = CustomField.find_by_name("Estimate")
     
-    # if this is a quote, lets create a new estimate based off estimated hours
-      if issue.tracker.name = "Quote" and issue.status.name = "New" and cf_estimate.nil? then
-      
-        item_service = Quickbooks::Service::Item.new(:company_id => Qbo.get_realm_id, :access_token => Qbo.get_auth_token)
+    # Check to see if we have registered with QBO
+    unless Qbo.first.nil? and issue.qbo_customer_id.nil? and issue.qbo_item_id.nil? and employee_id.nil? then
+     
+      # if this is a quote, lets create a new estimate based off estimated hours
+        if issue.tracker.name = "Quote" and issue.status.name = "New" and cf_estimate.nil? then
         
-        estimate  = Quickbooks::Model::Estimate .new
-        estimate .customer_id = issue.qbo_customer_id
-        estimate .txn_date = Date.today
+          item_service = Quickbooks::Service::Item.new(:company_id => Qbo.get_realm_id, :access_token => Qbo.get_auth_token)
+          
+          estimate  = Quickbooks::Model::Estimate .new
+          estimate .customer_id = issue.qbo_customer_id
+          estimate .txn_date = Date.today
 
-        item = item_service.fetch_by_id issue.qbo_item_id
-        line_item = Quickbooks::Model::InvoiceLineItem.new
-        line_item.amount = item.unit_price * issue.estimated_hours
-        line_item.description = issue.subject
-       
-       line_item.sales_item! do |detail|
-          detail.unit_price = item.unit_price
-          detail.quantity = issue.estimated_hours
-          detail.item_id =  issue.qbo_item_id
+          item = item_service.fetch_by_id issue.qbo_item_id
+          line_item = Quickbooks::Model::InvoiceLineItem.new
+          line_item.amount = item.unit_price * issue.estimated_hours
+          line_item.description = issue.subject
+         
+         line_item.sales_item! do |detail|
+            detail.unit_price = item.unit_price
+            detail.quantity = issue.estimated_hours
+            detail.item_id =  issue.qbo_item_id
+          end
+
+          estimate .line_items << line_item
+
+          service = Quickbooks::Service::Estimate.new(:company_id => Qbo.get_realm_id, :access_token => Qbo.get_auth_token)
+          
+          created_estimate = service.create(estimate)
+          issue.custom_field_values = {CustomField.find_by_name("Estimate").id => created_estimate.doc_number}
+          issue.save!
         end
-
-        estimate .line_items << line_item
-
-        service = Quickbooks::Service::Estimate.new(:company_id => Qbo.get_realm_id, :access_token => Qbo.get_auth_token)
-        
-        created_estimate = service.create(estimate)
-        issue.custom_field_values = {CustomField.find_by_name("Estimate").id => created_estimate.doc_number}
-        issue.save!
       end
-    
   end
 
    # After Issue Saved
