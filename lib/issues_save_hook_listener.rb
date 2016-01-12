@@ -10,20 +10,64 @@
 
 class IssuesSaveHookListener < Redmine::Hook::ViewListener
 
-   # New Issue Saved
+  #Before Issue Saved
+  def controller_issues_edit_before_save(context={})
+    issue = context[:issue]
+    cf_estimate = CustomField.find_by_name("Estimate")
+    
+    # if this is a quote, lets create a new estimate based off estimated hours
+      if issue.tracker.name = "Quote" and issue.status.name = "New" and cf_estimate.nil? then
+      
+        item_service = Quickbooks::Service::Item.new(:company_id => Qbo.get_realm_id, :access_token => Qbo.get_auth_token)
+        
+        estimate  = Quickbooks::Model::Estimate .new
+        estimate .customer_id = issue.qbo_customer_id
+        estimate .txn_date = Date.today
+
+        item = item_service.fetch_by_id issue.qbo_item_id
+        line_item = Quickbooks::Model::InvoiceLineItem.new
+        line_item.amount = item.unit_price * issue.estimated_hours
+        line_item.description = issue.subject
+       
+       line_item.sales_item! do |detail|
+          detail.unit_price = item.unit_price
+          detail.quantity = issue.estimated_hours
+          detail.item_id =  issue.qbo_item_id
+        end
+
+        estimate .line_items << line_item
+
+        service = Quickbooks::Service::Estimate.new(:company_id => Qbo.get_realm_id, :access_token => Qbo.get_auth_token)
+        
+        created_estimate = service.create(estimate)
+        issue.custom_field_values = {CustomField.find_by_name("Estimate").id => created_estimate.doc_number}
+        issue.save!
+      end
+    
+  end
+
+   # After Issue Saved
   def controller_issues_edit_after_save(context={})
     issue = context[:issue]
     employee_id = User.find_by_id(issue.assigned_to_id).qbo_employee_id
 
     # Check to see if we have registered with QBO
-    unless Qbo.first.nil? then
+    unless Qbo.first.nil? and issue.qbo_customer_id.nil? and issue.qbo_item_id.nil? and employee_id.nil? then
      
       # If the issue is closed, then create a new billable time activty for the customer
-      # TODO Add configuration settings for employee_id, hourly_rate, item_id
-      if issue.status.is_closed? and not issue.qbo_customer_id.nil? and not issue.qbo_item_id.nil? and not employee_id.nil? then
+      if issue.status.is_closed? then
           bill_time(issue, employee_id)
       end
     end
+  end
+  
+  # returns a new custom value
+  def create_custom_value(name, value)
+    custom_value = CustomValue.new
+    custom_value.custom_field_id = 
+    custom_value.value = value
+    custom_value.customized_type = "Issue"
+    return custom_value
   end
   
   # Create billable time entries
