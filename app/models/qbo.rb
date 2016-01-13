@@ -10,11 +10,12 @@
 
 class Qbo < ActiveRecord::Base
   unloadable
-  validates_presence_of :token, :secret, :realmId, :token_expires_at, :reconnect_token_at
+  validates_presence_of :qb_token, :qb_secret, :company_id, :token_expires_at, :reconnect_token_at
 
   QB_KEY = Setting.plugin_redmine_qbo['settingsOAuthConsumerKey']
   QB_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
 
+  # Quickbooks Config Info
   $qb_oauth_consumer = OAuth::Consumer.new(QB_KEY, QB_SECRET, {
     :site                 => "https://oauth.intuit.com",
     :request_token_path   => "/oauth/v1/get_request_token",
@@ -22,16 +23,15 @@ class Qbo < ActiveRecord::Base
     :access_token_path    => "/oauth/v1/get_access_token"
   })
 
-  def self.get_auth_token
-    qbo = first
-    return OAuth::AccessToken.new($qb_oauth_consumer, qbo.token, qbo.secret)
-  end
-
-  def self.get_oauth_consumer
-    return $qb_oauth_consumer
-  end
-  
-  def self.get_realm_id
-    return first.realmId
+  # Configure quickbooks-ruby-base to access our database
+  Quickbooks::Base.configure do |c|
+      c.persistent_token = 'qb_token'
+      c.persistent_secret = 'qb_secret'
+      c.persistent_company_id =  'company_id'
+   end
+   
+   # Get the QBO account
+  def self.get_account
+    first
   end
 end

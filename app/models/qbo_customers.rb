@@ -13,13 +13,18 @@ class QboCustomers < ActiveRecord::Base
   has_many :issues
   attr_accessible :name
   validates_presence_of :id, :name
+  
+   def self.get_base
+    Quickbooks::Base.new(Qbo.get_account, :employee)
+  end
+   
+  def self.get_customer (id)
+    get_base.service.find_by_id(id)
+  end
 
   def self.update_all 
-    qbo = Qbo.first
-    service = Quickbooks::Service::Customer.new(:company_id => qbo.realmId, :access_token => Qbo.get_auth_token)
-    
     # Update the customer table
-    service.all.each { |customer|
+    get_base.service.all.each { |customer|
       qbo_customer = QboCustomers.find_or_create_by(id: customer.id)
       qbo_customer.id = customer.id
       qbo_customer.name = customer.display_name

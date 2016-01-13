@@ -21,8 +21,8 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
       # if this is a quote, lets create a new estimate based off estimated hours
         if issue.tracker.name = "Quote" and issue.status.name = "New" and issue.custom_field_value(CustomField.find_by_name("Estimate").id).empty? then
         
-          item_service = Quickbooks::Service::Item.new(:company_id => Qbo.get_realm_id, :access_token => Qbo.get_auth_token)
-          
+          item_service = QboItem.get_base.service
+                    
           estimate  = Quickbooks::Model::Estimate .new
           estimate .customer_id = issue.qbo_customer_id
           estimate .txn_date = Date.today

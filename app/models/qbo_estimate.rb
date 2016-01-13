@@ -8,23 +8,23 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class QboItem < ActiveRecord::Base
+class QboEstimate < ActiveRecord::Base
   unloadable
   has_many :issues
-  attr_accessible :name
-  validates_presence_of :id, :name
+  attr_accessible :doc_number
+  validates_presence_of :id, :doc_number
   
   def self.get_base
-    Quickbooks::Base.new(Qbo.get_account, :item)
+    Quickbooks::Base.new(Qbo.get_account, :estimate)
   end
   
   def self.update_all 
     # Update the item table
-    get_base.service.find_by(:type, "Service").each { |item|
-      qbo_item = QboItem.find_or_create_by(id: item.id)
-      qbo_item.name = item.name
-      qbo_item.id = item.id
-      qbo_item.save!
+    get_base.service.all.each { |estimate|
+      qbo_estimate = QboItem.find_or_create_by(id: estimate.id)
+      qbo_estimate.name = estimate.doc_number
+      qbo_estimate.id = estimate.id
+      qbo_estimate.save!
     }
   end
 end
