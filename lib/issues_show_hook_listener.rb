@@ -13,6 +13,7 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
   # View Issue
   # Display the quickbooks contact in the issue
   def view_issues_show_details_bottom(context={})
+    issue = context[:issue]
     value = ""
 
     # Check to see if there is a quickbooks user attached to the issue
@@ -25,13 +26,19 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     value = ""
     
     # Check to see if there is a quickbooks item attached to the issue
-    if not context[:issue].qbo_customer_id.nil?  then
+    if not issue.qbo_customer_id.nil?  then
       if not QboItem.find_by_id(context[:issue].qbo_item_id).nil? then
         value = QboItem.find_by_id(context[:issue].qbo_item_id).name
       end
     end
     
     output << content_tag(:div, content_tag(:div, content_tag(:div, content_tag(:span,"Item") + ":", class:"label") +  content_tag(:div, value, class:"value") , class:"qbo_item_id attribute"), class:"attributes")
+    
+    # Estimate Number
+    unless (issue.qbo_estimate_id.nil?)
+      QboEstimate.update_all
+      output << content_tag(:div, content_tag(:div, content_tag(:div, content_tag(:span,"Estimate") + ":", class:"label") +  content_tag(:div, QboEstimate.find_by_id(issue.qbo_estimate_id).doc_number, class:"value") , class:"qbo_item_id attribute"), class:"attributes")
+    end
   
     # Display the Customers name in the Issue attributes
     return  output

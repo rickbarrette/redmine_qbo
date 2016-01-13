@@ -21,8 +21,8 @@ class QboEstimate < ActiveRecord::Base
   def self.update_all 
     # Update the item table
     get_base.service.all.each { |estimate|
-      qbo_estimate = QboItem.find_or_create_by(id: estimate.id)
-      qbo_estimate.name = estimate.doc_number
+      qbo_estimate = QboEstimate.find_or_create_by(id: estimate.id)
+      qbo_estimate.doc_number = estimate.doc_number
       qbo_estimate.id = estimate.id
       qbo_estimate.save!
     }

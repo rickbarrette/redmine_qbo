@@ -19,15 +19,20 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
     unless Qbo.first.nil? and issue.qbo_customer_id.nil? and issue.qbo_item_id.nil? and employee_id.nil? then
      
       # if this is a quote, lets create a new estimate based off estimated hours
-        if issue.tracker.name = "Quote" and issue.status.name = "New" and issue.custom_field_value(CustomField.find_by_name("Estimate").id).empty? then
+        if issue.tracker.name = "Quote" and issue.status.name = "New" and issue.qbo_estimate_id.nil? then
         
+          # Get QBO Services
           item_service = QboItem.get_base.service
-                    
-          estimate  = Quickbooks::Model::Estimate .new
-          estimate .customer_id = issue.qbo_customer_id
-          estimate .txn_date = Date.today
+          estimate_base = QboEstimate.get_base
+          
+          # Create the estimate
+          estimate  = estimate_base.qr_model(:estimate)
+          estimate.customer_id = issue.qbo_customer_id
+          estimate.txn_date = Date.today
 
+          # Create the line item for labor
           item = item_service.fetch_by_id issue.qbo_item_id
+          
           line_item = Quickbooks::Model::InvoiceLineItem.new
           line_item.amount = item.unit_price * issue.estimated_hours
           line_item.description = issue.subject
@@ -38,12 +43,11 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
             detail.item_id =  issue.qbo_item_id
           end
 
-          estimate .line_items << line_item
+          # Add the line items to the estimate
+          estimate.line_items << line_item
 
-          service = Quickbooks::Service::Estimate.new(:company_id => Qbo.get_realm_id, :access_token => Qbo.get_auth_token)
-          
-          created_estimate = service.create(estimate)
-          issue.custom_field_values = {CustomField.find_by_name("Estimate").id => created_estimate.doc_number}
+          # Save the etimate to the issue
+          issue.qbo_estimate_id = estimate_base.service.create(estimate).id
           issue.save!
         end
       end
