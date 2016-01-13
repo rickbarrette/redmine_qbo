@@ -26,6 +26,7 @@ Redmine::Plugin.register :redmine_qbo do
   # Add safe attributes
   Issue.safe_attributes 'qbo_customer_id'
   Issue.safe_attributes 'qbo_item_id'
+  Issue.safe_attributes 'qbo_estimate_id'
   User.safe_attributes 'qbo_employee_id'
   TimeEntry.safe_attributes 'qbo_billed'
   
