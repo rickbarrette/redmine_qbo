@@ -10,38 +10,50 @@
 
 class IssuesShowHookListener < Redmine::Hook::ViewListener
 
+  # Additional context fields
+  #   :issue  => the issue this is edited
+  #   :f      => the form object to create additional fields
+  #render_on :view_issues_show_details_bottom, :partial => 'hooks/redmine_qbo/_view_issues_show_details_bottom.html.erb'
+
   # View Issue
   # Display the quickbooks contact in the issue
   def view_issues_show_details_bottom(context={})
     issue = context[:issue]
-    value = ""
 
     # Check to see if there is a quickbooks user attached to the issue
-    if not context[:issue].qbo_customer_id.nil? then
-      value = QboCustomers.find_by_id(context[:issue].qbo_customer_id).name
+    unless context[:issue].qbo_customer_id.nil?
+      @customer = QboCustomers.find_by_id(context[:issue].qbo_customer_id).name
     end
   
-    output = content_tag(:div, content_tag(:div, content_tag(:div, content_tag(:span,"Customer") + ":", class:"label") +  content_tag(:div, value, class:"value") , class:"qbo_customer_id attribute"), class:"attributes")
-    
-    value = ""
-    
     # Check to see if there is a quickbooks item attached to the issue
-    if not issue.qbo_customer_id.nil?  then
-      if not QboItem.find_by_id(context[:issue].qbo_item_id).nil? then
-        value = QboItem.find_by_id(context[:issue].qbo_item_id).name
+    unless  issue.qbo_customer_id.nil?  then
+      unless QboItem.find_by_id(context[:issue].qbo_item_id).nil?
+        @item = QboItem.find_by_id(context[:issue].qbo_item_id).name
       end
     end
-    
-    output << content_tag(:div, content_tag(:div, content_tag(:div, content_tag(:span,"Item") + ":", class:"label") +  content_tag(:div, value, class:"value") , class:"qbo_item_id attribute"), class:"attributes")
     
     # Estimate Number
     unless (issue.qbo_estimate_id.nil?)
       QboEstimate.update_all
-      output << content_tag(:div, content_tag(:div, content_tag(:div, content_tag(:span,"Estimate") + ":", class:"label") +  content_tag(:div, QboEstimate.find_by_id(issue.qbo_estimate_id).doc_number, class:"value") , class:"qbo_item_id attribute"), class:"attributes")
+      @estimate =  QboEstimate.find_by_id(issue.qbo_estimate_id).doc_number
     end
+    
+    return "<div class=\"attributes\">
+    <div class=\"qbo_customer_id attribute\">
+    <div class=\"label\"><span>Customer</span>:</div>
+    <div class=\"value\">#{@customer}</div>
+  </div>
   
-    # Display the Customers name in the Issue attributes
-    return  output
+  <div class=\"qbo_item_id attribute\">
+    <div class=\"label\"><span>Item</span>:</div>
+    <div class=\"value\">#{@item}</div>
+  </div>
+  
+    <div class=\"qbo_estimate_id attribute\">
+        <div class=\"label\"><span>Estimate</span>:</div>
+        <div class=\"value\">#{@estimate}</div>
+    </div>
+    </div>"
   end
-
+  
 end
