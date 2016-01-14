@@ -16,7 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
       <div>
         <%= f.label "Customer Count:"+@qbo_customer_count.to_s%>
         <br/>
-        <%= f.select :qbo_customer_id, QboCustomers.all.pluck(:name, :id), :selected => @selected_customer, include_blank: true %>
+        <%= f.select :qbo_customer_id, QboCustomer.all.pluck(:name, :id), :selected => @selected_customer, include_blank: true %>
       </div>
       
       <br/>

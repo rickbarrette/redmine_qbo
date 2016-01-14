@@ -16,7 +16,7 @@ class QboController < ApplicationController
   #
   def index
     @qbo = Qbo.first
-    @qbo_customer_count = QboCustomers.count
+    @qbo_customer_count = QboCustomer.count
     @qbo_item_count = QboItem.count
     @qbo_employee_count = QboEmployee.count
     @selected_customer
@@ -66,7 +66,7 @@ class QboController < ApplicationController
   #
   def sync
     if Qbo.exists? then
-      QboCustomers.update_all
+      QboCustomer.update_all
       QboItem.update_all
       QboEmployee.update_all
       QboEstimate.update_all
