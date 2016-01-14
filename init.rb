@@ -10,30 +10,34 @@
 
 Redmine::Plugin.register :redmine_qbo do
 
- require_dependency 'issues_form_hook_listener'
- require_dependency 'issues_save_hook_listener'
- require_dependency 'issues_show_hook_listener'
- require_dependency 'users_show_hook_listener'
+  # View Hook Listeners
+   require_dependency 'issues_form_hook_listener'
+   require_dependency 'issues_save_hook_listener'
+   require_dependency 'issues_show_hook_listener'
+   require_dependency 'users_show_hook_listener'
+   
+   # Patches to the Redmine core.  Will not work in development mode
+    require_dependency 'issue_patch'
 
-  name 'Redmine Quickbooks Online plugin'
-  author 'Rick Barrette'
-  description 'This is a plugin for Redmine to intergrate with Quickbooks Online to allow for seamless intergration CRM and invoicing of completed issues'
-  version '0.0.2'
-  url 'https://github.com/rickbarrette/redmine_qbo'
-  author_url 'http://rickbarrette.org'
-  settings :default => {'empty' => true}, :partial => 'qbo/settings'
+    name 'Redmine Quickbooks Online plugin'
+    author 'Rick Barrette'
+    description 'This is a plugin for Redmine to intergrate with Quickbooks Online to allow for seamless intergration CRM and invoicing of completed issues'
+    version '0.0.3'
+    url 'https://github.com/rickbarrette/redmine_qbo'
+    author_url 'http://rickbarrette.org'
+    settings :default => {'empty' => true}, :partial => 'qbo/settings'
 
-  # Add safe attributes
-  Issue.safe_attributes 'qbo_customer_id'
-  Issue.safe_attributes 'qbo_item_id'
-  Issue.safe_attributes 'qbo_estimate_id'
-  User.safe_attributes 'qbo_employee_id'
-  TimeEntry.safe_attributes 'qbo_billed'
-  
-  # We are playing in the sandbox 
-  #Quickbooks.sandbox_mode = true
+    # Add safe attributes
+    Issue.safe_attributes 'qbo_customer_id'
+    Issue.safe_attributes 'qbo_item_id'
+    Issue.safe_attributes 'qbo_estimate_id'
+    User.safe_attributes 'qbo_employee_id'
+    TimeEntry.safe_attributes 'qbo_billed'
+    
+    # We are playing in the sandbox 
+    #Quickbooks.sandbox_mode = true
 
-  # Register QBO top menu item
-  menu :top_menu, :qbo, { :controller => 'qbo', :action => 'index' }, :caption => 'Quickbooks'
+    # Register QBO top menu item
+    menu :top_menu, :qbo, { :controller => 'qbo', :action => 'index' }, :caption => 'Quickbooks'
 
 end

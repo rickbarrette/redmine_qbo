@@ -27,4 +27,12 @@ class QboEstimate < ActiveRecord::Base
       qbo_estimate.save!
     }
   end
+  
+  def self.update(id)
+    # Update the item table
+    estimate = get_base.service.fetch_by_id(id)
+      qbo_estimate = QboEstimate.find_or_create_by(id: id)
+      qbo_estimate.doc_number = estimate.doc_number
+      qbo_estimate.save!
+  end
 end

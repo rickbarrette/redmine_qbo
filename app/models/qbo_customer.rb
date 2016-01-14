@@ -8,7 +8,7 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class QboCustomers < ActiveRecord::Base
+class QboCustomer < ActiveRecord::Base
   unloadable
   has_many :issues
   attr_accessible :name
@@ -25,7 +25,7 @@ class QboCustomers < ActiveRecord::Base
   def self.update_all 
     # Update the customer table
     get_base.service.all.each { |customer|
-      qbo_customer = QboCustomers.find_or_create_by(id: customer.id)
+      qbo_customer = QboCustomer.find_or_create_by(id: customer.id)
       qbo_customer.id = customer.id
       qbo_customer.name = customer.display_name
       qbo_customer.save!
