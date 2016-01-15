@@ -74,4 +74,10 @@ class QboController < ApplicationController
 
     redirect_to qbo_path(:redmine_qbo), :flash => { :notice => "Successfully synced to Quickbooks" }
   end
+  
+  def pdf
+    @pdf = "#{base.url_for_resource('estimate')}/#{params['qbo_estimate_id']}/pdf"
+    send_data @pdf, filename: "estimate.pdf", type: :pdf
+  end
+  
 end

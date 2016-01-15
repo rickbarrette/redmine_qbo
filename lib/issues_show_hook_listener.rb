@@ -21,18 +21,22 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     issue = context[:issue]
 
     # Check to see if there is a quickbooks user attached to the issue
-    #unless context[:issue].qbo_customer_id.nil?
+    unless issue.qbo_customer.nil?
       @customer = issue.qbo_customer.name
-    #end
+    end
   
     # Check to see if there is a quickbooks item attached to the issue
-    @item = issue.qbo_item.name
+    unless issue.qbo_item.nil?
+      @item = issue.qbo_item.name
+     end
     
     # Estimate Number
     unless (issue.qbo_estimate.nil?)
       QboEstimate.update(issue.qbo_estimate.id)
       @estimate =  issue.qbo_estimate.doc_number
     end
+    base = QboEstimate.get_base.service
+    #base.initialize
     
     return "<div class=\"attributes\">
     <div class=\"qbo_customer_id attribute\">
@@ -47,7 +51,7 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
   
     <div class=\"qbo_estimate_id attribute\">
         <div class=\"label\"><span>Estimate</span>:</div>
-        <div class=\"value\">#{@estimate}</div>
+        <div class=\"value\"><a href=\"</div>
     </div>
     </div>"
   end
