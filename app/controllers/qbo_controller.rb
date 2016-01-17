@@ -10,6 +10,8 @@
 
 class QboController < ApplicationController
   unloadable
+  
+  require 'open-uri'
 
   #
   # Called when the QBO Top Menu us shown
@@ -75,9 +77,13 @@ class QboController < ApplicationController
     redirect_to qbo_path(:redmine_qbo), :flash => { :notice => "Successfully synced to Quickbooks" }
   end
   
-  def pdf
-    @pdf = "#{base.url_for_resource('estimate')}/#{params['qbo_estimate_id']}/pdf"
-    send_data @pdf, filename: "estimate.pdf", type: :pdf
+  #
+  # Downloads and forwards the estimate pdf
+  #
+  def estimate_pdf
+    base = QboEstimate.get_base.service
+    @pdf = base.pdf(base.fetch_by_id(params[:id]))
+    send_data @pdf, filename: "estimate.pdf", :disposition => 'inline', :type => "application/pdf"
   end
   
 end

@@ -15,4 +15,4 @@ get 'qbo', :to=> 'qbo#index'
 get 'qbo/authenticate', :to => 'qbo#authenticate'
 get 'qbo/oauth_callback', :to => 'qbo#oauth_callback'
 get 'qbo/sync', :to => 'qbo#sync'
-
+get 'qbo/estimate/:id', :to => 'qbo#estimate_pdf', :as => :qbo_estimate_pdf

@@ -35,8 +35,6 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
       QboEstimate.update(issue.qbo_estimate.id)
       @estimate =  issue.qbo_estimate.doc_number
     end
-    base = QboEstimate.get_base.service
-    #base.initialize
     
     return "<div class=\"attributes\">
     <div class=\"qbo_customer_id attribute\">
@@ -51,7 +49,7 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
   
     <div class=\"qbo_estimate_id attribute\">
         <div class=\"label\"><span>Estimate</span>:</div>
-        <div class=\"value\"><a href=\"</div>
+        <div class=\"value\">#{link_to @estimate, qbo_estimate_pdf_path(issue.qbo_estimate.id)}</div>
     </div>
     </div>"
   end
