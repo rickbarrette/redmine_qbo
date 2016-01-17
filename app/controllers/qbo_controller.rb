@@ -10,8 +10,6 @@
 
 class QboController < ApplicationController
   unloadable
-  
-  require 'open-uri'
 
   #
   # Called when the QBO Top Menu us shown
