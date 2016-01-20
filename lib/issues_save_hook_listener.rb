@@ -78,8 +78,8 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
     if spent_hours > 0 then
     
       # Prepare to create a new Time Activity
-      time_service = Quickbooks::Service::TimeActivity.new(:company_id => Qbo.get_realm_id, :access_token => Qbo.get_auth_token)
-      item_service = Quickbooks::Service::Item.new(:company_id => Qbo.get_realm_id, :access_token => Qbo.get_auth_token)
+      time_service = Quickbooks::Base.new(Qbo.get_account, :time_activity).service
+      item_service = Quickbooks::Base.new(Qbo.get_account, :item).service
       time_entry = Quickbooks::Model::TimeActivity.new
     
       # Convert float spent time to hours and minutes
