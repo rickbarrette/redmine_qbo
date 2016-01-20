@@ -32,8 +32,8 @@ class Qbo < ActiveRecord::Base
 
   # Get a quickbooks base object for type
   # @params type of base
-  def self.get_base(type = nil)
-    Quickbooks::Base.new(first, type if type)
+  def self.get_base(type)
+    Quickbooks::Base.new(first, type)
   end
    
    # Get the QBO account
