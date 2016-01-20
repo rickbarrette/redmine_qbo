@@ -15,7 +15,7 @@ class QboEstimate < ActiveRecord::Base
   validates_presence_of :id, :doc_number
   
   def self.get_base
-    Quickbooks::Base.new(Qbo.get_account, :estimate)
+    Qbo.get_base(:estimate)
   end
   
   def self.update_all 
