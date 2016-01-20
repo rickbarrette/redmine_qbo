@@ -5,14 +5,15 @@ A simple plugin for Redmine to connect to Quickbooks Online
 The goal of this project is to allow redmine to connect with Quickbooks Online to create time activity entries for completed work when an issue is closed.
 
 ####How it works
-* A QBO customer and service item can be assigned to a redmine issue.
-* A QBO employee can be assigned to a redmine user
-* When a issue is closed, the following things happen:
-  - The plugin checks to see if the user assinged to the issue has a QBO employee assinged to them
-  - The plugin checks to see if the issue has a QBO customer & service item attached
-  - If the above statements are true, then a new QBO Time Activity is created
-  - The total time for the Time Activity will be total spent time.
-  - The rate will be the set be the service item
+* Issues can be assigned to a QBO Customer and QBO Service Item via drop down in issues form
+  - The QBO Employee for the issue is assigned via the assigned redmine user
+  - IF an issue has been assined a QBO Customer, QBO Service Item & QBO Employee when an issue is closed the following will happen:
+  - A new QBO Time Activity agaist the QBO Customer will be created using the total spent hours logged agaist an issue.
+  - The rate will be the set via the QBO Service Item Price
+* Issues with the Tracker `Quote` will generate an estimate based on the estimated hours and Service Item cost.
+  - Needs to have a QBO Customer & QBO Service Item Assiged
+  - TODO Add rake file to create Quote tracker???
+* Users will be assigned a QBO Employee via a drop down in the user admistration page.
 
 ##Prerequisites
 
@@ -23,19 +24,19 @@ The goal of this project is to allow redmine to connect with Quickbooks Online t
 
 1. To install, clone this repo into your plugin folder 
 
-  ' git clone git@github.com:rickbarrette/redmine_qbo.git ' 
+  `git clone git@github.com:rickbarrette/redmine_qbo.git` 
   
 2. Migrate your database
 
-  ' rake redmine:plugins:migrate RAILS_ENV=production '
+  `rake redmine:plugins:migrate RAILS_ENV=production`
   
-3. Navigate to the plugin configuration page (https://your.redmine.com/settings/plugin/redmine_qbo) and suppy your own OAuth key & secret. 
+3. Navigate to the plugin configuration page `https://your.redmine.com/settings/plugin/redmine_qbo` and suppy your own OAuth key & secret. 
 
 4. After saving your key & secret, you need to click on the Authenticate link on the plugin configuration page to authenticate with QBO.
 
 5. Enjoy
 
-Note: Customers, Employees, and Service Items with automaticly update during normal usage of redmine i.e. a page refresh. You can also manualy force redmine to sync its database with QBO clicking the sync link in the Quickbooks top menu page (https://your.redmine.com/redmine/qbo)
+Note: Customers, Employees, and Service Items with automaticly update during normal usage of redmine i.e. a page refresh. You can also manualy force redmine to sync its database with QBO clicking the sync link in the Quickbooks top menu page `https://your.redmine.com/redmine/qbo`
 
 ##License
 
