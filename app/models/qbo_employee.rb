@@ -15,7 +15,7 @@ class QboEmployee < ActiveRecord::Base
   validates_presence_of :id, :name
   
   def self.get_base
-    Quickbooks::Base.new(Qbo.get_account, :employee)
+    Qbo.get_base(:employee)
   end
   
   def self.update_all 
