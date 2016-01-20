@@ -29,6 +29,12 @@ class Qbo < ActiveRecord::Base
       c.persistent_secret = 'qb_secret'
       c.persistent_company_id =  'company_id'
    end
+
+  # Get a quickbooks base object for type
+  # @params type of base
+  def self.get_base(type = nil)
+    Quickbooks::Base.new(first, type if type)
+  end
    
    # Get the QBO account
   def self.get_account
