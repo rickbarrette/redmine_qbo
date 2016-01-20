@@ -15,7 +15,7 @@ class QboItem < ActiveRecord::Base
   validates_presence_of :id, :name
   
   def self.get_base
-    Quickbooks::Base.new(Qbo.get_account, :item)
+    Qbo.get_base(:item)
   end
   
   def self.update_all 
