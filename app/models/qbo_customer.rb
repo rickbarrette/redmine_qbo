@@ -15,7 +15,7 @@ class QboCustomer < ActiveRecord::Base
   validates_presence_of :id, :name
   
    def self.get_base
-    Quickbooks::Base.new(Qbo.get_account, :customer)
+    Qbo.get_base(:customer)
   end
    
   def self.get_customer (id)
