@@ -4,6 +4,8 @@ A simple plugin for Redmine to connect to Quickbooks Online
 
 The goal of this project is to allow redmine to connect with Quickbooks Online to create time activity entries for completed work when an issue is closed.
 
+`Note: This project is under heavy development. Currently the initial functionality goal has been meet, however I am still working on adding other features. Tags should be stable`
+
 ####How it works
 * Issues can be assigned to a QBO Customer and QBO Service Item via drop down in issues form
   - The QBO Employee for the issue is assigned via the assigned redmine user
@@ -12,7 +14,6 @@ The goal of this project is to allow redmine to connect with Quickbooks Online t
   - The rate will be the set via the QBO Service Item Price
 * Issues with the Tracker `Quote` will generate an estimate based on the estimated hours and Service Item cost.
   - Needs to have a QBO Customer & QBO Service Item Assiged
-  - TODO Add rake file to create Quote tracker???
 * Users will be assigned a QBO Employee via a drop down in the user admistration page.
 
 ##Prerequisites
@@ -37,6 +38,13 @@ The goal of this project is to allow redmine to connect with Quickbooks Online t
 5. Enjoy
 
 Note: Customers, Employees, and Service Items with automaticly update during normal usage of redmine i.e. a page refresh. You can also manualy force redmine to sync its database with QBO clicking the sync link in the Quickbooks top menu page `https://your.redmine.com/redmine/qbo`
+
+## TODO
+  * Abiltiy to add line items to a ticket in a dynamic table so they can be added to the invoice upon closing of the issue
+  * Add a rake file to create required Trackers or statuses required
+  * Add link Invoice PDF to issue after creation.
+  * Clean up view hook code, possibly use a controller hook and reder partial views
+  * Add Setting for Sandbox Mode
 
 ##License
 
