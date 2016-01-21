@@ -8,13 +8,13 @@ The goal of this project is to allow redmine to connect with Quickbooks Online t
 
 ####How it works
 * Issues can be assigned to a QBO Customer and QBO Service Item via drop down in issues form
-  - The QBO Employee for the issue is assigned via the assigned redmine user
-  - IF an issue has been assined a QBO Customer, QBO Service Item & QBO Employee when an issue is closed the following will happen:
-  - A new QBO Time Activity agaist the QBO Customer will be created using the total spent hours logged agaist an issue.
-  - The rate will be the set via the QBO Service Item Price
-* Issues with the Tracker `Quote` will generate an estimate based on the estimated hours and Service Item cost.
-  - Needs to have a QBO Customer & QBO Service Item Assiged
-* Users will be assigned a QBO Employee via a drop down in the user admistration page.
+  - The `QBO Employee` for the issue is assigned via the assigned redmine user
+  - IF an `Issue` has been assined a `QBO Customer`, `QBO Service Item` & `QBO Employee` when an `Issue` is closed the following will happen:
+  - A new `QBO Time Activity` agaist the `QBO Customer` will be created using the total spent hours logged agaist an `Issue`.
+  - The rate will be the set via the `QBO Service Item` price
+* `Issues` with the Tracker `Quote` will generate an estimate based on the estimated hours and `QBO Service Item` cost.
+  - Needs to have a `QBO Customer` & `QBO Service Item` Assiged
+* Users will be assigned a `QBO Employee` via a drop down in the user admistration page.
 
 ##Prerequisites
 
