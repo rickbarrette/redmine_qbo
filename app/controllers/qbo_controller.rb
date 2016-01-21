@@ -65,7 +65,7 @@ class QboController < ApplicationController
   # Synchronizes the QboCustomer table with QBO
   #
   def sync
-    if Qbo.exists? then
+    if Qbo.exists?
       QboCustomer.update_all
       QboItem.update_all
       QboEmployee.update_all
