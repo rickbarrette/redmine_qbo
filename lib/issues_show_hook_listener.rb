@@ -21,14 +21,10 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     issue = context[:issue]
 
     # Check to see if there is a quickbooks user attached to the issue
-    unless issue.qbo_customer.nil?
-      @customer = issue.qbo_customer.name
-    end
-  
+    @customer = issue.qbo_customer.name unless issue.qbo_customer.nil?
+    
     # Check to see if there is a quickbooks item attached to the issue
-    unless issue.qbo_item.nil?
-      @item = issue.qbo_item.name
-     end
+    @item = issue.qbo_item.name unless issue.qbo_item.nil?
     
     # Estimate Number
     unless (issue.qbo_estimate.nil?)
@@ -38,21 +34,21 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     end
     
     return "<div class=\"attributes\">
-    <div class=\"qbo_customer_id attribute\">
-    <div class=\"label\"><span>Customer</span>:</div>
-    <div class=\"value\">#{@customer}</div>
-  </div>
+              <div class=\"qbo_customer_id attribute\">
+                <div class=\"label\"><span>Customer</span>:</div>
+                <div class=\"value\">#{@customer}</div>
+              </div>
   
-  <div class=\"qbo_item_id attribute\">
-    <div class=\"label\"><span>Item</span>:</div>
-    <div class=\"value\">#{@item}</div>
-  </div>
+              <div class=\"qbo_item_id attribute\">
+                <div class=\"label\"><span>Item</span>:</div>
+                <div class=\"value\">#{@item}</div>
+              </div>
   
-    <div class=\"qbo_estimate_id attribute\">
-        <div class=\"label\"><span>Estimate</span>:</div>
-        <div class=\"value\">#{@link}</div>
-    </div>
-    </div>"
+              <div class=\"qbo_estimate_id attribute\">
+                <div class=\"label\"><span>Estimate</span>:</div>
+                <div class=\"value\">#{@link}</div>
+              </div>
+            </div>"
   end
   
 end
