@@ -13,8 +13,7 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
   #Before Issue Saved
   def controller_issues_edit_before_save(context={})
     issue = context[:issue]
-    cf_estimate = CustomField.find_by_name("Estimate")
-    
+
     # Check to see if we have registered with QBO
     if Qbo.first && issue.qbo_customer && issue.qbo_item
       
@@ -31,7 +30,7 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
           estimate.txn_date = Date.today
 
           # Create the line item for labor
-          item = item_service.fetch_by_id issue.qbo_item_id
+          item = item_service.fetch_by_id(issue.qbo_item_id)
           
           line_item = Quickbooks::Model::InvoiceLineItem.new
           line_item.amount = item.unit_price * issue.estimated_hours
