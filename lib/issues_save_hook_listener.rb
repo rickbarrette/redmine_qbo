@@ -16,10 +16,10 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
     cf_estimate = CustomField.find_by_name("Estimate")
     
     # Check to see if we have registered with QBO
-    unless Qbo.first.nil? and issue.qbo_customer_id.nil? and issue.qbo_item_id.nil? and employee_id.nil? then
+    unless Qbo.first.nil? && issue.qbo_customer_id.nil? && issue.qbo_item_id.nil? && employee_id.nil?
      
       # if this is a quote, lets create a new estimate based off estimated hours
-        if issue.tracker.name = "Quote" and issue.status.name = "New" and issue.qbo_estimate_id.nil? then
+        if issue.tracker.name = "Quote" && issue.status.name = "New" && issue.qbo_estimate_id.nil?
         
           # Get QBO Services
           item_service = QboItem.get_base.service
@@ -59,12 +59,10 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
     employee_id = User.find_by_id(issue.assigned_to_id).qbo_employee_id
 
     # Check to see if we have registered with QBO
-    unless Qbo.first.nil? and issue.qbo_customer_id.nil? and issue.qbo_item_id.nil? and employee_id.nil? then
+    unless Qbo.first.nil? && issue.qbo_customer_id.nil? && issue.qbo_item_id.nil? && employee_id.nil?
      
       # If the issue is closed, then create a new billable time activty for the customer
-      if issue.status.is_closed? then
-          bill_time(issue, employee_id)
-      end
+      bill_time(issue, employee_id) if issue.status.is_closed?
     end
   end
     
