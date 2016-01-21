@@ -13,23 +13,21 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
   # Edit Issue Form
   # Show a dropdown for quickbooks contacts
   def view_issues_form_details_bottom(context={})
-    selected = ""
-    
+    # Update the customer and item database
     QboCustomer.update_all
     QboItem.update_all
  
     # Check to see if there is a quickbooks user attached to the issue
-    if not context[:issue].qbo_customer_id.nil?
-      selected_customer = context[:issue].qbo_customer_id
-      selected_item = context[:issue].qbo_item_id
+    if context[:issue].qbo_customer && context[:issue].qbo_item
+      @selected_customer = context[:issue].qbo_customer.id
+      @selected_item = context[:issue].qbo_item.id
     end
 
     # Generate the drop down list of quickbooks contacts
-    select_customer = context[:form].select :qbo_customer_id, QboCustomer.all.pluck(:name, :id), :selected => selected_customer, include_blank: true
+    @select_customer = context[:form].select :qbo_customer_id, QboCustomer.all.pluck(:name, :id), :selected => @selected_customer, include_blank: true
   
     # Generate the drop down list of quickbooks contacts
-    select_item = context[:form].select :qbo_item_id, QboItem.all.pluck(:name, :id).reverse, :selected => selected_item, include_blank: true
-    return "<p>#{select_customer}</p> <p>#{select_item}</p>"
+    @select_item = context[:form].select :qbo_item_id, QboItem.all.pluck(:name, :id).reverse, :selected => @selected_item, include_blank: true
+    return "<p>#{@select_customer}</p> <p>#{@select_item}</p>"
   end
-
 end
