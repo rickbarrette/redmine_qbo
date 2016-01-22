@@ -17,7 +17,7 @@ class UsersShowHookListener < Redmine::Hook::ViewListener
     QboEmployee.update_all
  
     # Check to see if there is a quickbooks user attached to the issue
-    @selected = context[:user].qbo_employee_id unless context[:user].qbo_employee_id.nil?
+    @selected = context[:user].qbo_employee.id if context[:user].qbo_employee
 
     # Generate the drop down list of quickbooks contacts
     return "<p>#{context[:form].select :qbo_employee_id, QboEmployee.all.pluck(:name, :id), :selected => @selected, include_blank: true}</p>"
