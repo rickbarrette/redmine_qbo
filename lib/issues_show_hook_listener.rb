@@ -21,13 +21,13 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     issue = context[:issue]
 
     # Check to see if there is a quickbooks user attached to the issue
-    @customer = issue.qbo_customer.name unless issue.qbo_customer.nil?
+    @customer = issue.qbo_customer.name if issue.qbo_customer
     
     # Check to see if there is a quickbooks item attached to the issue
-    @item = issue.qbo_item.name unless issue.qbo_item.nil?
+    @item = issue.qbo_item.name if issue.qbo_item
     
     # Estimate Number
-    unless (issue.qbo_estimate.nil?)
+    if issue.qbo_estimate
       QboEstimate.update(issue.qbo_estimate.id)
       @estimate =  issue.qbo_estimate.doc_number
       @link = link_to @estimate, qbo_estimate_pdf_path(issue.qbo_estimate.id)
