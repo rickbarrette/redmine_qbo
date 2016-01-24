@@ -18,6 +18,7 @@ Redmine::Plugin.register :redmine_qbo do
    
    # Patches to the Redmine core.  Will not work in development mode
     require_dependency 'issue_patch'
+    require_dependency 'user_patch'
 
     name 'Redmine Quickbooks Online plugin'
     author 'Rick Barrette'
