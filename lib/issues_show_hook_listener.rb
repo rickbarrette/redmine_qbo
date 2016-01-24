@@ -30,7 +30,14 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     if issue.qbo_estimate
       QboEstimate.update(issue.qbo_estimate.id)
       @estimate =  issue.qbo_estimate.doc_number
-      @link = link_to @estimate, qbo_estimate_pdf_path(issue.qbo_estimate.id)
+      @estimate_link = link_to @estimate, qbo_estimate_pdf_path(issue.qbo_estimate.id)
+    end
+    
+    # Invoice Number
+    if issue.qbo_invoice
+      QboInvoice.update(issue.qbo_invoice.id)
+      @invoice =  issue.qbo_invoice.doc_number
+      @invoice_link = link_to @invoice, qbo_invoice_pdf_path(issue.qbo_invoice.id)
     end
     
     return "<div class=\"attributes\">
@@ -46,7 +53,12 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
   
               <div class=\"qbo_estimate_id attribute\">
                 <div class=\"label\"><span>Estimate</span>:</div>
-                <div class=\"value\">#{@link}</div>
+                <div class=\"value\">#{@estimate_link}</div>
+              </div>
+              
+              <div class=\"qbo_invoice_id attribute\">
+                <div class=\"label\"><span>Invoice</span>:</div>
+                <div class=\"value\">#{@invoice_link}</div>
               </div>
             </div>"
   end

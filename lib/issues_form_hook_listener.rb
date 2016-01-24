@@ -16,18 +16,22 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     # Update the customer and item database
     QboCustomer.update_all
     QboItem.update_all
+    QboInvoice.update_all
  
     # Check to see if there is a quickbooks user attached to the issue
-    if context[:issue].qbo_customer && context[:issue].qbo_item
-      @selected_customer = context[:issue].qbo_customer.id
-      @selected_item = context[:issue].qbo_item.id
-    end
-
-    # Generate the drop down list of quickbooks contacts
+    @selected_customer = context[:issue].qbo_customer.id  if context[:issue].qbo_customer
+    @selected_item = context[:issue].qbo_item.id  if context[:issue].qbo_item
+    @selected_invoice = context[:issue].qbo_invoice.id  if context[:issue].qbo_invoice
+    
+    # Generate the drop down list of quickbooks customers
     @select_customer = context[:form].select :qbo_customer_id, QboCustomer.all.pluck(:name, :id), :selected => @selected_customer, include_blank: true
   
-    # Generate the drop down list of quickbooks contacts
-    @select_item = context[:form].select :qbo_item_id, QboItem.all.pluck(:name, :id).reverse, :selected => @selected_item, include_blank: true
-    return "<p>#{@select_customer}</p> <p>#{@select_item}</p>"
+    # Generate the drop down list of quickbooks items
+    @select_item = context[:form].select :qbo_item_id, QboItem.all.pluck(:name, :id), :selected => @selected_item, include_blank: true
+    
+    # Generate the drop down list of quickbooks invoices
+    @select_invoice = context[:form].select :qbo_invoice_id, QboInvoice.all.pluck(:doc_number, :id).sort! {|x, y| y <=> x}, :selected => @selected_invoice, include_blank: true
+    
+    return "<p>#{@select_customer}</p> <p>#{@select_item}</p> <p>#{@select_invoice}</p>"
   end
 end

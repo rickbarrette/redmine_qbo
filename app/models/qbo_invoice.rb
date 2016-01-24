@@ -8,12 +8,31 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-# Plugin's routes
-# See: http://guides.rubyonrails.org/routing.html
-#
-get 'qbo', :to=> 'qbo#index'
-get 'qbo/authenticate', :to => 'qbo#authenticate'
-get 'qbo/oauth_callback', :to => 'qbo#oauth_callback'
-get 'qbo/sync', :to => 'qbo#sync'
-get 'qbo/estimate/:id', :to => 'qbo#estimate_pdf', :as => :qbo_estimate_pdf
-get 'qbo/invoice/:id', :to => 'qbo#invoice_pdf', :as => :qbo_invoice_pdf
+class QboInvoice < ActiveRecord::Base
+  unloadable
+  has_many :issues
+  attr_accessible :doc_number
+  validates_presence_of :id, :doc_number
+  
+  def self.get_base
+    Qbo.get_base(:invoice)
+  end
+  
+  def self.update_all 
+    # Update the item table
+    get_base.service.all.each { |invoice|
+      qbo_invoice = find_or_create_by(id: invoice.id)
+      qbo_invoice.doc_number = invoice.doc_number 
+      qbo_invoice.id = invoice.id
+      qbo_invoice.save!
+    }
+  end
+  
+  def self.update(id)
+    # Update the item table
+    invoice = get_base.service.fetch_by_id(id)
+      qbo_invoice = find_or_create_by(id: id)
+      qbo_invoice.doc_number = invoice.doc_number
+      qbo_invoice.save!
+  end
+end

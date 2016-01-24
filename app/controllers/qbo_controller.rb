@@ -70,6 +70,7 @@ class QboController < ApplicationController
       QboItem.update_all
       QboEmployee.update_all
       QboEstimate.update_all
+      QboInvoice.update_all
     end
 
     redirect_to qbo_path(:redmine_qbo), :flash => { :notice => "Successfully synced to Quickbooks" }
@@ -82,6 +83,15 @@ class QboController < ApplicationController
     base = QboEstimate.get_base.service
     @pdf = base.pdf(base.fetch_by_id(params[:id]))
     send_data @pdf, filename: "estimate.pdf", :disposition => 'inline', :type => "application/pdf"
+  end
+  
+  #
+  # Downloads and forwards the invoice pdf
+  #
+  def invoice_pdf
+    base = QboInvoice.get_base.service
+    @pdf = base.pdf(base.fetch_by_id(params[:id]))
+    send_data @pdf, filename: "invoice.pdf", :disposition => 'inline', :type => "application/pdf"
   end
   
 end

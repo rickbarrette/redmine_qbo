@@ -14,3 +14,4 @@ en:
   field_qbo_customer: "Customer"
   field_qbo_item: "Item"
   field_qbo_employee: "Employee"
+  field_qbo_invoice: "Invoice"

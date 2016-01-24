@@ -24,6 +24,7 @@ module IssuePatch
       belongs_to :qbo_customer, primary_key: :id
       belongs_to :qbo_item, primary_key: :id
       belongs_to :qbo_estimate, primary_key: :id
+      belongs_to :qbo_invoice, primary_key: :id
     end
   end
     

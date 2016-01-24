@@ -8,12 +8,11 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-# Plugin's routes
-# See: http://guides.rubyonrails.org/routing.html
-#
-get 'qbo', :to=> 'qbo#index'
-get 'qbo/authenticate', :to => 'qbo#authenticate'
-get 'qbo/oauth_callback', :to => 'qbo#oauth_callback'
-get 'qbo/sync', :to => 'qbo#sync'
-get 'qbo/estimate/:id', :to => 'qbo#estimate_pdf', :as => :qbo_estimate_pdf
-get 'qbo/invoice/:id', :to => 'qbo#invoice_pdf', :as => :qbo_invoice_pdf
+class CreateQboInvoices < ActiveRecord::Migration
+  def change
+    create_table :qbo_invoices, id: false do |t|
+      t.integer :id, :options => 'PRIMARY KEY'
+      t.string :doc_number
+    end
+  end
+end
