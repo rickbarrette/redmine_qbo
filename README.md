@@ -23,7 +23,7 @@ The goal of this project is to allow redmine to connect with Quickbooks Online t
 
 ##The Install
 
-1. To install, clone this repo into your plugin folder 
+1. To install, clone this repo into your plugin folder
 
   `git clone git@github.com:rickbarrette/redmine_qbo.git` 
   
@@ -31,13 +31,25 @@ The goal of this project is to allow redmine to connect with Quickbooks Online t
 
   `rake redmine:plugins:migrate RAILS_ENV=production`
   
-3. Navigate to the plugin configuration page `https://your.redmine.com/settings/plugin/redmine_qbo` and suppy your own OAuth key & secret. 
+3. Navigate to the plugin configuration page and suppy your own OAuth key & secret. 
+
+  ![Alt plugin_config](/Screenshots/plugin_config.png)
 
 4. After saving your key & secret, you need to click on the Authenticate link on the plugin configuration page to authenticate with QBO.
 
-5. Enjoy
+5. Assign an Employee to each of your users via the User Administration Page
 
-Note: Customers, Employees, and Service Items with automaticly update during normal usage of redmine i.e. a page refresh. You can also manualy force redmine to sync its database with QBO clicking the sync link in the Quickbooks top menu page `https://your.redmine.com/redmine/qbo`
+  ![Alt plugin_user_edit](/Screenshots/plugin_user_edit.png)
+  
+## Usage
+
+  To enable automatic `QBO Time Activity` entries for an `Issue` , you need only to assign a `QBO Customer` and `QBO Item` to an `Issue` via drop downs in the creation/update form.
+  
+  ![Alt plugin_issue-edit](/Screenshots/plugin_issue_edit.png)
+
+Note: Customers, Employees, and Service Items with automaticly update during normal usage of redmine i.e. a page refresh. You can also manualy force redmine to sync its database with QBO clicking the sync link in the Quickbooks top menu page 
+
+  ![Alt plugin_top_menu](/Screenshots/plugin_top_menu.png)
 
 ## TODO
   * Abiltiy to add line items to a ticket in a dynamic table so they can be added to the invoice upon closing of the issue
