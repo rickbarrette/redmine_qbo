@@ -16,5 +16,6 @@ class CreateQboPurchases< ActiveRecord::Migration
       t.string :description
       t.integer :customer_id
       t.integer :issue_id
+      end
   end
 end
