@@ -25,25 +25,22 @@ class QboPurchase < ActiveRecord::Base
 
   def self.update_all
    QboPurchase.get_base.service.all.each { |purchase|
-
+      
       purchase.line_items.all? { |line_item|
-
-        detail = line_item.account_based_expense_line_detail if line_item.detail_type = :account_based_expense_line_detail
-        detail = line_item.item_based_expense_line_detail if line_item.detail_type = :item_based_expense_line_detail
-
-        if detail
-          if detail.billable_status =  "Billable"
+        
+        detail = line_item.account_based_expense_line_detail ? line_item.account_based_expense_line_detail : line_item.item_based_expense_line_detail
+        
+        if detail.billable_status =  "Billable"
             qbo_purchase = find_or_create_by(id: purchase.id)
             qbo_purchase.line_id = line_item.id
             qbo_purchase.description = line_item.description
             qbo_purchase.customer_id = detail.customer_ref
-
+            
             #TODO attach to issues
             #qbo_purchase.issue_id = Issue.find_by_invoice()
-
+            
             qbo_purchase.save!
-          end
-      end
+        end
       }
     }
   end
