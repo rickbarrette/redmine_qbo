@@ -10,7 +10,8 @@
 
 class QboCustomer < ActiveRecord::Base
   unloadable
-  has_many :issues, :qbo_purchases
+  has_many :issues
+  has_many :qbo_purchases
   attr_accessible :name
   validates_presence_of :id, :name
   
