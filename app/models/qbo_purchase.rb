@@ -13,7 +13,7 @@ class QboPurchase < ActiveRecord::Base
   belongs_to :issues
   belongs_to :qbo_customer
   attr_accessible :description
-  validates_presence_of :id, :line_id, :description, :customer_id
+  validates_presence_of :id, :line_id, :description, :qbo_customer_id
   
   def self.get_base
     Qbo.get_base(:purchase)
@@ -34,7 +34,7 @@ class QboPurchase < ActiveRecord::Base
             qbo_purchase = find_or_create_by(id: purchase.id)
             qbo_purchase.line_id = line_item.id
             qbo_purchase.description = line_item.description
-            qbo_purchase.customer_id = detail.customer_ref
+            qbo_purchase.qbo_customer_id = detail.customer_ref
             
             #TODO attach to issues
             #qbo_purchase.issue_id = Issue.find_by_invoice()
