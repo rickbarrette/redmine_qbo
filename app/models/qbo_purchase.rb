@@ -10,7 +10,7 @@
 
 class QboPurchase < ActiveRecord::Base
   unloadable
-  belongs_to :issues, :customer
+  belongs_to :issues, :qbo_customer
   attr_accessible :description
   validates_presence_of :id, :line_id, :description, :customer_id
   
