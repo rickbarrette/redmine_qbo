@@ -24,7 +24,7 @@ class QboPurchase < ActiveRecord::Base
   end
 
   def self.update_all
-   QboPurchases.get_base.service.all.each { |purchase|
+   QboPurchase.get_base.service.all.each { |purchase|
 
       purchase.line_items.all.each { |line_item|
 
