@@ -8,11 +8,14 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-# English strings go here for Rails i18n
-en:
-  # my_label: "My label"
-  field_qbo_customer: "Customer"
-  field_qbo_item: "Item"
-  field_qbo_employee: "Employee"
-  field_qbo_invoice: "Invoice"
-  field_qbo_estimate: "Estimate" 
+class CreateQboPurchases< ActiveRecord::Migration
+  def change
+    create_table :qbo_purchases, id: false do |t| 
+      t.integer :id, :options => 'PRIMARY KEY' 
+      t.integer :line_id
+      t.string :description
+      t.integer :customer_id
+      t.integer :issue_id
+      end
+  end
+end

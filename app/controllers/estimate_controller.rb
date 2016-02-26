@@ -7,12 +7,16 @@
 #The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+class EstimateController < ApplicationController
+  unloadable
+  
+  #
+  # Downloads and forwards the estimate pdf
+  #
+  def show
+    base = QboEstimate.get_base.service
+    @pdf = base.pdf(base.fetch_by_id(params[:id]))
+    send_data @pdf, filename: "estimate.pdf", :disposition => 'inline', :type => "application/pdf"
+  end
 
-# English strings go here for Rails i18n
-en:
-  # my_label: "My label"
-  field_qbo_customer: "Customer"
-  field_qbo_item: "Item"
-  field_qbo_employee: "Employee"
-  field_qbo_invoice: "Invoice"
-  field_qbo_estimate: "Estimate" 
+end

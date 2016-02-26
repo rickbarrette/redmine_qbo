@@ -8,28 +8,40 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class QboCustomer < ActiveRecord::Base
+class QboPurchase < ActiveRecord::Base
   unloadable
-  has_many :issues
-  has_many :qbo_purchases
-  attr_accessible :name
-  validates_presence_of :id, :name
+  belongs_to :issues
+  belongs_to :qbo_customer
+  attr_accessible :description
+  validates_presence_of :id, :line_id, :description, :qbo_customer_id
   
-   def self.get_base
-    Qbo.get_base(:customer)
+  def self.get_base
+    Qbo.get_base(:purchase)
   end
-   
-  def self.get_customer (id)
+
+  def self.get_purchase(id)
     get_base.service.find_by_id(id)
   end
 
-  def self.update_all 
-    # Update the customer table
-    get_base.service.all.each { |customer|
-      qbo_customer = QboCustomer.find_or_create_by(id: customer.id)
-      qbo_customer.id = customer.id
-      qbo_customer.name = customer.display_name
-      qbo_customer.save!
+  def self.update_all
+   QboPurchase.get_base.service.all.each { |purchase|
+      
+      purchase.line_items.all? { |line_item|
+        
+        detail = line_item.account_based_expense_line_detail ? line_item.account_based_expense_line_detail : line_item.item_based_expense_line_detail
+        
+        if detail.billable_status =  "Billable"
+            qbo_purchase = find_or_create_by(id: purchase.id)
+            qbo_purchase.line_id = line_item.id
+            qbo_purchase.description = line_item.description
+            qbo_purchase.qbo_customer_id = detail.customer_ref
+            
+            #TODO attach to issues
+            #qbo_purchase.issue_id = Issue.find_by_invoice()
+            
+            qbo_purchase.save
+        end
+      }
     }
   end
 end
