@@ -18,7 +18,7 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
     if Qbo.first && issue.qbo_customer && issue.qbo_item
       
       # if this is a quote, lets create a new estimate based off estimated hours
-        if issue.tracker.name = "Quote" && issue.status.name = "New" && !issue.qbo_estimate
+        if issue.tracker.name = "Quote" && issue.status.name = "New" && issue.qbo_estimate
         
           # Get QBO Services
           item_service = QboItem.get_base.service
@@ -46,8 +46,8 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
           estimate.line_items << line_item
 
           # Save the etimate to the issue
-          issue.qbo_estimate_id = estimate_base.service.create(estimate).id
-          issue.save!
+          #issue.qbo_estimate_id = estimate_base.service.create(estimate).id
+          #issue.save!
         end
       end
   end

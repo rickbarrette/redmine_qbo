@@ -30,14 +30,14 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     if issue.qbo_estimate
       QboEstimate.update(issue.qbo_estimate.id)
       @estimate =  issue.qbo_estimate.doc_number
-      @estimate_link = link_to @estimate, qbo_estimate_pdf_path(issue.qbo_estimate.id)
+      @estimate_link = link_to @estimate, "#{Redmine::Utils::relative_url_root  }/qbo/estimate/#{issue.qbo_estimate.id}", :target => "_blank"
     end
     
     # Invoice Number
     if issue.qbo_invoice
       QboInvoice.update(issue.qbo_invoice.id)
       @invoice =  issue.qbo_invoice.doc_number
-      @invoice_link = link_to @invoice, qbo_invoice_pdf_path(issue.qbo_invoice.id)
+      @invoice_link = link_to @invoice, "#{Redmine::Utils::relative_url_root  }/qbo/invoice/#{issue.qbo_invoice.id}", :target => "_blank"
     end
     
     return "<div class=\"attributes\">
