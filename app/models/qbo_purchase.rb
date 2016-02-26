@@ -39,7 +39,7 @@ class QboPurchase < ActiveRecord::Base
             #TODO attach to issues
             #qbo_purchase.issue_id = Issue.find_by_invoice()
             
-            qbo_purchase.save!
+            qbo_purchase.save
         end
       }
     }
