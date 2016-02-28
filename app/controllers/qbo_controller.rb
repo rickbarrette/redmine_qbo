@@ -19,9 +19,8 @@ class QboController < ApplicationController
     @qbo_customer_count = QboCustomer.count
     @qbo_item_count = QboItem.count
     @qbo_employee_count = QboEmployee.count
-    @selected_customer
-    @selected_item
-    @selected_employee
+    @qbo_invoice_count = QboInvoice.count
+    @qbo_estimate_count = QboEstimate.count
   end
 
   #

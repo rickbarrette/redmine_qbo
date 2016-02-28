@@ -19,12 +19,24 @@ class QboInvoice < ActiveRecord::Base
   end
   
   def self.update_all 
+    service = get_base.service
+    
+    
     # Update the item table
-    get_base.service.all.each { |invoice|
+    service.all.each { |invoice|
       qbo_invoice = find_or_create_by(id: invoice.id)
       qbo_invoice.doc_number = invoice.doc_number 
       qbo_invoice.id = invoice.id
       qbo_invoice.save!
+    }
+    
+    #remove deleted invoices
+    all.each { |invoice|
+      begin
+        service.fetch_by_id(invoice.id)
+      rescue
+        delete_all(id: invoice.id)
+      end
     }
   end
   

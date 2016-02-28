@@ -19,12 +19,23 @@ class QboItem < ActiveRecord::Base
   end
   
   def self.update_all 
+    service = get_base.service
+        
     # Update the item table
-    get_base.service.find_by(:type, "Service").each { |item|
+    service.find_by(:type, "Service").each { |item|
       qbo_item = QboItem.find_or_create_by(id: item.id)
       qbo_item.name = item.name
       qbo_item.id = item.id
       qbo_item.save!
+    }
+    
+    #remove deleted items
+    all.each { |item|
+      begin
+        service.fetch_by_id(item.id)
+      rescue
+        delete_all(id: item.id)
+      end
     }
   end
 end
