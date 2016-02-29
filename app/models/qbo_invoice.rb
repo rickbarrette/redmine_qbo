@@ -27,7 +27,7 @@ class QboInvoice < ActiveRecord::Base
 	    qbo_invoice.save! 
     } 
     #remove deleted invoices 
-    where.not(invoices.map(&:id)).destroy
+    where.not(invoices.map(&:id)).destroy_all
   end
   
   def self.update(id)
