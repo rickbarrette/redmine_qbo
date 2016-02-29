@@ -19,7 +19,7 @@ class QboItem < ActiveRecord::Base
   end
   
   def self.update_all 
-    items = get_base.service.all.find_by(:type, "Service")
+    items = get_base.service.find_by(:type, "Service")
         
     # Update the item table
     items.each { |item|
