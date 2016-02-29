@@ -22,9 +22,9 @@ class QboInvoice < ActiveRecord::Base
     invoices = get_base.service.all
     # Update the invoice table 
     invoices.each { | invoice | 
-	    qbo_invoice = find_or_create_by(id: invoice.id) 
-	    qbo_invoice.doc_number = invoice.doc_number 
-	    qbo_invoice.save! 
+	    find_or_create_by(id: invoice.id) do |i|
+	    	i.doc_number 
+	    end
     } 
     #remove deleted invoices 
     where.not(invoices.map(&:id)).destroy_all
