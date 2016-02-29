@@ -24,24 +24,14 @@ class QboCustomer < ActiveRecord::Base
   end
 
   def self.update_all 
-  
-    service = get_base.service
-    
+    customers = get_base.service.all
     # Update the customer table
-    service.all.each { |customer|
+    customers.each { |customer|
       qbo_customer = QboCustomer.find_or_create_by(id: customer.id)
-      qbo_customer.id = customer.id
       qbo_customer.name = customer.display_name
       qbo_customer.save!
     }
-    
     #remove deleted customers
-    all.each { |customer|
-      begin
-        service.fetch_by_id(customer.id)
-      rescue
-        delete_all(id: customer.id)
-      end 
-    }
+    where.not(customers.map(&:id)).destroy_all
   end
 end
