@@ -14,30 +14,31 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
   # Show a dropdown for quickbooks contacts
   def view_issues_form_details_bottom(context={})
     # Update the customer and item database
-    QboCustomer.update_all
-    QboItem.update_all
-    QboInvoice.update_all
-    QboEstimate.update_all
+    #QboCustomer.update_all
+    #QboItem.update_all
+    #QboInvoice.update_all
+    #QboEstimate.update_all
  
     # Check to see if there is a quickbooks user attached to the issue
-    @selected_customer = context[:issue].qbo_customer.id  if context[:issue].qbo_customer
-    @selected_item = context[:issue].qbo_item.id  if context[:issue].qbo_item
-    @selected_invoice = context[:issue].qbo_invoice.id  if context[:issue].qbo_invoice
-    @selected_estimate = context[:issue].qbo_estimate.id  if context[:issue].qbo_estimate
+    selected_customer = context[:issue].qbo_customer.id  if context[:issue].qbo_customer
+    selected_item = context[:issue].qbo_item.id  if context[:issue].qbo_item
+    selected_invoice = context[:issue].qbo_invoice.id  if context[:issue].qbo_invoice
+    selected_estimate = context[:issue].qbo_estimate.id  if context[:issue].qbo_estimate
     
     # Generate the drop down list of quickbooks customers
-    @select_customer = context[:form].select :qbo_customer_id, QboCustomer.all.pluck(:name, :id), :selected => @selected_customer, include_blank: true
+    @select_customer = context[:form].select :qbo_customer_id, QboCustomer.all.pluck(:name, :id), :selected => selected_customer, include_blank: true
   
     # Generate the drop down list of quickbooks items
-    @select_item = context[:form].select :qbo_item_id, QboItem.all.pluck(:name, :id), :selected => @selected_item, include_blank: true
+    @select_item = context[:form].select :qbo_item_id, QboItem.all.pluck(:name, :id), :selected => selected_item, include_blank: true
     
     # Generate the drop down list of quickbooks invoices
-    @select_invoice = context[:form].select :qbo_invoice_id, QboInvoice.all.pluck(:doc_number, :id).sort! {|x, y| y <=> x}, :selected => @selected_invoice, include_blank: true
+    @select_invoice = context[:form].select :qbo_invoice_id, QboInvoice.all.pluck(:doc_number, :id).sort! {|x, y| y <=> x}, :selected => selected_invoice, include_blank: true
     
     # Generate the drop down list of quickbooks extimates
-    @select_estimate = context[:form].select :qbo_estimate_id, QboEstimate.all.pluck(:doc_number, :id).sort! {|x, y| y <=> x}, :selected => @selected_estimate, include_blank: true
+    @select_estimate = context[:form].select :qbo_estimate_id, QboEstimate.all.pluck(:doc_number, :id).sort! {|x, y| y <=> x}, :selected => selected_estimate, include_blank: true
     
+    #@estimates_link = link_to qbo_update_estimates_path
     
-    return "<p>#{@select_customer}</p> <p>#{@select_item}</p> <p>#{@select_invoice}</p> <p>#{@select_estimate}</p>"
+    return "<p>#{@select_customer}</p> <p>#{@select_item}</p> <p>#{@select_invoice}</p> <p>#{@select_estimate} #{@estimates_link}</p>"
   end
 end
