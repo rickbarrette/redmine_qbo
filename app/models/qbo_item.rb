@@ -20,13 +20,12 @@ class QboItem < ActiveRecord::Base
   
   def self.update_all 
     items = get_base.service.find_by(:type, "Service")
-        
-    # Update the item table
-    items.each { |item|
-      qbo_item = QboItem.find_or_create_by(id: item.id)
-      qbo_item.name = item.name
-      qbo_item.save!
-    }
+    
+    ids = items.map {|i| i.id}
+    names = items.map {|i| i.name}
+    
+    # Update the invoice table 
+    find_or_create_by(id: ids, name: names)
     
     #remove deleted items
     where.not(items.map(&:id)).destroy_all
