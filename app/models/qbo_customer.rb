@@ -29,6 +29,7 @@ class QboCustomer < ActiveRecord::Base
     customers.each { |customer|
       qbo_customer = QboCustomer.find_or_create_by(id: customer.id)
       qbo_customer.name = customer.display_name
+      qbo_customer.id = customer.id
       qbo_customer.save!
     }
     #remove deleted customers
