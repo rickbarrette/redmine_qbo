@@ -24,6 +24,7 @@ class QboInvoice < ActiveRecord::Base
     invoices.each { | invoice | 
 	    qbo_invoice = find_or_create_by(id: invoice.id) 
 	    qbo_invoice.doc_number = invoice.doc_number 
+	    qbo_invoice.id = invoice.id
 	    qbo_invoice.save! 
     } 
     #remove deleted invoices 
