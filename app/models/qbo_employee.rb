@@ -25,6 +25,7 @@ class QboEmployee < ActiveRecord::Base
     employee.each { |employee|
       qbo_employees = QboEmployee.find_or_create_by(id: employee.id)
       qbo_employee.name = employee.display_name
+      qbo_employee.id = employee.id
       qbo_employee.save!
     }
     
