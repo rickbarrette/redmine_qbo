@@ -19,16 +19,16 @@ class QboEmployee < ActiveRecord::Base
   end
   
   def self.update_all 
-    customers = get_base.service.all
+    employees = get_base.service.all
   
     # Update the item table
-    customers.each { |employee|
-      qbo_employee = QboEmployee.find_or_create_by(id: employee.id)
+    employee.each { |employee|
+      qbo_employees = QboEmployee.find_or_create_by(id: employee.id)
       qbo_employee.name = employee.display_name
       qbo_employee.save!
     }
     
     #remove deleted employees
-    where.not(customers.map(&:id)).destroy_all
+    where.not(employees.map(&:id)).destroy_all
   end
 end
