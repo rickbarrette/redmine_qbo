@@ -25,6 +25,7 @@ class QboItem < ActiveRecord::Base
     items.each { |item|
       qbo_item = QboItem.find_or_create_by(id: item.id)
       qbo_item.name = item.name
+      qbo_item.id = item.id
       qbo_item.save!
     }
     
