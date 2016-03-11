@@ -30,7 +30,6 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     @estimate_link = nil
     # Estimate Number
     if issue.qbo_estimate
-      QboEstimate.update(issue.qbo_estimate.id)
       @estimate =  issue.qbo_estimate.doc_number
       @estimate_link = link_to @estimate, "#{Redmine::Utils::relative_url_root  }/qbo/estimate/#{issue.qbo_estimate.id}", :target => "_blank"
     end
@@ -39,7 +38,6 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     @invo = nil
     # Invoice Number
     if issue.qbo_invoice
-      QboInvoice.update(issue.qbo_invoice.id)
       @invoice =  issue.qbo_invoice.doc_number
       @invoice_link = link_to @invoice, "#{Redmine::Utils::relative_url_root  }/qbo/invoice/#{issue.qbo_invoice.id}", :target => "_blank"
     end

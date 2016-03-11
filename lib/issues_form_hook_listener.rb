@@ -16,12 +16,12 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     # Update the customer and item database
     QboCustomer.update_all
     #QboItem.update_all
-    QboInvoice.update_all
-    QboEstimate.update_all
+    #QboInvoice.update_all
+    #QboEstimate.update_all
  
     # Check to see if there is a quickbooks user attached to the issue
-    @selected_customer = context[:issue].qbo_customer.id  if context[:issue].qbo_customer
-    @selected_item = context[:issue].qbo_item.id  if context[:issue].qbo_item
+    @selected_customer =  context[:issue].qbo_customer ? context[:issue].qbo_customer.id  : nil
+    @selected_item = context[:issue].qbo_item ? context[:issue].qbo_item.id  : nil
     @selected_invoice = context[:issue].qbo_invoice ? context[:issue].qbo_invoice.id  : nil
     @selected_estimate =  context[:issue].qbo_estimate ? context[:issue].qbo_estimate.id  : nil
     
