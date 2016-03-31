@@ -22,12 +22,14 @@ class QboEstimate < ActiveRecord::Base
     estimates = get_base.service.all
   
     # Update the item table
-    estimates.each { |estimate|
-      qbo_estimate = QboEstimate.find_or_create_by(id: estimate.id)
-      qbo_estimate.doc_number = estimate.doc_number
-      qbo_estimate.id = estimate.id
-      qbo_estimate.save!
-    }
+    transaction do
+        estimates.each { |estimate|
+          qbo_estimate = QboEstimate.find_or_create_by(id: estimate.id)
+          qbo_estimate.doc_number = estimate.doc_number
+          qbo_estimate.id = estimate.id
+          qbo_estimate.save!
+        }
+    end
     
     #remove deleted estimates
     where.not(estimates.map(&:id)).destroy_all
