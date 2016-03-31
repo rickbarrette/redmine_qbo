@@ -23,8 +23,8 @@ class QboEmployee < ActiveRecord::Base
     
     transaction do
       # Update the item table
-      employee.each { |employee|
-        qbo_employees = QboEmployee.find_or_create_by(id: employee.id)
+      employees.each { |employee|
+        qbo_employee = 	find_or_create_by(id: employee.id)
         qbo_employee.name = employee.display_name
         qbo_employee.id = employee.id
         qbo_employee.save!
