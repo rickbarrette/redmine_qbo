@@ -25,8 +25,6 @@ class QboCustomer < ActiveRecord::Base
 
   def self.update_all 
     customers = get_base.service.all
-    
-    delete_all
 
     transaction do
       # Update the customer table
