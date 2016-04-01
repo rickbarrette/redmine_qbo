@@ -26,12 +26,18 @@ class QboCustomer < ActiveRecord::Base
   def self.update_all 
     customers = get_base.service.all
     
-    ids = customers.map {|i| i.id}
-    display_names = customers.map {|i| i.display_name}
-    
-    # Update the customer table 
-    find_or_create_by(id: ids, name: display_names)
+    delete_all
 
+    transaction do
+      # Update the customer table
+      customers.each { |customer|
+        qbo_customer = QboCustomer.find_or_create_by(id: customer.id)
+        qbo_customer.name = customer.display_name
+        qbo_customer.id = customer.id
+        qbo_customer.save!
+      }
+    end
+   
     #remove deleted customers
     where.not(customers.map(&:id)).destroy_all
   end

@@ -20,10 +20,10 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     #QboEstimate.update_all
  
     # Check to see if there is a quickbooks user attached to the issue
-    selected_customer = context[:issue].qbo_customer.id  if context[:issue].qbo_customer
-    selected_item = context[:issue].qbo_item.id  if context[:issue].qbo_item
-    selected_invoice = context[:issue].qbo_invoice.id  if context[:issue].qbo_invoice
-    selected_estimate = context[:issue].qbo_estimate.id  if context[:issue].qbo_estimate
+    @selected_customer =  context[:issue].qbo_customer ? context[:issue].qbo_customer.id  : nil
+    @selected_item = context[:issue].qbo_item ? context[:issue].qbo_item.id  : nil
+    @selected_invoice = context[:issue].qbo_invoice ? context[:issue].qbo_invoice.id  : nil
+    @selected_estimate =  context[:issue].qbo_estimate ? context[:issue].qbo_estimate.id  : nil
     
     # Generate the drop down list of quickbooks customers
     @select_customer = context[:form].select :qbo_customer_id, QboCustomer.all.pluck(:name, :id).sort, :selected => selected_customer, include_blank: true

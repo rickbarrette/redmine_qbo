@@ -21,11 +21,16 @@ class QboInvoice < ActiveRecord::Base
   def self.update_all
     #Pull the invoices from the quickbooks server
     invoices = get_base.service.all
-    ids = invoices.map {|i| i.id}
-    doc_numbers = invoices.map {|i| i.doc_number}
     
     # Update the invoice table 
-    find_or_create_by(id: ids, doc_number: doc_numbers)
+    transaction do
+      invoices.each { | invoice | 
+        qbo_invoice = find_or_create_by(id: invoice.id) 
+	qbo_invoice.doc_number = invoice.doc_number 
+	qbo_invoice.id = invoice.id
+	qbo_invoice.save! 
+      }
+    end 
     
     #remove deleted invoices 
     where.not(invoices.map(&:id)).destroy_all
