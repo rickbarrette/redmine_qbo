@@ -21,46 +21,42 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     issue = context[:issue]
 
     # Check to see if there is a quickbooks user attached to the issue
-    @customer =  issue.qbo_customer ? issue.qbo_customer.name : nil
+    customer =  issue.qbo_customer ? issue.qbo_customer.name : nil
     
     # Check to see if there is a quickbooks item attached to the issue
-    @item =  issue.qbo_item ? issue.qbo_item.name : nil
+    item =  issue.qbo_item ? issue.qbo_item.name : nil
     
-    @estimate = nil
-    @estimate_link = nil
     # Estimate Number
     if issue.qbo_estimate
-      @estimate =  issue.qbo_estimate.doc_number
-      @estimate_link = link_to @estimate, "#{Redmine::Utils::relative_url_root  }/qbo/estimate/#{issue.qbo_estimate.id}", :target => "_blank"
+      estimate =  issue.qbo_estimate.doc_number
+      estimate_link = link_to estimate, "#{Redmine::Utils::relative_url_root  }/qbo/estimate/#{issue.qbo_estimate.id}", :target => "_blank"
     end
     
-    @invoice = nil
-    @invo = nil
     # Invoice Number
     if issue.qbo_invoice
-      @invoice =  issue.qbo_invoice.doc_number
-      @invoice_link = link_to @invoice, "#{Redmine::Utils::relative_url_root  }/qbo/invoice/#{issue.qbo_invoice.id}", :target => "_blank"
+      invoice =  issue.qbo_invoice.doc_number
+      invoice_link = link_to invoice, "#{Redmine::Utils::relative_url_root  }/qbo/invoice/#{issue.qbo_invoice.id}", :target => "_blank"
     end
     
     return "<div class=\"attributes\">
               <div class=\"qbo_customer_id attribute\">
                 <div class=\"label\"><span>Customer</span>:</div>
-                <div class=\"value\">#{@customer}</div>
+                <div class=\"value\">#{customer}</div>
               </div>
   
               <div class=\"qbo_item_id attribute\">
                 <div class=\"label\"><span>Item</span>:</div>
-                <div class=\"value\">#{@item}</div>
+                <div class=\"value\">#{item}</div>
               </div>
   
               <div class=\"qbo_estimate_id attribute\">
                 <div class=\"label\"><span>Estimate</span>:</div>
-                <div class=\"value\">#{@estimate_link}</div>
+                <div class=\"value\">#{estimate_link}</div>
               </div>
               
               <div class=\"qbo_invoice_id attribute\">
                 <div class=\"label\"><span>Invoice</span>:</div>
-                <div class=\"value\">#{@invoice_link}</div>
+                <div class=\"value\">#{invoice_link}</div>
               </div>
             </div>"
   end
