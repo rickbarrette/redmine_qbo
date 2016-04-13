@@ -15,15 +15,17 @@ class QboCustomer < ActiveRecord::Base
   attr_accessible :name
   validates_presence_of :id, :name
   
-   def self.get_base
+  def to_s; name end
+  
+   def get_base
     Qbo.get_base(:customer)
   end
    
-  def self.get_customer (id)
+  def get_customer (id)
     get_base.service.find_by_id(id)
   end
 
-  def self.update_all 
+  def update_all 
     customers = get_base.service.all
 
     transaction do

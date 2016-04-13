@@ -8,11 +8,9 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require_dependency 'issue'
+require_dependency 'issue_query'
 
-# Patches Redmine's Issues dynamically.  
-# Adds a relationships
-module IssuePatch
+module QueryPatch
 
   def self.included(base) # :nodoc:
     base.extend(ClassMethods)
@@ -22,23 +20,30 @@ module IssuePatch
     # Same as typing in the class 
     base.class_eval do
       unloadable # Send unloadable so it will not be unloaded in development
-      belongs_to :qbo_customer, primary_key: :id
-      belongs_to :qbo_item, primary_key: :id
-      belongs_to :qbo_estimate, primary_key: :id
-      belongs_to :qbo_invoice, primary_key: :id
+      
+      alias_method_chain :available_columns, :hidden
+      
     end
-    
   end
-    
+      
   module ClassMethods
     
   end
-  
+    
   module InstanceMethods
   
+    def available_columns_with_hidden
+				unless @available_columns
+          @available_columns = available_columns_without_hidden
+          
+          @available_columns << QueryColumn.new(:qbo_customer, :sortable => "#{QboCustomer.table_name}.name", :groupable => true, :caption => :field_qbo_customer)
+				end
+				@available_columns
+			end
+
   end
-  
-end    
+
+end
 
 # Add module to Issue
-Issue.send(:include, IssuePatch)
+IssueQuery.send(:include, QueryPatch)
