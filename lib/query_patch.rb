@@ -21,7 +21,8 @@ module QueryPatch
     base.class_eval do
       unloadable # Send unloadable so it will not be unloaded in development
       
-      alias_method_chain :available_columns, :hidden
+      alias_method_chain :available_columns, :qbo
+      alias_method_chain :available_filters, :qbo
     end
   end
       
@@ -31,12 +32,19 @@ module QueryPatch
   
   module InstanceMethods
   
-    def available_columns_with_hidden
+    def available_columns_with_qbo
       unless @available_columns
         @available_columns = available_columns_without_hidden
         @available_columns << QueryColumn.new(:qbo_customer, :sortable => "#{QboCustomer.table_name}.name", :groupable => true, :caption => :field_qbo_customer)
       end
       @available_columns
+    end
+    
+    def available_filters_with_qbo
+      return @available_filters if @available_filters 
+        @available_filters = available_filters_without_qbo 
+        @available_filters.add_available_filter "customer", :type => :text
+      return @available_filters 
     end
   end
 end
