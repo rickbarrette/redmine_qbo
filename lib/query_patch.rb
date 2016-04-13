@@ -22,27 +22,23 @@ module QueryPatch
       unloadable # Send unloadable so it will not be unloaded in development
       
       alias_method_chain :available_columns, :hidden
-      
     end
   end
       
   module ClassMethods
     
   end
-    
+  
   module InstanceMethods
   
     def available_columns_with_hidden
-				unless @available_columns
-          @available_columns = available_columns_without_hidden
-          
-          @available_columns << QueryColumn.new(:qbo_customer, :sortable => "#{QboCustomer.table_name}.name", :groupable => true, :caption => :field_qbo_customer)
-				end
-				@available_columns
-			end
-
+      unless @available_columns
+        @available_columns = available_columns_without_hidden
+        @available_columns << QueryColumn.new(:qbo_customer, :sortable => "#{QboCustomer.table_name}.name", :groupable => true, :caption => :field_qbo_customer)
+      end
+      @available_columns
+    end
   end
-
 end
 
 # Add module to Issue
