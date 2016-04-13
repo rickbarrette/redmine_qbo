@@ -43,7 +43,7 @@ module QueryPatch
     def available_filters_with_qbo
       return @available_filters if @available_filters 
         @available_filters = available_filters_without_qbo 
-        @available_filters.add_available_filter "customer", :type => :text
+        @available_filters.add "customer", :type => :text
       return @available_filters 
     end
   end
