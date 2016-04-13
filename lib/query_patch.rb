@@ -42,9 +42,15 @@ module QueryPatch
     
     def available_filters_with_qbo
       return @available_filters if @available_filters 
-        @available_filters = available_filters_without_qbo 
-        @available_filters.add "customer", :type => :text
-      return @available_filters 
+      @available_filters = available_filters_without_qbo 
+        
+      qbo_filters = {
+        "customer" => { 
+          :name => l(:field_qbo_customer),
+          :type => :text, 
+          :order => @available_filters.size + 1},
+      }
+      return @available_filters.merge!(qbo_filters)
     end
   end
 end
