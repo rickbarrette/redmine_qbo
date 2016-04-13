@@ -20,6 +20,7 @@ Redmine::Plugin.register :redmine_qbo do
     require_dependency 'issue_patch'
     require_dependency 'user_patch'
     require_dependency 'query_patch'
+    require_dependency 'pdf_patch'
 
     name 'Redmine Quickbooks Online plugin'
     author 'Rick Barrette'
