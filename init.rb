@@ -42,6 +42,6 @@ Redmine::Plugin.register :redmine_qbo do
     #Quickbooks.sandbox_mode = true
 
     # Register QBO top menu item
-    menu :top_menu, :qbo, { :controller => 'qbo', :action => 'index' }, :caption => 'Quickbooks'
+    menu :top_menu, :qbo, { :controller => 'qbo', :action => 'index' }, :caption => 'Quickbooks', :if => Proc.new { User.current.is_admin? }
 
 end
