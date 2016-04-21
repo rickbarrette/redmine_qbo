@@ -1,7 +1,7 @@
 <h1>Customer Vehicles</h1> 
 <br/> 
 <%= form_for @vehicle do |f| %> 
-  Customer: <%= f.select :qbo_customer_id, QboCustomer.all.pluck(:name, :id).sort, :selected => selected_customer, include_blank: true, :required => true%>
+  Customer: <%= f.select :qbo_customer_id, QboCustomer.all.pluck(:name, :id).sort, include_blank: true, :required => true%>
   Year: <%= f.text_field :year, :required => true %><br />
   Make: <%= f.text_field :make, :required => true %><br />
   Model: <%= f.text_area :model, :required => true %><br />
