@@ -23,7 +23,7 @@ class VehicleController < ApplicationController
 
   # return an HTML form for creating a new vehicle
   def new
-  
+    @vehicle = Vehicle.new
   end
 
   # create a new vehicle
