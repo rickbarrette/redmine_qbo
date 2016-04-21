@@ -16,23 +16,33 @@ class VehicleController < ApplicationController
   
   before_filter :require_user
   
-  #show
+  # display a list of all vehicles
   def index
-    v = Vehicle.find_by_id(params[:id])
-    if v != nil
-      #TODO something
-    else
-      flash.now[:error] = "No Vehicle Found"
-    end  
+
   end
 
-  #create
+  # return an HTML form for creating a new vehicle
   def new
   
   end
 
-  #update
+  # create a new vehicle
+  def create
+  
+  end
+  
+  # display a specific vehicle
+  def show
+  
+  end
+  
+  # return an HTML form for editing a vehicle
   def edit
+  
+  end
+  
+  # update a specific vehicle
+  def update
     v = Vehicle.find_by_id(params[:id])
     if v != nil
       #TODO something
@@ -41,8 +51,8 @@ class VehicleController < ApplicationController
     end
   end  
 
-  #delete  
-  def delete
+  # delete a specific vehicle
+  def destroy 
     v = Vehicle.find_by_id(params[:id])
     if v != nil
       v.destroy
