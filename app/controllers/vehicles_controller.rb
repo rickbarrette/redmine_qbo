@@ -28,7 +28,7 @@ class VehiclesController < ApplicationController
 
   # create a new vehicle
   def create
-    Vehicle.save(params)
+    Vehicle.new(params).save
   end
   
   # display a specific vehicle
