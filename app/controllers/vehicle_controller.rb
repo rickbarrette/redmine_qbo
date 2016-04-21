@@ -12,6 +12,8 @@
 class VehicleController < ApplicationController
   unloadable
   
+  include AuthHelper
+  
   before_filter :require_user
   
   #show
