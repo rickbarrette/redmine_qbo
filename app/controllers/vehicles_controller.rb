@@ -28,7 +28,7 @@ class VehiclesController < ApplicationController
 
   # create a new vehicle
   def create
-  
+    super
   end
   
   # display a specific vehicle
