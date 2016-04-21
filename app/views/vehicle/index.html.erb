@@ -11,7 +11,7 @@
 <h1>Customer Vehicles</h1> 
 <br/> 
 <br/> 
-<% Vehicles.all.each do |vehicle| %> 
+<% Vehicle.all.each do |vehicle| %> 
   <br/> 
   <div> 
   <%= vehicle.qbo_customer.name %> <%= vehicle.to_s %> <%= button_to "Delete", "delete/#{vehicle[:id]}", :confirm => "Are you sure?" %> 
