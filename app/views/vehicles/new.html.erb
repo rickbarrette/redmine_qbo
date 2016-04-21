@@ -16,15 +16,15 @@
 <%= form_for @vehicle do %> 
   <label for="year">Year:</label>
   <br/>
-  <input name="year" id="year" type="integer" size=25%/>
+  <input name="year" id="year" type="integer" required=true size=25%/>
   <br/>
   <label for="make">Make:</label>
   <br/>
-  <input name="make" id="make" type="text" maxlength="5555500"  size=25%/>
+  <input name="make" id="make" type="text" maxlength="5555500"  required=true size=25%/>
   <br/>
   <label for="model">Model:</label>
   <br/>
-  <input name="model" id="model" type="text" maxlength="5555500"  size=25%/>
+  <input name="model" id="model" type="text" maxlength="5555500"  required=true size=25%/>
   <br/>
   <label for="vin">VIN:</label>
   <br/>
@@ -32,7 +32,7 @@
   <br/>
   <label for="notes">Notes:</label>
   <br/>
-  <input name="notes" id="notes" type="longtext" maxlength="5555500"  size=25%/>
+  <input name="notes" id="notes" type="longtext" maxlength="5555500"  row="5" size=25%/>
   <br/>
   <label for="qbo_customer">Customer:</label>
   <br/>
