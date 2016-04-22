@@ -1,18 +1,23 @@
 <h1>Customer Vehicles</h1> 
 <br/> 
-<br/> 
 <% Vehicle.all.each do |vehicle| %>
   <div class="row">
     <div class="span6 columns">
       <fieldset>
-        <div class="clearfix"; style="float: left">
-          <strong>
-            <%= vehicle.qbo_customer.name if vehicle.qbo_customer %>
-          </strong>
-          - <%= vehicle.to_s %> 
-        <div class="actions"; style="float: right">
-          <%= button_to "Edit", edit_vehicle_path(vehicle), method: :get%> 
-          <%= button_to "Delete", vehicle, method: :delete, data: {confirm: "You sure?"} %> 
+     
+        <div style="width: 100%; display: table;">
+          <div style="display: table-row">
+            <div style="width: 600px; display: table-cell;">
+              <strong>
+                <%= vehicle.qbo_customer.name if vehicle.qbo_customer %>
+              </strong>
+              - <%= vehicle.to_s %> 
+            </div>
+            <div style="display: table-cell;">
+              <%= button_to "Edit", edit_vehicle_path(vehicle), method: :get%> 
+              <%= button_to "Delete", vehicle, method: :delete, data: {confirm: "You sure?"} %> 
+            </div>
+          </div>
         </div>
       </fieldset>
     </div>
