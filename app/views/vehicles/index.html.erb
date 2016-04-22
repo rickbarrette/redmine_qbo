@@ -5,8 +5,11 @@
   <div class="row">
     <div class="span6 columns">
       <fieldset>
-        <%= vehicle.qbo_customer.name if vehicle.qbo_customer %> 
-        <%= vehicle.to_s %> 
+        <div class="clearfix">
+          <strong>
+            <%= vehicle.qbo_customer.name if vehicle.qbo_customer %>
+          </strong>
+          <%= vehicle.to_s %> 
         <div class="actions">
           <%= button_to "Edit", edit_vehicle_path(vehicle), method: :get%> 
           <%= button_to "Delete", vehicle, method: :delete, data: {confirm: "You sure?"} %> 
