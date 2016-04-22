@@ -1,0 +1,37 @@
+<div style="width: 100%; display: table;">
+  <div style="display: table-row">
+    <div style="width: 600px; display: table-cell;">
+
+      <strong>
+        <%= @customer%>
+      </strong>
+      <br/>
+      <%= @vehicle.to_s %>
+      <br/>
+
+      <div class="vin">
+        <div style="float: left">
+          Notes:
+        </div>
+        <div style="float: left">
+          <%= @vehicle.vin %>
+        </div>
+      </div>
+
+      <div class="notes">
+        <div style="float: left">
+          Notes:
+        </div>
+        <div style="float: left">
+          <%= @vehicle.notes %>
+        </div>
+      </div>
+    </div>
+  
+    <div style="display: table-cell;">
+      <%= button_to "Edit", edit_vehicle_path(@vehicle), method: :get%> 
+      <%= button_to "Delete", @vehicle, method: :delete, data: {confirm: "You sure?"} %> 
+    </div>
+  
+  </div>
+</div>
