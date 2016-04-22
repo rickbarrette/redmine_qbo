@@ -4,31 +4,7 @@
   <div class="row">
     <div class="span6 columns">
       <fieldset>
-     
-        <div style="width: 100%; display: table;">
-          <div style="display: table-row">
-            <div style="width: 600px; display: table-cell;">
-              <strong>
-                <%= vehicle.qbo_customer.name if vehicle.qbo_customer %>
-              </strong>
-              <br/>
-              <%= vehicle.to_s %>
-              <br/>
-              <div class="notes">
-                <div style="float: left">
-                  Notes:
-                </div>
-                <div style="float: left">
-                  <%= vehicle.notes %>
-                </div>
-              </div>
-            </div>
-            <div style="display: table-cell;">
-              <%= button_to "Edit", edit_vehicle_path(vehicle), method: :get%> 
-              <%= button_to "Delete", vehicle, method: :delete, data: {confirm: "You sure?"} %> 
-            </div>
-          </div>
-        </div>
+        <%= render :partial => 'vehicles/details' %>
       </fieldset>
     </div>
   </div>
