@@ -12,7 +12,14 @@
                 <%= vehicle.qbo_customer.name if vehicle.qbo_customer %>
               </strong>
               <br/>
-              <%= vehicle.to_s %> 
+              <%= vehicle.to_s %>
+              <br/>
+              <div style="float: left">
+                Notes:
+              </div>
+              <div style="float: right">
+                <%= vehicle.notes %>
+              </div>
             </div>
             <div style="display: table-cell;">
               <%= button_to "Edit", edit_vehicle_path(vehicle), method: :get%> 
