@@ -41,7 +41,7 @@ class VehiclesController < ApplicationController
   # return an HTML form for editing a vehicle
   def edit
     @vehicle = Vehicle.find_by_id(params[:id])
-    @selected_customer = @vehicle.qbo_customer.name if @vehicle.qbo_customer
+    @customer = @vehicle.qbo_customer
   end
   
   # update a specific vehicle
