@@ -1,13 +1,3 @@
 <h1>Customer Vehicle</h1> 
 <br/> 
-<strong>
-  <%= @customer %>
-</strong>
-<br/>
-<%= @vehicle.to_s %> 
-<br/>
-<%= @vehicle.notes %>
-<br/>
-<%= button_to "Edit", edit_vehicle_path(@vehicle), method: :get%> 
-<br/>
-<%= button_to "Delete", @vehicle, method: :delete, data: {confirm: "You sure?"} %> 
+<%= render :partial => 'vehicles/details' %>
