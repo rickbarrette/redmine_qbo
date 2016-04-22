@@ -22,7 +22,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     selected_estimate =  context[:issue].qbo_estimate ? context[:issue].qbo_estimate.id  : nil
     
     @customer = QboCustomer.find_by_id(selected_customer).name if selected_customer
-    @vehicle = context[:issue].vehicle_id
+    @vehicle = context[:issue].vehicles_id
     
     # Generate the drop down list of quickbooks customers
     select_customer = @f.select :qbo_customer_id, QboCustomer.all.pluck(:name, :id).sort, :selected => selected_customer, include_blank: true
