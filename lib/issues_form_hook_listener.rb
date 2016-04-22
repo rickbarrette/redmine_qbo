@@ -13,11 +13,6 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
   # Edit Issue Form
   # Show a dropdown for quickbooks contacts
   def view_issues_form_details_bottom(context={})
-    # Update the customer and item database
-    QboCustomer.update_all
-    #QboItem.update_all
-    QboInvoice.update_all
-    #QboEstimate.update_all
  
     # Check to see if there is a quickbooks user attached to the issue
     selected_customer =  context[:issue].qbo_customer ? context[:issue].qbo_customer.id  : nil

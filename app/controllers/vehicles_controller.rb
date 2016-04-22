@@ -28,26 +28,30 @@ class VehiclesController < ApplicationController
 
   # create a new vehicle
   def create
-    Vehicle.new(params).save
+    @vehicle = Vehicle.new(params)
+    @vehicle.save!
+    redirect_to @vehicle
   end
   
   # display a specific vehicle
   def show
-  
+    @vehicle = Vehicle.find_by_id(params[:id])
   end
   
   # return an HTML form for editing a vehicle
   def edit
-  
+    @vehicle = Vehicle.find_by_id(params[:id])
+    @selected_customer = @vehicle.qbo_customer.name if @vehicle.qbo_customer
   end
   
   # update a specific vehicle
   def update
-    v = Vehicle.find_by_id(params[:id])
-    if v != nil
-      #TODO something
+    @vehicle = Vehicle.find_by_id(params[:id])
+    if @vehicle.update_attributes(params)
+      flash[:success] = "Vehicle updated"
+      redirect_to @vehicle
     else
-      flash.now[:error] = "No Vehicle Found"
+      render :edit
     end
   end  
 

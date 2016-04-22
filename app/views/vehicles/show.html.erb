@@ -1,0 +1,9 @@
+<h1>Customer Vehicle</h1> 
+<br/> 
+<%= @vehicle.qbo_customer.name if @vehicle.qbo_customer %> 
+<br/>
+<%= @vehicle.to_s %> 
+<br/>
+<%= button_to "Edit", edit_vehicle_path(@vehicle), method: :get%> 
+<br/>
+<%= button_to "Delete", @vehicle, method: :delete, data: {confirm: "You sure?"} %> 

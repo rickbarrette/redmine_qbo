@@ -1,0 +1,48 @@
+<div class="row">
+  <div class="span6 columns">
+    <fieldset>
+
+      <%= form_for @vehicle do |f| %> 
+        <div class="clearfix">
+          Customer: 
+          <div class="input">
+            <%= f.select :qbo_customer_id, QboCustomer.all.pluck(:name, :id).sort, include_blank: true,  :selected => @selected_customer, :required => true%>
+            </div>
+        </div>
+        
+        <div class="clearfix">
+          Year: 
+          <div class="input">
+            <%= f.text_field :year, :required => true %>
+          </div>
+        </div>
+        
+        <div class="clearfix">
+          Make:
+          <div class="input">
+            <%= f.text_field :make, :required => true %>
+          </div>
+        </div>
+        
+        <div class="clearfix">
+          Model:
+          <div class="input">
+            <%= f.text_field :model, :required => true %>
+          </div>
+        </div>
+        
+        <div class="clearfix">
+          Notes: 
+          <div class="input">
+            <%= f.text_area :notes, :rows => 6%>
+          </div>
+        </div>
+        
+       <div class="actions">
+        <%= f.submit %>
+       </div>
+      <% end %>
+
+    </fieldset>
+  </div>
+</div>

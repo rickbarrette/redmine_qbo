@@ -16,7 +16,11 @@ class QboCustomer < ActiveRecord::Base
   attr_accessible :name
   validates_presence_of :id, :name
   
-  def to_s; name end
+  self.primary_key = "id"
+  
+  def to_s
+    name
+  end
   
    def get_base
     Qbo.get_base(:customer)
