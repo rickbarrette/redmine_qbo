@@ -6,7 +6,7 @@
         <div class="clearfix">
           Customer: 
           <div class="input">
-            <%= f.select :qbo_customer_id, QboCustomer.all.pluck(:name, :id).sort, include_blank: true,  :selected => @selected_customer, :required => true%>
+            <%= f.select :qbo_customer_id, QboCustomer.all.pluck(:name, :id).sort, include_blank: true,  :selected => @customer, :required => true%>
             </div>
         </div>
         
