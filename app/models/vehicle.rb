@@ -12,8 +12,8 @@ class Vehicle < ActiveRecord::Base
   unloadable
   belongs_to :qbo_customer
   
-  attr_accessible :year, :make, :model, :qbo_customer, :notes, :vin
-  validates_presence_of :year, :make, :model, :qbo_customer
+  attr_accessible :year, :make, :model, :qbo_customer_id, :notes, :vin
+  validates_presence_of :year, :make, :model, :qbo_customer_id
   
   def to_s
     return "#{year} #{make} #{model}"
