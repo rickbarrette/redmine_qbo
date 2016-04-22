@@ -65,7 +65,7 @@ class VehiclesController < ApplicationController
     else
       flash.now[:error] = "No Vehicle Found"
     end
-    redirect_to :index
+    redirect_to action: :index
   end
 
 end
