@@ -10,7 +10,7 @@
 
 class IssuesFormHookListener < Redmine::Hook::ViewListener
   
-  render_on :view_issues_form_details_bottom, :partial => 'hooks/redmine_qbo/vehicles/dropdown'
+  render_on :view_issues_form_details_bottom, :partial => 'redmine_qbo/vehicles/dropdown'
 
   # Edit Issue Form
   # Show a dropdown for quickbooks contacts
