@@ -28,7 +28,7 @@ class VehiclesController < ApplicationController
 
   # create a new vehicle
   def create
-    @vehicle = Vehicle.new(params)
+    @vehicle = Vehicle.new(params[:vehicle])
     @vehicle.save!
     redirect_to @vehicle
   end
