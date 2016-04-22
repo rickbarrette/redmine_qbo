@@ -1,8 +1,12 @@
 <h1>Customer Vehicle</h1> 
 <br/> 
-<%= @vehicle.qbo_customer.name if @vehicle.qbo_customer %> 
+<strong>
+  <%= @customer %>
+</strong>
 <br/>
 <%= @vehicle.to_s %> 
+<br/>
+<%= @vehicle.notes %>
 <br/>
 <%= button_to "Edit", edit_vehicle_path(@vehicle), method: :get%> 
 <br/>
