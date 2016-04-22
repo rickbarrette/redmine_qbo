@@ -38,8 +38,9 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     
     #@estimates_link = link_to qbo_update_estimates_path
     
-    render_on :view_issues_form_details_bottom, :partial => 'hooks/redmine_qbo/vehicles/dropdown'
+    #render_on :view_issues_form_details_bottom, :partial => 'hooks/redmine_qbo/vehicles/dropdown'
+    vehicle = context[:issue].vehicle : @f.collection_select :vehicle_id, @customer.vehicles.order(:year), :id, :VIN, include_blank: true, :selected => @vehicle ? nil
     
-    return "<p>#{select_customer}</p> <p>#{select_item}</p> <p>#{select_invoice}</p> <p>#{select_estimate}</p>"
+    return "<p>#{select_customer}</p> <p>#{select_item}</p> <p>#{select_invoice}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>"
   end
 end
