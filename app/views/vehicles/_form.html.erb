@@ -6,7 +6,7 @@
         <div class="clearfix">
           Customer: 
           <div class="input">
-            <%= f.collection_select :qbo_customer_id, QboCustomer.order(:name), :id, :name, include_blank: true, :selected => @customer, :required => true%>
+            <%= f.collection_select :qbo_customer, QboCustomer.order(:name), :id, :name, include_blank: true, :selected => @customer, :required => true%>
             </div>
         </div>
         
