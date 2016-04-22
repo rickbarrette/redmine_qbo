@@ -1,0 +1,1 @@
+<%= @f.collection_select :vehicle_id, @customer.vehicles.order(:year), :id, :VIN, include_blank: true, :selected => @vehicle%>
