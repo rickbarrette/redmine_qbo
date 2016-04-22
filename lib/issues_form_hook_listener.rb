@@ -13,6 +13,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
   # Edit Issue Form
   # Show a dropdown for quickbooks contacts
   def view_issues_form_details_bottom(context={})
+    @f = context[:form]
  
     # Check to see if there is a quickbooks user attached to the issue
     selected_customer =  context[:issue].qbo_customer ? context[:issue].qbo_customer.id  : nil
@@ -20,19 +21,24 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     selected_invoice = context[:issue].qbo_invoice ? context[:issue].qbo_invoice.id  : nil
     selected_estimate =  context[:issue].qbo_estimate ? context[:issue].qbo_estimate.id  : nil
     
+    @customer = QboCustomer.find_by_id(selected_customer).name if selected_customer
+    @vehicle = context[:issue].vehicle_id
+    
     # Generate the drop down list of quickbooks customers
-    select_customer = context[:form].select :qbo_customer_id, QboCustomer.all.pluck(:name, :id).sort, :selected => selected_customer, include_blank: true
+    select_customer = @f.select :qbo_customer_id, QboCustomer.all.pluck(:name, :id).sort, :selected => selected_customer, include_blank: true
   
     # Generate the drop down list of quickbooks items
-    select_item = context[:form].select :qbo_item_id, QboItem.all.pluck(:name, :id).sort, :selected => selected_item, include_blank: true
+    select_item = @f.select :qbo_item_id, QboItem.all.pluck(:name, :id).sort, :selected => selected_item, include_blank: true
     
     # Generate the drop down list of quickbooks invoices
-    select_invoice = context[:form].select :qbo_invoice_id, QboInvoice.all.pluck(:doc_number, :id).sort! {|x, y| y <=> x}, :selected => selected_invoice, include_blank: true
+    select_invoice = @f.select :qbo_invoice_id, QboInvoice.all.pluck(:doc_number, :id).sort! {|x, y| y <=> x}, :selected => selected_invoice, include_blank: true
     
     # Generate the drop down list of quickbooks extimates
-    select_estimate = context[:form].select :qbo_estimate_id, QboEstimate.all.pluck(:doc_number, :id).sort! {|x, y| y <=> x}, :selected => selected_estimate, include_blank: true
+    select_estimate = @f.select :qbo_estimate_id, QboEstimate.all.pluck(:doc_number, :id).sort! {|x, y| y <=> x}, :selected => selected_estimate, include_blank: true
     
     #@estimates_link = link_to qbo_update_estimates_path
+    
+    render :partial => 'vehicles/details' 
     
     return "<p>#{select_customer}</p> <p>#{select_item}</p> <p>#{select_invoice}</p> <p>#{select_estimate}</p>"
   end
