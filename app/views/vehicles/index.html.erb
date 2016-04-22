@@ -1,10 +1,11 @@
 <h1>Customer Vehicles</h1> 
 <br/> 
-<% Vehicle.all.each do |@vehicle| %>
+<% Vehicle.all.each do |vehicle| %>
   <div class="row">
     <div class="span6 columns">
       <fieldset>
-        <% @customer = @vehicle.qbo_customer.name if @vehicle.qbo_customer %>
+        <% @customer = vehicle.qbo_customer.name if @vehicle.qbo_customer %>
+        <% @vehicle = vehicle %>
         <%= render :partial => 'vehicles/details' %>
       </fieldset>
     </div>
