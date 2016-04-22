@@ -36,7 +36,12 @@ class VehiclesController < ApplicationController
   # display a specific vehicle
   def show
     @vehicle = Vehicle.find_by_id(params[:id])
-    @customer = @vehicle.qbo_customer.name if @vehicle.qbo_customer
+    if @vehicle
+      @customer = @vehicle.qbo_customer.name if @vehicle.qbo_customer
+    else
+      flash[:error] = "Vehicle Not Found"  
+      render :index
+    end
   end
   
   # return an HTML form for editing a vehicle
