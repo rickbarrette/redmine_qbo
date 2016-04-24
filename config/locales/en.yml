@@ -16,3 +16,4 @@ en:
   field_qbo_employee: "Employee"
   field_qbo_invoice: "Invoice"
   field_qbo_estimate: "Estimate" 
+  field_vehicles: "Vehicle"
