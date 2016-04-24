@@ -38,27 +38,62 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
       invoice_link = link_to invoice, "#{Redmine::Utils::relative_url_root  }/qbo/invoice/#{issue.qbo_invoice.id}", :target => "_blank"
     end
     
-    return "<div class=\"attributes\">
-              <div class=\"qbo_customer_id attribute\">
-                <div class=\"label\"><span>Customer</span>:</div>
-                <div class=\"value\">#{customer}</div>
-              </div>
-  
-              <div class=\"qbo_item_id attribute\">
-                <div class=\"label\"><span>Item</span>:</div>
-                <div class=\"value\">#{item}</div>
-              </div>
-  
-              <div class=\"qbo_estimate_id attribute\">
-                <div class=\"label\"><span>Estimate</span>:</div>
-                <div class=\"value\">#{estimate_link}</div>
-              </div>
-              
-              <div class=\"qbo_invoice_id attribute\">
-                <div class=\"label\"><span>Invoice</span>:</div>
-                <div class=\"value\">#{invoice_link}</div>
-              </div>
-            </div>"
+    v = Vehicle.find_by_id(issue.vehicles_id)
+    vehicle = v ? v.to_s : nil
+    vin = v ? v.vin : nil
+    notes = v ? v.notes : nil
+      
+    
+    return "
+    <div class=\"attributes\">
+    
+      <div class=\"splitcontentleft\">
+
+        <div class=\"qbo_customer_id attribute\">
+          <div class=\"label\"><span>Customer</span>:</div>
+          <div class=\"value\">#{customer}</div>
+        </div>
+    
+        <div class=\"qbo_item_id attribute\">
+          <div class=\"label\"><span>Item</span>:</div>
+          <div class=\"value\">#{item}</div>
+        </div>
+
+        <div class=\"qbo_estimate_id attribute\">
+          <div class=\"label\"><span>Estimate</span>:</div>
+          <div class=\"value\">#{estimate_link}</div>
+        </div>
+        
+        <div class=\"qbo_invoice_id attribute\">
+          <div class=\"label\"><span>Invoice</span>:</div>
+          <div class=\"value\">#{invoice_link}</div>
+        </div>
+
+      </div>
+        
+      <div class=\"splitcontent\">  
+      
+      <div class=\"vehicle attribute\">
+          <div class=\"label\"><span>Vehicle</span>:</div>
+          <div class=\"value\">#{vehicle}</div>
+        </div>
+        
+        <div class=\"vehicle_vin attribute\">
+          <div class=\"label\"><span>VIN</span>:</div>
+          <div class=\"value\">#{vin}</div>
+        </div>
+        
+        <div class=\"vehicle_notes attribute\">
+          <div class=\"label\"><span>Vehicle Notes</span>:</div>
+          <div class=\"value\">#{notes}</div>
+        </div> 
+      
+      </div>
+      
+      <br/>
+      <br/>
+      
+    </div>"
   end
   
 end
