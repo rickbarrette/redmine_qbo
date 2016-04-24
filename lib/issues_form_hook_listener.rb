@@ -42,7 +42,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     
     #render_on :view_issues_form_details_bottom, :partial => 'hooks/redmine_qbo/vehicles/dropdown'
     vehicles = customer.vehicles.order(:year) if customer
-    vehicle = f.collection_select :vehicle_id, vehicles, :id, :vin, include_blank: true, :selected => vehicle
+    vehicle = f.collection_select :vehicles_id, vehicles, :id, :vin, include_blank: true, :selected => vehicle
     
     return "<p>#{select_customer}</p> <p>#{select_item}</p> <p>#{select_invoice}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>"
   end
