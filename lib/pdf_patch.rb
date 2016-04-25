@@ -51,6 +51,7 @@ module IssuesPdfHelperPatch
       notes = v ? v.notes : nil
       left << [l(:field_vehicles), vehicle]
       left << [l(:field_vin), vin]
+      left << [l(:field_notes), notes]
       
       right = []
       right << [l(:field_start_date), format_date(issue.start_date)] unless issue.disabled_core_fields.include?('start_date')
@@ -58,7 +59,7 @@ module IssuesPdfHelperPatch
       right << [l(:field_done_ratio), "#{issue.done_ratio}%"] unless issue.disabled_core_fields.include?('done_ratio')
       right << [l(:field_estimated_hours), l_hours(issue.estimated_hours)] unless issue.disabled_core_fields.include?('estimated_hours')
       right << [l(:label_spent_time), l_hours(issue.total_spent_hours)] if User.current.allowed_to?(:view_time_entries, issue.project)
-      right << [l(:field_notes), notes]
+      #right << [l(:field_notes), notes]
 
       rows = left.size > right.size ? left.size : right.size
       while left.size < rows
