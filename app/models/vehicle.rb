@@ -10,8 +10,6 @@
 
 class Vehicle < ActiveRecord::Base
   
-  require "edmunds"
-  
   unloadable
   belongs_to :qbo_customer
   
@@ -28,7 +26,7 @@ class Vehicle < ActiveRecord::Base
   
   def decode_vin
     if vin?
-      e = Edmunds::VIN.full(vin)
+      e = VIN.full(vin)
       vehicle = JSON.parse(e)
       year = vehicle[:years][:year]
       make = vehicle[:make][:name]
