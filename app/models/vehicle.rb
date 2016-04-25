@@ -10,7 +10,7 @@
 
 class Vehicle < ActiveRecord::Base
   
-  require "edmunds_ruby"
+  require "edmunds"
   
   unloadable
   belongs_to :qbo_customer
