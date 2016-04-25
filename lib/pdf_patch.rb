@@ -44,6 +44,14 @@ module IssuesPdfHelperPatch
       left << [l(:field_assigned_to), issue.assigned_to] unless issue.disabled_core_fields.include?('assigned_to_id')
       left << [l(:field_category), issue.category] unless issue.disabled_core_fields.include?('category_id')
       left << [l(:field_fixed_version), issue.fixed_version] unless issue.disabled_core_fields.include?('fixed_version_id')
+      
+      v = Vehicle.find_by_id(issue.vehicles_id)
+      vehicle = v ? v.to_s : nil
+      vin = v ? v.vin : nil
+      notes = v ? v.notes : nil
+      left << [l(:field_vehicle), issue.status]
+      left << [l(:field_vin), issue.status]
+      left << [l(:field_notes), issue.status]
 
       right = []
       right << [l(:field_start_date), format_date(issue.start_date)] unless issue.disabled_core_fields.include?('start_date')
