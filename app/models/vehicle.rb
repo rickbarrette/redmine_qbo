@@ -15,7 +15,21 @@ class Vehicle < ActiveRecord::Base
   attr_accessible :year, :make, :model, :qbo_customer_id, :notes, :vin
   validates_presence_of :year, :make, :model, :qbo_customer_id
   
+  before_save :decode_vin
+  
   def to_s
     return "#{year} #{make} #{model}"
+  end
+  
+  private
+  
+  def decode_vin
+    if vin?
+      e = Edmunds::Vin.full(vin)
+      vehicle = JSON.parse(e)
+      year = vehicle[:years][:year]
+      make = vehicle[:make][:name]
+      model = vehicle[:model][:name]
+    end
   end
 end
