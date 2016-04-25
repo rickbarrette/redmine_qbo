@@ -17,3 +17,5 @@ en:
   field_qbo_invoice: "Invoice"
   field_qbo_estimate: "Estimate" 
   field_vehicles: "Vehicle"
+  field_vin: "VIN"
+  field_notes: "Notes"
