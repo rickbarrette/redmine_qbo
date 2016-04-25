@@ -49,7 +49,7 @@ module IssuesPdfHelperPatch
       vehicle = v ? v.to_s : nil
       vin = v ? v.vin : nil
       notes = v ? v.notes : nil
-      left << [l(:field_vehicle), vehicle]
+      left << [l(:field_vehicles), vehicle]
       left << [l(:field_vin), vin]
       left << [l(:field_notes), notes]
 
