@@ -49,9 +49,9 @@ module IssuesPdfHelperPatch
       vehicle = v ? v.to_s : nil
       vin = v ? v.vin : nil
       notes = v ? v.notes : nil
-      left << [l(:field_vehicle), issue.status]
-      left << [l(:field_vin), issue.status]
-      left << [l(:field_notes), issue.status]
+      left << [l(:field_vehicle), vehicle]
+      left << [l(:field_vin), vin]
+      left << [l(:field_notes), notes]
 
       right = []
       right << [l(:field_start_date), format_date(issue.start_date)] unless issue.disabled_core_fields.include?('start_date')
