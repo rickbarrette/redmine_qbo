@@ -18,7 +18,7 @@ class CustomersController < ApplicationController
   
   # display a list of all customers
   def index
-
+    @customer_pages, @customers = paginate QboCustomer.all 
   end
   
   # display a specific customer
