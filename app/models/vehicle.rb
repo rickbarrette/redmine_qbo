@@ -16,7 +16,7 @@ class Vehicle < ActiveRecord::Base
   attr_accessible :year, :make, :model, :qbo_customer_id, :notes, :vin
   validates_presence_of :year, :make, :model, :qbo_customer_id
   
-  before_save :decode_vin
+  before_validation :decode_vin
   
   def to_s
     return "#{year} #{make} #{model}"
@@ -25,9 +25,9 @@ class Vehicle < ActiveRecord::Base
   private
   
   def decode_vin
-    if vin?
+    if self.vin?
       decoder = Edmunds::Vin.new('2dheutzvhxs28dzukx5tgu47')
-      vehicle = decoder.full(vin)
+      vehicle = decoder.full(self.vin)
       self.year = vehicle['years'][0]['year']
       self.make = vehicle['make']['name']
       self.model = vehicle['model']['name']
