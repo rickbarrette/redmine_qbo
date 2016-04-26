@@ -26,7 +26,7 @@ class Vehicle < ActiveRecord::Base
   
   def decode_vin
     if self.vin?
-      decoder = Edmunds::Vin.new('2dheutzvhxs28dzukx5tgu47')
+      decoder = JSON.parse Edmunds::Vin.new('2dheutzvhxs28dzukx5tgu47')
       vehicle = decoder.full(self.vin)
       self.year = vehicle['years'][0]['year']
       self.make = vehicle['make']['name']
