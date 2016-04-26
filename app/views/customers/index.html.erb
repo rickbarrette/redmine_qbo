@@ -1,6 +1,6 @@
 <h1>Customers</h1> 
 <br/> 
-<% QboCustomer.all.each do |c| %>
+<% @customers do |c| %>
   <div class="row">
     <div class="span6 columns">
       <fieldset>
@@ -10,6 +10,8 @@
     </div>
   </div>
 <% end %>
+
+<%= @customer_pages %>
 
 <div class="actions">
   <%= button_to "New", new_customer_path, method: :get %>       
