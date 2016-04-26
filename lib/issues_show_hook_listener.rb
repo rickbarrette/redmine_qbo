@@ -66,6 +66,8 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
         <div class=\"label\"><span>Invoice</span>:</div>
         <div class=\"value\">#{invoice_link}</div>
       </div>
+      
+      <br/>
 
       <div class=\"vehicle attribute\">
         <div class=\"label\"><span>Vehicle</span>:</div>
