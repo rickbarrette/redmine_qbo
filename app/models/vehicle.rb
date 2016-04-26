@@ -26,7 +26,8 @@ class Vehicle < ActiveRecord::Base
   
   def decode_vin
     if vin?
-      vehicle = Edmunds::Api::VinDecoding::Full.find_by(vin: vin)
+      decoder = Edmunds::Vin.new('2dheutzvhxs28dzukx5tgu47')
+      vehicle = decoder.full(vin)
       year = vehicle[:years][0][:year]
       make = vehicle[:make][:name]
       model = vehicle[:model][:name]
