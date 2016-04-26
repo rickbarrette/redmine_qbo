@@ -28,9 +28,9 @@ class Vehicle < ActiveRecord::Base
     if vin?
       decoder = Edmunds::Vin.new('2dheutzvhxs28dzukx5tgu47')
       vehicle = decoder.full(vin)
-      year = vehicle['years'][0]['year']
-      make = vehicle['make']['name']
-      model = vehicle['model']['name']
+      self.year = vehicle['years'][0]['year']
+      self.make = vehicle['make']['name']
+      self.model = vehicle['model']['name']
     end
   end
 end
