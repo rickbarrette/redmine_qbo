@@ -1,0 +1,17 @@
+<div style="width: 100%; display: table;">
+  <div style="display: table-row">
+    <div style="width: 600px; display: table-cell;">
+
+      <strong>
+        <%= @customer%>
+      </strong>
+        
+    </div>
+  </div>
+  
+  <div style="display: table-cell;">
+      <%= button_to "Edit", edit_customer_path(@customer), method: :get%> 
+  </div>
+  
+  </div>
+</div>
