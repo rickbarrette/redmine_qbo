@@ -40,11 +40,8 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     
     v = Vehicle.find_by_id(issue.vehicles_id)
     #vehicle = v ? v.to_s : nil
-    vehicle_link = link_to v.to_s, v, :target => "_blank"
+    vehicle_link = link_to v.to_s, vehicle_path(v), :target => "_blank"
     vin = v ? v.vin : nil
-    
-    
-      
     
     return "
     <div class=\"attributes\">
