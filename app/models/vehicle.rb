@@ -22,7 +22,7 @@ class Vehicle < ActiveRecord::Base
     return "#{year} #{make} #{model}"
   end
   
-  def self.details
+  def details
     return JSON.parse get_decoder.full(self.vin)
   end
   
