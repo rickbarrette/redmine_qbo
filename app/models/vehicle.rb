@@ -43,7 +43,7 @@ class Vehicle < ActiveRecord::Base
   end
   
   # makes a squishvin
-  # http://developer.edmunds.com/api-documentation/vehicle/spec_squishvin/v1/
+  # https://api.edmunds.com/api/vehicle/v2/squishvins/#{vin}/?fmt=json&api_key=#{ENV['edmunds_key']}
   def vin_squish
     if not self.vin? or self.vin.size < 11
       # this is to go ahead and query the API, letting them handle the error. :P
