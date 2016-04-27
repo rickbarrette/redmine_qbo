@@ -30,7 +30,8 @@ class Vehicle < ActiveRecord::Base
   private
   
   def get_details
-    @details = JSON.parse get_decoder.full(self.vin)
+    if not self.vin?
+      @details = JSON.parse get_decoder.full(self.vin)
   end
   
   def get_decoder
