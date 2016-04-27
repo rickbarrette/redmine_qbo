@@ -17,17 +17,17 @@
     
     <tr>
       <th>Style</th>
-      <td><%= @style %></td>
+      <td><%= @vehicle.details['years'][0]['styles'][0]['name'] %></td>
     </tr>
     
     <tr>
       <th>Drive</th>
-      <td><%= @drive %></td>
+      <td><%= @vehicle.details['drivenWheels'] %></td>
     </tr>
     
     <tr>
       <th>Doors</th>
-      <td><%= @doors %></td>
+      <td><%= @vehicle.details['numOfDoors'] %></td>
     </tr>
   
     <tr>
