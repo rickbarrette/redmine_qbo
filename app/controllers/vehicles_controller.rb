@@ -40,10 +40,10 @@ class VehiclesController < ApplicationController
       @customer = @vehicle.qbo_customer.name if @vehicle.qbo_customer
       
       if @vehicle.vin?
-        details = @vehicle.details
-        @style = details['years'][0]['styles'][0]['name']
-        @drive = @vehicle.vehicle_drivenWheels
-        @doors = details['numOfDoors']
+        @details = @vehicle.details
+        @style = @details['years'][0]['styles'][0]['name']
+        @drive = @details['vehicle_drivenWheels']
+        @doors = @details['numOfDoors']
       end
       
     else
