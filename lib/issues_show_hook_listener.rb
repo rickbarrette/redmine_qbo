@@ -43,7 +43,7 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
       #vehicle = v ? v.to_s : nil
       vehicle = link_to v.to_s, "#{Redmine::Utils::relative_url_root  }/vehicles/#{v.id}",
       vin = v ? v.vin 
-      notes = n.notes
+      notes = v.notes
     end
     
     return "
