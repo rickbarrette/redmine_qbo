@@ -18,7 +18,7 @@ class VehiclesController < ApplicationController
   
   # display a list of all vehicles
   def index
-
+    @vehicles = Vehicle.paginate(:page => params[:page])
   end
 
   # return an HTML form for creating a new vehicle
