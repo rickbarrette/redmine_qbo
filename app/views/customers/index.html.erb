@@ -11,7 +11,7 @@
   </div>
 <% end %>
 
-<%= @customer_pages %>
+<%= will_paginate @customers %>
 
 <div class="actions">
   <%= button_to "New", new_customer_path, method: :get %>       
