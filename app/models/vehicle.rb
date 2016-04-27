@@ -18,10 +18,6 @@ class Vehicle < ActiveRecord::Base
   
   before_validation :decode_vin
   
-  def name
-    return to_s
-  end
-  
   def to_s
     return "#{self.year} #{self.make} #{self.model}"
   end
