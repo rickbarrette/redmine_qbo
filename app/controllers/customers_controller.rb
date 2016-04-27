@@ -18,12 +18,7 @@ class CustomersController < ApplicationController
   
   # display a list of all customers
   def index
-    c = QboCustomer.all
-    
-    @customer_count = c.count
-    @customer_pages = Paginator.new self, @customer_count, 10, params['page']
-        
-    @customers =  QboCustomer.all(:limit  =>  @customer_pages.items_per_page, :offset =>  @customer_pages.current.offset)
+    @customers = QboCustomer.paginate(:page => params[:page])
   end
   
   # display a specific customer
