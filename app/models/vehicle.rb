@@ -27,6 +27,18 @@ class Vehicle < ActiveRecord::Base
     return @details
   end
   
+  def style
+    return @details['years'][0]['styles'][0]['name'] if @details
+  end
+  
+  def drive
+    return @details['drivenWheels'] if @details
+  end
+  
+  def doors
+    @details['numOfDoors'] if @details
+  end
+  
   private
   
   def get_details
