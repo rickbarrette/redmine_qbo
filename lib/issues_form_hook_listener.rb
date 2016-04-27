@@ -39,7 +39,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     #@estimates_link = link_to qbo_update_estimates_path
     
     #render_on :view_issues_form_details_bottom, :partial => 'hooks/redmine_qbo/vehicles/dropdown'
-    vehicles = customer.vehicles.pluck(:vin, :id).sort if customer
+    vehicles = customer.vehicles.pluck(:name, :id).sort if customer
     vehicles = Vehicle.all if not vehicles
     vehicle = f.select :vehicles_id, vehicles, include_blank: true, :selected => vehicle
     
