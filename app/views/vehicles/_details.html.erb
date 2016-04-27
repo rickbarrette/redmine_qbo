@@ -1,42 +1,36 @@
-<div style="width: 100%; display: table;">
-  <div style="display: table-row">
-    <div style="width: 600px; display: table-cell;">
-
-      <strong>
-        <%= @customer%>
-      </strong>
-      
-      <br/>
-      
-      <%= @vehicle.to_s %>
-      
-      <br/>
-
-      <div class="vin">
-        <div style="float: left">
-          VIN:
-        </div>
-        <div style="float: left">
-          <%= @vehicle.vin %>
-        </div>
-      </div>
-
-      <br/>
-      
-      <div class="notes">
-        <div style="float: left">
-          Notes:
-        </div>
-        <div style="float: left">
-          <%= @vehicle.notes %>
-        </div>
-      </div>
-    </div>
+<div class="attributes">
+  <div class="customer attribute">
+    <div class="label"><span>Customer</span>:</div>
+    <div class="value"><%= @customer %></div>
+  </div>
   
-    <div style="display: table-cell;">
-      <%= button_to "Edit", edit_vehicle_path(@vehicle), method: :get%> 
-      <%= button_to "Delete", @vehicle, method: :delete, data: {confirm: "You sure?"} %> 
-    </div>
+  <div class="vehicle attribute">
+      <div class="label"><span>Vehicle</span>:</div>
+      <div class="value"><%= @vehicle.to_s %></div>
+  </div>
   
+  <div class="vin attribute">
+    <div class="label"><span>VIN</span>:</div>
+    <div class="value"><%= @vehicle.vin %></div>
+  </div>
+
+  <div class="style attribute">
+    <div class="label"><span>Style</span>:</div>
+    <div class="value"><%= @style %></div>
+  </div>
+  
+  <div class="drive attribute">
+      <div class="label"><span>Drive</span>:</div>
+      <div class="value"><%= @drive %></div>
+  </div>
+  
+  <div class="doors attribute">
+      <div class="label"><span>Doors</span>:</div>
+      <div class="value"><%= @doors %></div>
+  </div>
+  
+  <div class="notes">
+    <div class="label"><span>Notes:</span>:</div>
+    <div class="value"><%= @vehicle.notes %></div>
   </div>
 </div>
