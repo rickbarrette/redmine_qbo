@@ -23,16 +23,34 @@ class Vehicle < ActiveRecord::Base
   end
   
   def details
-    @@details = JSON.parse get_decoder.full(self.vin)
-    return @@details
+    @details = JSON.parse get_decoder.full(self.vin)
   end
+  
+  # make magic methods to grab vehicle information
+  def method_missing(method_name, *arguments, &block)
+    if @details.nil?
+      details
+    end
+    
+    if method_name.to_s =~ /\Avehicle_(.*)/
+      @details.fetch($1).fetch('name')
+    else
+        super
+    end
+      rescue
+    super
+  end
+
+  def respond_to_missing?(method_name, include_private = false)
+    method_name.to_s.start_with?('vehicle_') || super
+  end
+  
+  private
   
   def get_decoder
     #TODO API Code via Settings
     return decoder = Edmunds::Vin.new('2dheutzvhxs28dzukx5tgu47')
   end
-  
-  private
   
   def decode_vin
     if self.vin?
