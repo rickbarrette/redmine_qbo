@@ -50,6 +50,6 @@ class Vehicle < ActiveRecord::Base
       return '1000000000A'
     end
     v = self.vin[0,11]
-    return vin.slice(0,8) + vin.slice(9,11)
+    return v.slice(0,8) + v.slice(9,11)
   end
 end
