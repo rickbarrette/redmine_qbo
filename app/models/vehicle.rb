@@ -17,16 +17,21 @@ class Vehicle < ActiveRecord::Base
   validates_presence_of :year, :make, :model, :qbo_customer_id
   
   before_validation :decode_vin
+  after_initialize :get_details
   
   def to_s
     return "#{self.year} #{self.make} #{self.model}"
   end
   
   def details
-    @details = JSON.parse get_decoder.full(self.vin)
+    return @details
   end
   
   private
+  
+  def get_details
+    @details = JSON.parse get_decoder.full(self.vin)
+  end
   
   def get_decoder
     #TODO API Code via Settings
