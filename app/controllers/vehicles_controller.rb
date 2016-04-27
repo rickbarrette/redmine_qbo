@@ -42,7 +42,7 @@ class VehiclesController < ApplicationController
       if @vehicle.vin?
         details = @vehicle.details
         @style = details['years'][0]['styles'][0]['name']
-        @drive = details['drivenWheels']
+        @drive = @vehicle.vehicle_drivenWheels
         @doors = details['numOfDoors']
       end
       
