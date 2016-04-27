@@ -40,8 +40,8 @@ class Vehicle < ActiveRecord::Base
       self.year = vehicle['years'][0]['year']
       self.make = vehicle['make']['name']
       self.model = vehicle['model']['name']
-      self.name = to_s
     end
+    self.name = to_s
   end
   
   # makes a squishvin
