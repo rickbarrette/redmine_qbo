@@ -23,10 +23,7 @@ class Vehicle < ActiveRecord::Base
   end
   
   def self.get_details
-    if self.vin?
-      return JSON.parse get_decoder.full(self.vin)
-    end
-    return nil
+    return JSON.parse get_decoder.full(self.vin)
   end
   
   private
