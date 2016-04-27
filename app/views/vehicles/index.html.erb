@@ -1,20 +1,3 @@
 <h1>Customer Vehicles</h1> 
 <br/> 
-<% @vehicles.each do |vehicle| %>
-  <div class="row">
-    <div class="span6 columns">
-      <fieldset>
-        <% @customer = vehicle.qbo_customer.name if vehicle.qbo_customer %>
-        <% @vehicle = vehicle %>
-        <%= render :partial => 'vehicles/details' %>
-      </fieldset>
-    </div>
-  </div>
-<% end %>
-
-<br/>
-
-<div class="actions">
-  <%= will_paginate @vehicles %>
-  <%= button_to "New", new_vehicle_path, method: :get %>       
-</div>
+<%= render :partial => 'vehicles/list' %>
