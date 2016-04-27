@@ -23,7 +23,7 @@ class Vehicle < ActiveRecord::Base
   end
   
   def to_s
-    return "#{year} #{make} #{model}"
+    return "#{self.year} #{self.make} #{self.model}"
   end
   
   def details
@@ -44,6 +44,7 @@ class Vehicle < ActiveRecord::Base
       self.year = vehicle['years'][0]['year']
       self.make = vehicle['make']['name']
       self.model = vehicle['model']['name']
+      self.name = to_s
     end
   end
   
