@@ -21,6 +21,14 @@ class CustomersController < ApplicationController
     @customers = QboCustomer.paginate(:page => params[:page])
   end
   
+  def new
+    
+  end
+  
+  def create
+    
+  end
+  
   # display a specific customer
   def show
     @customer = QboCustomer.find_by_id(params[:id])
@@ -46,6 +54,10 @@ class CustomersController < ApplicationController
     else
       render :edit
     end
-  end  
+  end
+  
+  def destroy
+    
+  end
 
 end
