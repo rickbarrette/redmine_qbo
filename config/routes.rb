@@ -18,6 +18,4 @@ get 'qbo/sync', :to => 'qbo#sync'
 get 'qbo/estimate/:id', :to => 'estimate#show', as: :estimate
 get 'qbo/invoice/:id', :to => 'invoice#show', as: :invoice
 resources :vehicles
-resources :customers do
-  resources :vehicles
-end
+resources :customers
