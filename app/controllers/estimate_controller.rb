@@ -10,6 +10,10 @@
 class EstimateController < ApplicationController
   unloadable
   
+  include AuthHelper
+  
+  before_filter :require_user
+  
   #
   # Downloads and forwards the estimate pdf
   #
