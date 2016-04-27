@@ -36,8 +36,10 @@
     </tr>
     
     <tr>
-      <%= button_to "Edit", edit_vehicle_path(@vehicle), method: :get%> 
-      <%= button_to "Delete", @vehicle, method: :delete, data: {confirm: "You sure?"} %> 
+      <td>
+        <%= button_to "Edit", edit_vehicle_path(@vehicle), method: :get%> 
+        <%= button_to "Delete", @vehicle, method: :delete, data: {confirm: "You sure?"} %> 
+      </td>
     </tr>
   </tbody>
 </table>
