@@ -41,4 +41,15 @@ class Vehicle < ActiveRecord::Base
       self.model = vehicle['model']['name']
     end
   end
+  
+  # makes a squishvin
+  # http://developer.edmunds.com/api-documentation/vehicle/spec_squishvin/v1/
+  def vin_squish
+    if not self.vin? or self.vin.size < 11
+      # this is to go ahead and query the API, letting them handle the error. :P
+      return '1000000000A'
+    end
+    v = self.vin[0,11]
+    return vin.slice(0,8) + vin.slice(9,11)
+  end
 end
