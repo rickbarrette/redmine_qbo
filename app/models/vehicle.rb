@@ -18,12 +18,17 @@ class Vehicle < ActiveRecord::Base
   
   before_validation :decode_vin
   
+  def name
+    return to_s
+  end
+  
   def to_s
     return "#{year} #{make} #{model}"
   end
   
   def details
-    return JSON.parse get_decoder.full(self.vin)
+    @@details = JSON.parse get_decoder.full(self.vin)
+    return @@details
   end
   
   def get_decoder
