@@ -22,16 +22,16 @@ class Vehicle < ActiveRecord::Base
     return "#{year} #{make} #{model}"
   end
   
-  def self.get_details
+  def self.details
     return JSON.parse get_decoder.full(self.vin)
   end
-  
-  private
   
   def get_decoder
     #TODO API Code via Settings
     return decoder = Edmunds::Vin.new('2dheutzvhxs28dzukx5tgu47')
   end
+  
+  private
   
   def decode_vin
     if self.vin?
