@@ -40,7 +40,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     
     #render_on :view_issues_form_details_bottom, :partial => 'hooks/redmine_qbo/vehicles/dropdown'
     vehicles = customer.vehicles.pluck(:vin, :id).sort if customer
-    vehicles = Vehicles.all if not vehicles
+    vehicles = Vehicle.all if not vehicles
     vehicle = f.select :vehicles_id, vehicles, include_blank: true, :selected => vehicle
     
     return "<p>#{select_customer}</p> <p>#{select_item}</p> <p>#{select_invoice}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>"
