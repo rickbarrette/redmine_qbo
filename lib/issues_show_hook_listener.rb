@@ -29,19 +29,19 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     # Estimate Number
     if issue.qbo_estimate
       estimate =  issue.qbo_estimate.doc_number
-      estimate_link = link_to estimate, "#{Redmine::Utils::relative_url_root  }/qbo/estimate/#{issue.qbo_estimate.id}", :target => "_blank"
+      estimate_link = link_to estimate, "#{Redmine::Utils::relative_url_root}/qbo/estimate/#{issue.qbo_estimate.id}", :target => "_blank"
     end
     
     # Invoice Number
     if issue.qbo_invoice
       invoice =  issue.qbo_invoice.doc_number
-      invoice_link = link_to invoice, "#{Redmine::Utils::relative_url_root  }/qbo/invoice/#{issue.qbo_invoice.id}", :target => "_blank"
+      invoice_link = link_to invoice, "#{Redmine::Utils::relative_url_root}/qbo/invoice/#{issue.qbo_invoice.id}", :target => "_blank"
     end
     
     
     if issue.vehicles_id
       v = Vehicle.find_by_id(issue.vehicles_id)
-      vehicle = link_to v.to_s, "#{Redmine::Utils::relative_url_root  }/vehicles/#{v.id}",
+      vehicle = link_to v.to_s, "#{Redmine::Utils::relative_url_root}/vehicles/#{v.id}"
       vin = v.vin 
       notes = v.notes
     end
