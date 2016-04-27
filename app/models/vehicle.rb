@@ -36,7 +36,7 @@ class Vehicle < ActiveRecord::Base
   end
   
   def doors
-    @details['numOfDoors'] if @details
+    return @details['numOfDoors'] if @details
   end
   
   private
