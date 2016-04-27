@@ -38,14 +38,6 @@ class VehiclesController < ApplicationController
     @vehicle = Vehicle.find_by_id(params[:id])
     if @vehicle
       @customer = @vehicle.qbo_customer.name if @vehicle.qbo_customer
-      
-      if @vehicle.vin?
-        @details = @vehicle.details
-        @style = @details['years'][0]['styles'][0]['name']
-        @drive = @details['drivenWheels']
-        @doors = @details['numOfDoors']
-      end
-      
     else
       flash[:error] = "Vehicle Not Found"  
       render :index
