@@ -41,7 +41,7 @@ class CustomersController < ApplicationController
   def update
     @customer = QboCustomer.find_by_id(params[:id])
     if @customer.update_attributes(params[:customer])
-      flash[:success] = "Vehicle updated"
+      flash[:success] = "Customer updated"
       redirect_to @customer
     else
       render :edit
