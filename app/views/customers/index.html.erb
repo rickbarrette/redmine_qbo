@@ -6,6 +6,7 @@
       <fieldset>
         <% @customer = c.name%>
         <%= render :partial => 'customers/details' %>
+        <%= button_to "Show", c, method: :get %>
       </fieldset>
     </div>
   </div>
