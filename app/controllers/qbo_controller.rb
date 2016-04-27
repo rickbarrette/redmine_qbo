@@ -10,6 +10,10 @@
 
 class QboController < ApplicationController
   unloadable
+  
+  include AuthHelper
+  
+  before_filter :require_user
 
   #
   # Called when the QBO Top Menu us shown
