@@ -38,9 +38,9 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
       invoice_link = link_to invoice, "#{Redmine::Utils::relative_url_root  }/qbo/invoice/#{issue.qbo_invoice.id}", :target => "_blank"
     end
     
-    v = Vehicle.find_by_id(issue.vehicles_id)
-    if v?
-      #vehicle = v ? v.to_s : nil
+    
+    if issue.vehicles_id
+      v = Vehicle.find_by_id(issue.vehicles_id)
       vehicle = link_to v.to_s, "#{Redmine::Utils::relative_url_root  }/vehicles/#{v.id}",
       vin = v ? v.vin 
       notes = v.notes
