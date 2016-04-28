@@ -16,7 +16,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     f = context[:form]
  
     # Check to see if there is a quickbooks user attached to the issue
-    selected_customer =  context[:issue].qbo_customer ? context[:issue].qbo_customer.id  : nil
+    selected_customer =  context[:issue].customer ? context[:issue].customer.id  : nil
     selected_item = context[:issue].qbo_item ? context[:issue].qbo_item.id  : nil
     selected_invoice = context[:issue].qbo_invoice ? context[:issue].qbo_invoice.id  : nil
     selected_estimate =  context[:issue].qbo_estimate ? context[:issue].qbo_estimate.id  : nil
@@ -25,7 +25,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     vehicle = context[:issue].vehicles_id
     
     # Generate the drop down list of quickbooks customers
-    select_customer = f.select :qbo_customer_id, QboCustomer.all.pluck(:name, :id).sort, :selected => selected_customer, include_blank: true
+    select_customer = f.select :customer_id, Customer.all.pluck(:name, :id).sort, :selected => selected_customer, include_blank: true
   
     # Generate the drop down list of quickbooks items
     select_item = f.select :qbo_item_id, QboItem.all.pluck(:name, :id).sort, :selected => selected_item, include_blank: true
