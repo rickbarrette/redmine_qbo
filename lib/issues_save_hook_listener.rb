@@ -15,7 +15,7 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
     issue = context[:issue]
 
     # Check to see if we have registered with QBO
-    if Qbo.first && issue.qbo_customer && issue.qbo_item
+    if Qbo.first && issue.customer && issue.qbo_item
       
       # if this is a quote, lets create a new estimate based off estimated hours
         if issue.tracker.name = "Quote" && issue.status.name = "New" && issue.qbo_estimate
@@ -59,7 +59,7 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
 
     # Check to see if we have registered with QBO and if the issue is closed.
     # If so then we need to create a new billable time activity for the customer
-    bill_time(issue, employee_id) if Qbo.first && issue.qbo_customer && issue.qbo_item && employee_id && issue.status.is_closed?
+    bill_time(issue, employee_id) if Qbo.first && issue.customer && issue.qbo_item && employee_id && issue.status.is_closed?
   end
     
   # Create billable time entries
