@@ -44,7 +44,7 @@ class QboCustomer < ActiveRecord::Base
   
   # returns the customer's mobile phone
   def mobile_phone
-    @detail.mobile_phone if @details
+    @details.mobile_phone if @details
   end
   
   # returns the customer's notes
