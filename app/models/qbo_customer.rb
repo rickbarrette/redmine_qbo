@@ -34,17 +34,29 @@ class QboCustomer < ActiveRecord::Base
   
   # returns the customer's email
   def email
-    return @details.email_address.address if @details
+    begin 
+      return @details.email_address.address
+    rescue
+      return nil
+    end
   end
   
   # returns the customer's primary phone
   def primary_phone
-    return @details.primary_phone.free_form_number if @details
+    begin 
+      return @details.primary_phone.free_form_number
+    rescue
+      return nil
+    end
   end
   
   # returns the customer's mobile phone
   def mobile_phone
-    return @details.mobile_phone.free_form_number if @details
+    begin
+      return @details.mobile_phone.free_form_number
+    rescue
+      return nil
+    end
   end
   
   # returns the customer's notes
