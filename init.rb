@@ -31,7 +31,7 @@ Redmine::Plugin.register :redmine_qbo do
     settings :default => {'empty' => true}, :partial => 'qbo/settings'
 
     # Add safe attributes
-    Issue.safe_attributes 'qbo_customer_id'
+    Issue.safe_attributes 'customer_id'
     Issue.safe_attributes 'qbo_item_id'
     Issue.safe_attributes 'qbo_estimate_id'
     Issue.safe_attributes 'qbo_invoice_id'
