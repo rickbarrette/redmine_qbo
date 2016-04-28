@@ -11,10 +11,10 @@
 class Vehicle < ActiveRecord::Base
   
   unloadable
-  belongs_to :qbo_customer
+  belongs_to :customer
   
-  attr_accessible :year, :make, :model, :qbo_customer_id, :notes, :vin
-  validates_presence_of :year, :make, :model, :qbo_customer_id
+  attr_accessible :year, :make, :model, :customer_id, :notes, :vin
+  validates_presence_of :year, :make, :model, :customer_id
   
   before_validation :decode_vin
   after_initialize :get_details
