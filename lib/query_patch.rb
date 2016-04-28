@@ -35,7 +35,7 @@ module QueryPatch
     def available_columns_with_qbo
       unless @available_columns
         @available_columns = available_columns_without_qbo
-        @available_columns << QueryColumn.new(:qbo_customer, :sortable => "#{QboCustomer.table_name}.name", :groupable => true, :caption => :field_qbo_customer)
+        @available_columns << QueryColumn.new(:customer, :sortable => "#{Customer.table_name}.name", :groupable => true, :caption => :field_customer)
       end
       @available_columns
     end
