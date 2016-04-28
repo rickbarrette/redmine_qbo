@@ -21,7 +21,7 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     issue = context[:issue]
 
     # Check to see if there is a quickbooks user attached to the issue
-    customer =  issue.qbo_customer ? issue.qbo_customer.name : nil
+    customer =  issue.customer ? issue.customer.name : nil
     
     # Check to see if there is a quickbooks item attached to the issue
     item =  issue.qbo_item ? issue.qbo_item.name : nil
@@ -49,7 +49,7 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     return "
     <div class=\"attributes\">
     
-      <div class=\"qbo_customer_id attribute\">
+      <div class=\"customer_id attribute\">
         <div class=\"label\"><span>Customer</span>:</div>
         <div class=\"value\">#{customer}</div>
       </div>
