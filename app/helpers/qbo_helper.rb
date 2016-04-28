@@ -11,7 +11,7 @@
 module QboHelper
 
   def qbo_customer_dropdown
-    select = context[:form].select :qbo_customer_id, QboCustomers.all.pluck(:name, :id), :selected => selected, include_blank: true
+    select = context[:form].select :customer_id, Customers.all.pluck(:name, :id), :selected => selected, include_blank: true
     return "<p>#{select}</p>"
   end 
 
