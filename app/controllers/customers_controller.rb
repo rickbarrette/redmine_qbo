@@ -18,7 +18,7 @@ class CustomersController < ApplicationController
   
   # display a list of all customers
   def index
-    @customers = QboCustomer.paginate(:page => params[:page])
+    @customers = Customer.paginate(:page => params[:page])
   end
   
   def new
@@ -31,7 +31,7 @@ class CustomersController < ApplicationController
   
   # display a specific customer
   def show
-    @customer = QboCustomer.find_by_id(params[:id])
+    @customer = Customer.find_by_id(params[:id])
     if @customer
       @vehicles = @customer.vehicles.paginate(:page => params[:page])
     else
@@ -42,12 +42,12 @@ class CustomersController < ApplicationController
   
   # return an HTML form for editing a customer
   def edit
-    @customer = QboCustomer.find_by_id(params[:id])
+    @customer = Customer.find_by_id(params[:id])
   end
   
   # update a specific customer
   def update
-    @customer = QboCustomer.find_by_id(params[:id])
+    @customer = Customer.find_by_id(params[:id])
     if @customer.update_attributes(params[:customer])
       flash[:success] = "Customer updated"
       redirect_to @customer
