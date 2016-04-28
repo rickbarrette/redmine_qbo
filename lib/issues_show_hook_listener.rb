@@ -22,7 +22,7 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
 
     # Check to see if there is a quickbooks user attached to the issue
     if issue.customer
-      customer =  link_to issue.customer, issue.customer.name
+      customer =  link_to customer_path(issue.customer), issue.customer.name
     end
     
     # Check to see if there is a quickbooks item attached to the issue
