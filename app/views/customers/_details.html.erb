@@ -29,7 +29,7 @@
       <td/>
       <td>
         <%= button_to "Edit", edit_customer_path(@customer), method: :get%> 
-        <%= button_to "Delete", @customer, method: :delete, data: {confirm: "You sure?"} %> 
+        <%= button_to "Delete", delete_customer_path(@customer), method: :delete, data: {confirm: "You sure?"} %> 
       </td>
     </tr>
   </tbody>
