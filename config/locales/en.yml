@@ -11,7 +11,7 @@
 # English strings go here for Rails i18n
 en:
   # my_label: "My label"
-  field_qbo_customer: "Customer"
+  field_customer: "Customer"
   field_qbo_item: "Item"
   field_qbo_employee: "Employee"
   field_qbo_invoice: "Invoice"
