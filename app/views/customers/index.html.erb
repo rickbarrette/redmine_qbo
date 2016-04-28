@@ -1,10 +1,9 @@
 <h1>Customers</h1> 
 <br/> 
-<% @customers.each do |c| %>
+<% @customers.each do |@customer| %>
   <div class="row">
     <div class="span6 columns">
       <fieldset>
-        <% @customer = c.name%>
         <%= render :partial => 'customers/details' %>
         <%= button_to "Show", customer_path(c.id), method: :get %>
       </fieldset>
