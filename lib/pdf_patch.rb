@@ -40,7 +40,7 @@ module IssuesPdfHelperPatch
       left = []
       left << [l(:field_status), issue.status]
       left << [l(:field_priority), issue.priority]
-      left << [l(:field_qbo_customer), issue.qbo_customer.name]
+      left << [l(:field_customer), issue.customer.name]
       left << [l(:field_assigned_to), issue.assigned_to] unless issue.disabled_core_fields.include?('assigned_to_id')
       #left << [l(:field_category), issue.category] unless issue.disabled_core_fields.include?('category_id')
       #left << [l(:field_fixed_version), issue.fixed_version] unless issue.disabled_core_fields.include?('fixed_version_id')
