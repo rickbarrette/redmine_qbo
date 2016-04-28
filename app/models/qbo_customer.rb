@@ -24,32 +24,32 @@ class QboCustomer < ActiveRecord::Base
   
   # returns true if the customer is active
   def active?
-    @details.active? if @details
+    return @details.active? if @details
   end
   
   # returns a human readable string
   def to_s
-    name
+    return name
   end
   
   # returns the customer's email
   def email
-    @details.primary_email_address if @details
+    return @details.primary_email_address if @details
   end
   
   # returns the customer's primary phone
   def primary_phone
-    @details.primary_phone if @details
+    return @details.primary_phone if @details
   end
   
   # returns the customer's mobile phone
   def mobile_phone
-    @details.mobile_phone if @details
+    return @details.mobile_phone if @details
   end
   
   # returns the customer's notes
   def notes
-    @details.notes if @details
+    return @details.notes if @details
   end
   
   # updates the customer's notes in QBO
