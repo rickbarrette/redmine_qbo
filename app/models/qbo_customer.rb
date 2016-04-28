@@ -16,13 +16,35 @@ class QboCustomer < ActiveRecord::Base
   attr_accessible :name
   validates_presence_of :id, :name
   
+  after_initialize :get_details
+  
   self.primary_key = "id"
+  
+  def active?
+    @details.active?
+  end
   
   def to_s
     name
   end
   
-   def get_base
+  def email
+    @details.primary_Email_addr
+  end
+  
+  def primary_phone
+    @details.primary_phone
+  end
+  
+  def mobile_phone
+    @detail.mobile_phone
+  end
+  
+  def notes
+    @details.notes
+  end
+  
+  def get_base
     Qbo.get_base(:customer)
   end
    
@@ -46,4 +68,11 @@ class QboCustomer < ActiveRecord::Base
     #remove deleted customers
     where.not(customers.map(&:id)).destroy_all
   end
+  
+  private
+  
+  def get_details
+    @details = get_customer(self.id)
+  end
+  
 end
