@@ -66,7 +66,7 @@ class QboCustomer < ActiveRecord::Base
   
   # returns the QBO customer 
   def get_customer (id)
-    get_base.service.find_by_id(id)
+    get_base.find_by_id(id)
   end
 
   # proforms a bruteforce sync operation
