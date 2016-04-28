@@ -34,7 +34,7 @@ class QboCustomer < ActiveRecord::Base
   
   # returns the customer's email
   def email
-    return @details.primary_email_address.email_address if @details
+    return @details.email_address if @details
   end
   
   # returns the customer's primary phone
