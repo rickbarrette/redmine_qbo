@@ -18,7 +18,7 @@ class QboCustomer < ActiveRecord::Base
   
   after_initialize :get_details
   
-  self.primary_key = "id"
+  self.primary_key = :id
   
   def active?
     @details.active?
