@@ -39,12 +39,12 @@ class QboCustomer < ActiveRecord::Base
   
   # returns the customer's primary phone
   def primary_phone
-    return @details.primary_phone.free_form_number if @details
+    return @details.primary_phone.number if @details
   end
   
   # returns the customer's mobile phone
   def mobile_phone
-    return @details.mobile_phone.free_form_number if @details
+    return @details.mobile_phone.number if @details
   end
   
   # returns the customer's notes
