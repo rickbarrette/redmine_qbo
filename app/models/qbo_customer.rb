@@ -103,9 +103,13 @@ class QboCustomer < ActiveRecord::Base
   
   # update's the customers name if updated
   def update
-    if @details and not self.name == @detils.display_name
-      self.name = @details.display_name
-      self.save
+    begin
+      if not self.name == @detils.display_name
+        self.name = @details.display_name
+        self.save
+      end
+    rescue
+      return nil
     end
   end
   
