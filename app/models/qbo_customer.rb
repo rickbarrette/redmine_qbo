@@ -29,7 +29,7 @@ class QboCustomer < ActiveRecord::Base
   end
   
   def email
-    @details.primary_Email_addr
+    @details.primary_email_address
   end
   
   def primary_phone
