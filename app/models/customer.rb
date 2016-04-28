@@ -8,7 +8,7 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class QboCustomer < ActiveRecord::Base
+class Customer < ActiveRecord::Base
   unloadable
   
   has_many :issues
@@ -89,7 +89,7 @@ class QboCustomer < ActiveRecord::Base
     transaction do
       # Update the customer table
       customers.each { |customer|
-        qbo_customer = QboCustomer.find_or_create_by(id: customer.id)
+        qbo_customer = Customer.find_or_create_by(id: customer.id)
         # only update if diffrent
         if not qbo_customer.name == customer.display_name
           qbo_customer.name = customer.display_name
