@@ -11,5 +11,6 @@
 class QboCustomersToCustomers< ActiveRecord::Migration
   def change
     rename_table :qbo_customers, :customers
+    rename_column :issues, :qbo_customer_id, :customer_id
   end 
 end
