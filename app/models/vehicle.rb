@@ -19,14 +19,17 @@ class Vehicle < ActiveRecord::Base
   before_validation :decode_vin
   after_initialize :get_details
   
+  # returns a human readable string
   def to_s
     return "#{self.year} #{self.make} #{self.model}"
   end
   
+  # returns the raw JSON details from EMUNDS
   def details
     return @details
   end
   
+  # returns the style of the vehicle
   def style
     begin
       return @details['years'][0]['styles'][0]['name'] if @details
@@ -35,27 +38,32 @@ class Vehicle < ActiveRecord::Base
     end
   end
   
+  # returns the drive of the vehicle i.e. 2 wheel, 4 wheel, ect.
   def drive
     return @details['drivenWheels'] if @details
   end
   
+  # returns the number of doors of the vehicle
   def doors
-    @details['numOfDoors'] if @details
+    return @details['numOfDoors'] if @details
   end
   
   private
   
+  # init method to pull JSON details from Edmunds
   def get_details
     if self.vin?
       @details = JSON.parse get_decoder.full(self.vin)
     end
   end
   
+  # returns the Edmunds decoder service
   def get_decoder
     #TODO API Code via Settings
     return decoder = Edmunds::Vin.new('2dheutzvhxs28dzukx5tgu47')
   end
   
+  # decodes a vin and updates self
   def decode_vin
     get_details
     if self.vin?

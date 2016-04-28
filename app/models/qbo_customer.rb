@@ -10,26 +10,67 @@
 
 class QboCustomer < ActiveRecord::Base
   unloadable
+  
   has_many :issues
   has_many :qbo_purchases
   has_many :vehicles
+  
   attr_accessible :name
   validates_presence_of :id, :name
   
-  self.primary_key = "id"
+  after_initialize :get_details
   
+  self.primary_key = :id
+  
+  # returns true if the customer is active
+  def active?
+    @details.active? if @details
+  end
+  
+  # returns a human readable string
   def to_s
     name
   end
   
-   def get_base
+  # returns the customer's email
+  def email
+    @details.primary_email_address if @details
+  end
+  
+  # returns the customer's primary phone
+  def primary_phone
+    @details.primary_phone if @details
+  end
+  
+  # returns the customer's mobile phone
+  def mobile_phone
+    @detail.mobile_phone if @details
+  end
+  
+  # returns the customer's notes
+  def notes
+    @details.notes if @details
+  end
+  
+  # updates the customer's notes in QBO
+  def notes (s)
+    customer = get_customer(self.id)
+    customer.notes = s
+    get_base.update(customer)
+  end
+  
+  # returns the bases QBO service for customers
+  def get_base
     Qbo.get_base(:customer)
   end
-   
+  
+  # returns the QBO customer 
   def get_customer (id)
     get_base.service.find_by_id(id)
   end
 
+  # proforms a bruteforce sync operation
+  # This needs to be simplified
   def update_all 
     customers = get_base.service.all
 
@@ -37,13 +78,33 @@ class QboCustomer < ActiveRecord::Base
       # Update the customer table
       customers.each { |customer|
         qbo_customer = QboCustomer.find_or_create_by(id: customer.id)
-        qbo_customer.name = customer.display_name
-        qbo_customer.id = customer.id
-        qbo_customer.save!
+        # only update if diffrent
+        if not qbo_customer.name == customer.display_name
+          qbo_customer.name = customer.display_name
+          qbo_customer.id = customer.id
+          qbo_customer.save!
+        end
       }
     end
    
-    #remove deleted customers
+    # remove deleted customers
     where.not(customers.map(&:id)).destroy_all
   end
+  
+  private
+  
+  # init details
+  def get_details
+    if self.id
+      @details = get_customer(self.id)
+      update
+    end
+  end
+  
+  # update's the customers name
+  def update
+    self.name = @details.display_name
+    self.save
+  end
+  
 end
