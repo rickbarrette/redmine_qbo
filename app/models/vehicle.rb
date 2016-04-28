@@ -28,7 +28,11 @@ class Vehicle < ActiveRecord::Base
   end
   
   def style
-    return @details['years'][0]['styles'][0]['name'] if @details
+    begin
+      return @details['years'][0]['styles'][0]['name'] if @details
+    rescue
+      return nil
+    end
   end
   
   def drive
@@ -53,6 +57,7 @@ class Vehicle < ActiveRecord::Base
   end
   
   def decode_vin
+    get_details
     if self.vin?
       details
       self.year = @details['years'][0]['year']
