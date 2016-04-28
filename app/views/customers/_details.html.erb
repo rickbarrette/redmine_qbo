@@ -1,16 +1,36 @@
-<div style="width: 100%; display: table;">
-  <div style="display: table-row">
-    <div style="width: 600px; display: table-cell;">
-
-      <strong>
-        <%= @customer%>
-      </strong>
-      
-    </div>
-  </div>
-  
-  <div style="display: table-cell;">
-      <%= button_to "Edit", edit_customer_path(@customer), method: :get%> 
-  </div>
-
-</div>
+<table>
+  <tbody>
+    <tr>
+      <th>Customer</th>
+      <td><%= @customer.name %></td>
+    </tr>
+    
+    <tr>
+      <th>Email</th>
+      <td><%= @customer.email %></td>
+    </tr>
+    
+    <tr>
+      <th>Primary Phone</th>
+      <td><%= @customer.primary_phone %></td>
+    </tr>
+    
+    <tr>
+      <th>Mobile Phone</th>
+      <td><%= @customer.mobile_phone %></td>
+    </tr>
+    
+    <tr>
+      <th>Notes</th>
+      <td><%= @customer.notes %></td>
+    </tr>
+    
+        <tr>
+      <td/>
+      <td>
+        <%= button_to "Edit", edit_vehicle_path(@customer), method: :get%> 
+        <%= button_to "Delete", @customer, method: :delete, data: {confirm: "You sure?"} %> 
+      </td>
+    </tr>
+  </tbody>
+</table>
