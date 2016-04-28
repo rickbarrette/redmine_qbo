@@ -33,7 +33,7 @@ class CustomersController < ApplicationController
   def show
     @customer = QboCustomer.find_by_id(params[:id])
     if @customer
-      @vehicles = @customer.vehicles
+      @vehicles = @customer.vehicles.paginate(:page => params[:page])
     else
       flash[:error] = "Customer Not Found"  
       render :index
