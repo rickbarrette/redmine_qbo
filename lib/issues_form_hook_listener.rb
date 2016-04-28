@@ -21,7 +21,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     selected_invoice = context[:issue].qbo_invoice ? context[:issue].qbo_invoice.id  : nil
     selected_estimate =  context[:issue].qbo_estimate ? context[:issue].qbo_estimate.id  : nil
     
-    customer = QboCustomer.find_by_id(selected_customer) if selected_customer
+    customer = Customer.find_by_id(selected_customer) if selected_customer
     vehicle = context[:issue].vehicles_id
     
     # Generate the drop down list of quickbooks customers
