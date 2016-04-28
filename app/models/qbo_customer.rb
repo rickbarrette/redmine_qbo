@@ -53,7 +53,7 @@ class QboCustomer < ActiveRecord::Base
   end
   
   # updates the customer's notes in QBO
-  def notes (s)
+  def notes=(s)
     customer = get_customer(self.id)
     customer.notes = s
     get_base.update(customer)
