@@ -101,10 +101,12 @@ class QboCustomer < ActiveRecord::Base
     end
   end
   
-  # update's the customers name
+  # update's the customers name if updated
   def update
-    self.name = @details.display_name
-    self.save
+    if not self.name == @detils.display_name
+      self.name = @details.display_name
+      self.save
+    end
   end
   
 end
