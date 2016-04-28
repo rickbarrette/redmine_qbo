@@ -2,7 +2,7 @@
   <div class="row">
     <div class="span6 columns">
       <fieldset>
-        <% @customer = vehicle.qbo_customer.name if vehicle.qbo_customer %>
+        <% @customer = vehicle.customer.name if vehicle.customer %>
         <% @vehicle = vehicle %>
         <%= render :partial => 'vehicles/details' %>
       </fieldset>
