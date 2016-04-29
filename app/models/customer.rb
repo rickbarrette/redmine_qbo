@@ -24,9 +24,7 @@ class Customer < ActiveRecord::Base
   
   # returns true if the customer is active
   def active?
-    mutex.synchronize do
-      return @details.active? if @details
-    end
+    return @details.active? if @details
   end
   
   # returns a human readable string
@@ -37,9 +35,7 @@ class Customer < ActiveRecord::Base
   # returns the customer's email
   def email
     begin
-      mutex.synchronize do
-        return @details.email_address.address
-      end
+      return @details.email_address.address
     rescue
       return nil
     end
@@ -48,9 +44,7 @@ class Customer < ActiveRecord::Base
   # returns the customer's primary phone
   def primary_phone
     begin
-      mutex.synchronize do
-        return @details.primary_phone.free_form_number
-      end
+      return @details.primary_phone.free_form_number
     rescue
       return nil
     end
@@ -59,9 +53,7 @@ class Customer < ActiveRecord::Base
   # returns the customer's mobile phone
   def mobile_phone
     begin
-      mutex.synchronize do
-        return @details.mobile_phone.free_form_number
-      end
+      return @details.mobile_phone.free_form_number
     rescue
       return nil
     end
@@ -69,9 +61,7 @@ class Customer < ActiveRecord::Base
   
   # returns the customer's notes
   def notes
-    mutex.synchronize do
-      return @details.notes if @details
-    end
+    return @details.notes if @details
   end
   
   # updates the customer's notes in QBO
@@ -117,23 +107,20 @@ class Customer < ActiveRecord::Base
   
   # init details
   def get_details
-    Thread.new {
+    t= Thread.new {
       if self.id
-        mutex.synchronize do
-          @details = get_customer(self.id)
-        end
+        @details = get_customer(self.id)
       end
     }
+    t.join
   end
   
   # update's the customers name if updated
   def update
     begin
-      mutex.synchronize do
-        if not self.name == @detils.display_name
-          self.name = @details.display_name
-          self.save
-        end
+      if not self.name == @detils.display_name
+        self.name = @details.display_name
+        self.save
       end
     rescue
       return nil
