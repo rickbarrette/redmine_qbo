@@ -24,7 +24,9 @@ class Customer < ActiveRecord::Base
   
   # returns true if the customer is active
   def active?
-    return @details.active? if @details
+    mutex.synchronize do
+      return @details.active? if @details
+    end
   end
   
   # returns a human readable string
@@ -34,8 +36,10 @@ class Customer < ActiveRecord::Base
   
   # returns the customer's email
   def email
-    begin 
-      return @details.email_address.address
+    begin
+      mutex.synchronize do
+        return @details.email_address.address
+      end
     rescue
       return nil
     end
@@ -43,8 +47,10 @@ class Customer < ActiveRecord::Base
   
   # returns the customer's primary phone
   def primary_phone
-    begin 
-      return @details.primary_phone.free_form_number
+    begin
+      mutex.synchronize do
+        return @details.primary_phone.free_form_number
+      end
     rescue
       return nil
     end
@@ -53,7 +59,9 @@ class Customer < ActiveRecord::Base
   # returns the customer's mobile phone
   def mobile_phone
     begin
-      return @details.mobile_phone.free_form_number
+      mutex.synchronize do
+        return @details.mobile_phone.free_form_number
+      end
     rescue
       return nil
     end
@@ -61,7 +69,9 @@ class Customer < ActiveRecord::Base
   
   # returns the customer's notes
   def notes
-    return @details.notes if @details
+    mutex.synchronize do
+      return @details.notes if @details
+    end
   end
   
   # updates the customer's notes in QBO
@@ -119,10 +129,12 @@ class Customer < ActiveRecord::Base
   # update's the customers name if updated
   def update
     begin
-      if not self.name == @detils.display_name
-        self.name = @details.display_name
-        self.save
-      end
+      mutex.synchronize do
+        if not self.name == @detils.display_name
+          self.name = @details.display_name
+          self.save
+        end
+      }
     rescue
       return nil
     end
