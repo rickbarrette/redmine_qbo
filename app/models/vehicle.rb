@@ -52,6 +52,7 @@ class Vehicle < ActiveRecord::Base
   
   # init method to pull JSON details from Edmunds
   def get_details
+    # TODO handle ERRORS
     if self.vin?
       @details = JSON.parse get_decoder.full(self.vin)
     end
