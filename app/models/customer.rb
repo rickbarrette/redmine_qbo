@@ -109,7 +109,9 @@ class Customer < ActiveRecord::Base
   def get_details
     Thread.new {
       if self.id
-        @details = get_customer(self.id)
+        mutex.synchronize do
+          @details = get_customer(self.id)
+        end
       end
     }
   end
