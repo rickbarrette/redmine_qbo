@@ -25,7 +25,7 @@ class VehiclesController < ApplicationController
   def new
     @vehicle = Vehicle.new
     Customer.skip_callback(:initialize, :after, :get_details)
-    @customers = Customer.order(:name)
+    @customers = Customer.all.order(:name)
     Customer.set_callback(:initialize, :after, :get_details)
   end
 
