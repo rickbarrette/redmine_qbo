@@ -109,7 +109,6 @@ class Customer < ActiveRecord::Base
   def get_details
     if self.id
       @details = get_customer(self.id)
-      update
     end
   end
   
