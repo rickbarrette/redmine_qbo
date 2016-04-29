@@ -134,7 +134,7 @@ class Customer < ActiveRecord::Base
           self.name = @details.display_name
           self.save
         end
-      }
+      end
     rescue
       return nil
     end
