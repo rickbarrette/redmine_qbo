@@ -18,7 +18,7 @@ class Customer < ActiveRecord::Base
   attr_accessible :name
   validates_presence_of :id, :name
   
-  after_touch :get_details
+  after_find :get_details
   
   self.primary_key = :id
   
