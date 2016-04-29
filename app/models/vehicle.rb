@@ -54,7 +54,11 @@ class Vehicle < ActiveRecord::Base
   def get_details
     # TODO handle ERRORS
     if self.vin?
-      @details = JSON.parse get_decoder.full(self.vin)
+      begin
+        @details = JSON.parse get_decoder.full(self.vin)
+      rescue
+        return nil
+      end
     end
   end
   
