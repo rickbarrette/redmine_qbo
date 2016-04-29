@@ -107,23 +107,23 @@ class Customer < ActiveRecord::Base
   
   # init details
   def get_details
-    if self.id
-      @details = get_customer(self.id)
-    end
+    Thread.new {
+      if self.id
+        @details = get_customer(self.id)
+      end
+    }
   end
   
   # update's the customers name if updated
   def update
-    Thread.new {
-      begin
-        if not self.name == @detils.display_name
-          self.name = @details.display_name
-          self.save
-        end
-      rescue
-        return nil
+    begin
+      if not self.name == @detils.display_name
+        self.name = @details.display_name
+        self.save
       end
-    }
+    rescue
+      return nil
+    end
   end
   
 end
