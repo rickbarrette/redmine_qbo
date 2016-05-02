@@ -89,7 +89,7 @@ class Customer < ActiveRecord::Base
   end
   
   # returns the bases QBO service for customers
-  def get_base
+  def self.get_base
     Qbo.get_base(:customer)
   end
   
