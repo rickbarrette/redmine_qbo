@@ -14,11 +14,11 @@ class QboItem < ActiveRecord::Base
   attr_accessible :name
   validates_presence_of :id, :name
   
-  def get_base
+  def self.get_base
     Qbo.get_base(:item)
   end
   
-  def sync 
+  def self.sync 
     items = get_base.service.find_by(:type, "Service")
         
     transaction do
