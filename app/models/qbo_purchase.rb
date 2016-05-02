@@ -15,15 +15,15 @@ class QboPurchase < ActiveRecord::Base
   attr_accessible :description
   validates_presence_of :id, :line_id, :description, :qbo_customer_id
   
-  def self.get_base
+  def get_base
     Qbo.get_base(:purchase)
   end
 
-  def self.get_purchase(id)
+  def get_purchase(id)
     get_base.service.find_by_id(id)
   end
 
-  def self.update_all
+  def sync
    QboPurchase.get_base.service.all.each { |purchase|
       
       purchase.line_items.all? { |line_item|
