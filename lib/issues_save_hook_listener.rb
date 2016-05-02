@@ -26,7 +26,7 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
           
           # Create the estimate
           estimate  = estimate_base.qr_model(:estimate)
-          estimate.customer_id = issue.qbo_customer_id
+          estimate.customer_id = issue.customer_id
           estimate.txn_date = Date.today
 
           # Create the line item for labor
@@ -90,7 +90,7 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
       item = item_service.fetch_by_id issue.qbo_item_id
       time_entry.description = "#{issue.tracker} ##{issue.id}: #{issue.subject}"
       time_entry.employee_id = employee_id
-      time_entry.customer_id = issue.qbo_customer_id
+      time_entry.customer_id = issue.customer_id
       time_entry.billable_status = "Billable"
       time_entry.hours = hours
       time_entry.minutes = minutes
