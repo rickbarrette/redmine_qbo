@@ -101,7 +101,12 @@ class Customer < ActiveRecord::Base
   # proforms a bruteforce sync operation
   # This needs to be simplified
   def self.sync 
-    customers = get_base.service.query("SELECT Id, DisplayName FROM Customer WHERE Metadata.LastUpdatedTime>'#{Qbo.first.last_sync}' ")
+    last = Qbo.first.last_sync
+    
+    query = "SELECT Id, DisplayName FROM Customer"
+    query << " WHERE Metadata.LastUpdatedTime>'#{last}' " if last
+    
+    customers = get_base.service.query()
 
     transaction do
       # Update the customer table
