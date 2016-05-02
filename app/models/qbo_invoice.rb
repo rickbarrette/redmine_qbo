@@ -27,7 +27,7 @@ class QboInvoice < ActiveRecord::Base
     query = "SELECT Id, DocNumber FROM Invoice"
     query << " WHERE Metadata.LastUpdatedTime>'#{last}' " if last
     
-    customers = get_base.service.query()
+    invoices = get_base.service.query()
     
     # Update the invoice table 
     transaction do
