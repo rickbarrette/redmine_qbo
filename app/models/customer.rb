@@ -15,6 +15,8 @@ class Customer < ActiveRecord::Base
   has_many :qbo_purchases
   has_many :vehicles
   
+  before_save :qbo
+  
   attr_accessible :name
   validates_presence_of :id, :name
   
@@ -50,6 +52,14 @@ class Customer < ActiveRecord::Base
     end
   end
   
+  # Updates the customer's primary phone number
+  def primary_phone=(n)
+    Quickbooks::Model::TelephoneNumber.new
+    pn.free_form_number = n
+    @details.primary_phone = pn
+    push
+  end
+  
   # returns the customer's mobile phone
   def mobile_phone
     begin
@@ -57,6 +67,14 @@ class Customer < ActiveRecord::Base
     rescue
       return nil
     end
+  end
+  
+  # Updates the custome's mobile phone number
+  def mobile_phone=(n)
+    Quickbooks::Model::TelephoneNumber.new
+    pn.free_form_number = n
+    @details.mobile_phone = pn
+    push
   end
   
   # returns the customer's notes
@@ -68,7 +86,7 @@ class Customer < ActiveRecord::Base
   def notes=(s)
     customer = get_customer(self.id)
     customer.notes = s
-    get_base.update(customer)
+    push
   end
   
   # returns the bases QBO service for customers
@@ -104,6 +122,23 @@ class Customer < ActiveRecord::Base
   end
   
   private
+  
+  def push
+    begin 
+      get_base.update(@details)
+    rescue
+      return nil
+    end
+  end
+  
+  def qbo
+    if new_record?
+      customer = Quickbooks::Model::Customer.new
+      customer.display_name = self.name
+      @details = get_base.create(customer)
+      self.id = @details.id
+    end
+  end
   
   # init details
   def get_details
