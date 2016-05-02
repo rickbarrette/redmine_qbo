@@ -84,8 +84,7 @@ class Customer < ActiveRecord::Base
   
   # updates the customer's notes in QBO
   def notes=(s)
-    customer = get_customer(self.id)
-    customer.notes = s
+    @details.notes = s if @details
     push
   end
   
@@ -121,8 +120,26 @@ class Customer < ActiveRecord::Base
     where.not(customers.map(&:id)).destroy_all
   end
   
+  # Magic Method
+  def method_missing(name, *arguments)
+    value = arguments[0]
+    name = name.to_s
+
+    # if the method's name ends with '='
+    if name[-1, 1] == "="
+      method_name = name[0..-2]
+      puts "Setting '#{method_name}' to '#{value}'"
+      @details[method_name] = value
+      push
+    else
+      puts "Getting '#{name}'"
+      @details[name]
+    end
+  end
+  
   private
   
+  # Push the updates
   def push
     begin 
       get_base.update(@details)
