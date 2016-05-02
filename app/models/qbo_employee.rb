@@ -14,11 +14,11 @@ class QboEmployee < ActiveRecord::Base
   attr_accessible :name
   validates_presence_of :id, :name
   
-  def self.get_base
+  def get_base
     Qbo.get_base(:employee)
   end
   
-  def self.update_all 
+  def sync 
     employees = get_base.service.all
     
     transaction do
