@@ -20,7 +20,7 @@ class QboController < ApplicationController
   #
   def index
     @qbo = Qbo.first
-    @qbo_customer_count = Customer.count
+    @customer_count = Customer.count
     @qbo_item_count = QboItem.count
     @qbo_employee_count = QboEmployee.count
     @qbo_invoice_count = QboInvoice.count
