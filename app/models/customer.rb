@@ -165,7 +165,7 @@ class Customer < ActiveRecord::Base
     if new_record?
       customer = Quickbooks::Model::Customer.new
       customer.display_name = self.name
-      @details = Qbo.get_base(:customer).create(customer)
+      @details = get_base.service.create(customer)
       self.id = @details.id
     end
   end
