@@ -15,7 +15,7 @@ class Customer < ActiveRecord::Base
   has_many :qbo_purchases
   has_many :vehicles
   
-  before_save :qbo
+  #before_save :qbo
   
   attr_accessible :name
   validates_presence_of :id, :name
