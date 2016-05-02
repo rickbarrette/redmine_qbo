@@ -20,7 +20,14 @@ class QboInvoice < ActiveRecord::Base
   
   def self.sync
     #Pull the invoices from the quickbooks server
-    invoices = get_base.service.all
+    #invoices = get_base.service.all
+    
+    last = Qbo.first.last_sync
+    
+    query = "SELECT Id, DocNumber FROM Invoice"
+    query << " WHERE Metadata.LastUpdatedTime>'#{last}' " if last
+    
+    customers = get_base.service.query()
     
     # Update the invoice table 
     transaction do
@@ -33,7 +40,7 @@ class QboInvoice < ActiveRecord::Base
     end 
     
     #remove deleted invoices 
-    where.not(invoices.map(&:id)).destroy_all
+    #where.not(invoices.map(&:id)).destroy_all
   end
   
   def self.update(id)
