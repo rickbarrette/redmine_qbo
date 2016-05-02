@@ -101,14 +101,14 @@ class Customer < ActiveRecord::Base
   # proforms a bruteforce sync operation
   # This needs to be simplified
   def update_all 
-    customers = get_base.service.all
+    customers = get_base.service.query("SELECT Id, DisplayName FROM Customer WHERE Metadata.LastUpdatedTime>'#{Qbo.first.last_sync}' ")
 
     transaction do
       # Update the customer table
       customers.each { |customer|
         qbo_customer = Customer.find_or_create_by(id: customer.id)
         # only update if diffrent
-        if not qbo_customer.name == customer.display_name
+        if qbo_customer.new_record?
           qbo_customer.name = customer.display_name
           qbo_customer.id = customer.id
           qbo_customer.save!
