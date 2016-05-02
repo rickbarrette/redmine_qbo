@@ -95,7 +95,11 @@ class Customer < ActiveRecord::Base
   
   # returns the QBO customer 
   def get_customer (id)
-    get_base.find_by_id(id)
+    begin
+      return get_base.find_by_id(id)
+    rescue
+      return nil
+    end
   end
 
   # proforms a bruteforce sync operation
