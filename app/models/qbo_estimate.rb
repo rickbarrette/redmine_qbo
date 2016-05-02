@@ -14,11 +14,11 @@ class QboEstimate < ActiveRecord::Base
   attr_accessible :doc_number
   validates_presence_of :id, :doc_number
   
-  def self.get_base
+  def get_base
     Qbo.get_base(:estimate)
   end
   
-  def self.update_all 
+  def sync 
     estimates = get_base.service.all
   
     # Update the item table
