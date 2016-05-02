@@ -19,11 +19,11 @@ class QboPurchase < ActiveRecord::Base
     Qbo.get_base(:purchase)
   end
 
-  def self.get_purchase(id)
+  def get_purchase(id)
     get_base.service.find_by_id(id)
   end
 
-  def sync
+  def self.sync
    QboPurchase.get_base.service.all.each { |purchase|
       
       purchase.line_items.all? { |line_item|
