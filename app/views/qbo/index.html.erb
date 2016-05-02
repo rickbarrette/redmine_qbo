@@ -14,9 +14,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <h1> Redmine Quickbooks</h1>
     <%= form_for @qbo do |f|%>   
       <div>
-        <%= f.label "Customer Count:"+@qbo_customer_count.to_s%>
+        <%= f.label "Customer Count:"+@customer_count.to_s%>
         <br/>
-        <%= f.select :qbo_customer_id, QboCustomer.all.pluck(:name, :id).sort, :selected => @selected_customer, include_blank: true %>
+        <%= f.select :customer_id, Customer.all.pluck(:name, :id).sort, :selected => @selected_customer, include_blank: true %>
       </div>
       
       <br/>
