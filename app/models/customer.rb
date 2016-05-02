@@ -138,7 +138,11 @@ class Customer < ActiveRecord::Base
       push
     else
       puts "Getting '#{name}'"
-      @details[name]
+      begin
+        return @details[name]
+      rescue
+        return nil
+      end
     end
   end
   
