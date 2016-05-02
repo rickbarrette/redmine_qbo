@@ -126,7 +126,7 @@ class Customer < ActiveRecord::Base
     end
    
     # remove deleted customers
-    #where.not(customers.map(&:id)).destroy_all
+    where.not(customers.map(&:id)).destroy_all
   end
   
   # Magic Method
