@@ -1,0 +1,49 @@
+<div class="row">
+  <div class="span6 columns">
+    <fieldset>
+
+      <%= form_for @customer do |f| %> 
+       
+        <div class="clearfix">
+          Display Name: 
+          <div class="input">
+            <%= f.text_field :display_name, :required => true %>
+          </div>
+        </div>
+        
+        <div class="clearfix">
+          Phone Number:
+          <div class="input">
+            <%= f.telephone_field :primary_phone %>
+          </div>
+        </div>
+        
+       <div class="clearfix">
+          Mobile Phone Number:
+          <div class="input">
+            <%= f.telephone_field :mobile_phone %>
+          </div>
+        </div>
+        
+        <div class="clearfix">
+          Email:
+          <div class="input">
+            <%= f.email_field :email %>
+          </div>
+        </div>
+        
+        <div class="clearfix">
+          Notes: 
+          <div class="input">
+            <%= f.text_area :notes, :rows => 6, :class => 'wiki-edit', :accesskey => accesskey(:edit), :cols => 60%>
+          </div>
+        </div>
+        
+       <div class="actions">
+        <%= f.submit %>
+       </div>
+      <% end %>
+
+    </fieldset>
+  </div>
+</div>
