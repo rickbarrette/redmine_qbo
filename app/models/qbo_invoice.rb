@@ -14,11 +14,11 @@ class QboInvoice < ActiveRecord::Base
   attr_accessible :doc_number
   validates_presence_of :id, :doc_number
   
-  def get_base
+  def self.get_base
     Qbo.get_base(:invoice)
   end
   
-  def sync
+  def self.sync
     #Pull the invoices from the quickbooks server
     invoices = get_base.service.all
     
