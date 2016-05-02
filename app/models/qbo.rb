@@ -40,4 +40,10 @@ class Qbo < ActiveRecord::Base
   def self.get_account
     first
   end
+  
+  # Updates last sync time stamp
+  def self.update_time_stamp
+    first.last_sync = DateTime.now
+    first.save
+  end
 end
