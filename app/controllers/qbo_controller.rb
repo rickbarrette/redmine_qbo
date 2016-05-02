@@ -75,6 +75,9 @@ class QboController < ApplicationController
       QboEstimate.update_all
       QboInvoice.update_all
       QboPurchase.update_all
+      
+      # Record the last sync time
+      Qbo.update_time_stamp
     end
 
     redirect_to qbo_path(:redmine_qbo), :flash => { :notice => "Successfully synced to Quickbooks" }
