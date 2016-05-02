@@ -43,7 +43,7 @@ class Qbo < ActiveRecord::Base
   
   # Updates last sync time stamp
   def self.update_time_stamp
-    first.last_sync = DateTime.now
-    first.save
+    qbo = first.last_sync = DateTime.now
+    qbo.save
   end
 end
