@@ -16,7 +16,6 @@ class Vehicle < ActiveRecord::Base
   attr_accessible :year, :make, :model, :customer_id, :notes, :vin
   validates_presence_of :customer_id
   validates :vin, uniqueness: true
-  
   validate :decode_vin
   after_initialize :get_details
   
@@ -53,11 +52,12 @@ class Vehicle < ActiveRecord::Base
   
   # init method to pull JSON details from Edmunds
   def get_details
-    # TODO handle ERRORS
     if self.vin?
+      self.vin = self.vin.upcase
       begin
         @details = JSON.parse get_decoder.full(self.vin)
-        raise @details['message'] if @details['status'] == "NOT_FOUND" or @details['status'] == "BAD_REQUEST"
+        raise @details['message'] if @details['status'] == "NOT_FOUND" 
+        raise @details['message'] if @details['status'] == "BAD_REQUEST"
       rescue Exception => e
         errors.add(:vin, e.message)
       end
