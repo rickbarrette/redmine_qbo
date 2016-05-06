@@ -51,6 +51,7 @@ class VehiclesController < ApplicationController
   def edit
     @vehicle = Vehicle.find_by_id(params[:id])
     @customer = @vehicle.customer.id if @vehicle.customer
+    @customers = Customer.all.order(:name)
   end
   
   # update a specific vehicle
