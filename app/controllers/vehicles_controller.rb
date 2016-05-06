@@ -63,6 +63,7 @@ class VehiclesController < ApplicationController
       redirect_to @vehicle
     else
       render :edit
+      flash[:error] = @vehicle.errors
     end
   end  
 
