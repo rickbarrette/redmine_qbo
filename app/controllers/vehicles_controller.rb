@@ -56,6 +56,7 @@ class VehiclesController < ApplicationController
   
   # update a specific vehicle
   def update
+    @customers = Customer.all.order(:name)
     @vehicle = Vehicle.find_by_id(params[:id])
     if @vehicle.update_attributes(params[:vehicle])
       flash[:success] = "Vehicle updated"
