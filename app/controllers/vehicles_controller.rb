@@ -63,7 +63,9 @@ class VehiclesController < ApplicationController
       redirect_to @vehicle
     else
       render :edit
-      flash[:error] = @vehicle.errors
+      @vehicle.errors.full_messages.each do |m|
+        flash[:error] = m
+      end
     end
   end  
 
