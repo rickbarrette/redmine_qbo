@@ -16,7 +16,7 @@ class Vehicle < ActiveRecord::Base
   attr_accessible :year, :make, :model, :customer_id, :notes, :vin
   validates_presence_of :customer_id
   validates :vin, uniqueness: true
-  validate :decode_vin
+  before_save :decode_vin
   after_initialize :get_details
   
   # returns a human readable string
