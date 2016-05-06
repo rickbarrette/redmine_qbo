@@ -26,7 +26,7 @@ class CustomersController < ApplicationController
   end
   
   def create
-    
+    flash[:error] @customer.errors.full_messages.to_sentence if @customer.errors
   end
   
   # display a specific customer
@@ -49,11 +49,12 @@ class CustomersController < ApplicationController
   def update
     @customer = Customer.find_by_id(params[:id])
     if @customer.update_attributes(params[:customer])
-      flash[:success] = "Customer updated"
+      flash[:notice] = "Customer updated"
       redirect_to @customer
     else
       render :edit
     end
+    flash[:error] @customer.errors.full_messages.to_sentence if @customer.errors
   end
   
   def destroy
