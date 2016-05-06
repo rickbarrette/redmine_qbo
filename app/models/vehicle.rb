@@ -17,7 +17,7 @@ class Vehicle < ActiveRecord::Base
   validates_presence_of :customer_id
   validates :vin, uniqueness: true
   
-  before_validation :decode_vin
+  validate :decode_vin
   after_initialize :get_details
   
   # returns a human readable string
