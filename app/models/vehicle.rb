@@ -73,20 +73,9 @@ class Vehicle < ActiveRecord::Base
   def decode_vin
     get_details
     if @details and self.vin?
-      begin
-        self.year = @details['years'][0]['year']
-      rescue
-      end
-      
-      begin
-        self.make = @details['make']['name']
-      rescue
-      end
-    
-      begin
-        self.model = @details['model']['name']
-      rescue
-      end
+      self.year = @details['years'][0]['year']
+      self.make = @details['make']['name']
+      self.model = @details['model']['name']
     end
     self.name = to_s
   end
