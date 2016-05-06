@@ -14,7 +14,8 @@ class Vehicle < ActiveRecord::Base
   belongs_to :customer
   
   attr_accessible :year, :make, :model, :customer_id, :notes, :vin
-  validates_presence_of :year, :make, :model, :customer_id
+  validates_presence_of :customer_id
+  validates :vin, uniqueness: true
   
   before_validation :decode_vin
   after_initialize :get_details
@@ -71,11 +72,21 @@ class Vehicle < ActiveRecord::Base
   # decodes a vin and updates self
   def decode_vin
     get_details
-    if self.vin?
-      details
-      self.year = @details['years'][0]['year']
-      self.make = @details['make']['name']
-      self.model = @details['model']['name']
+    if @details and self.vin?
+      begin
+        self.year = @details['years'][0]['year']
+      rescue
+      end
+      
+      begin
+        self.make = @details['make']['name']
+      rescue
+      end
+    
+      begin
+        self.model = @details['model']['name']
+      rescue
+      end
     end
     self.name = to_s
   end
