@@ -34,12 +34,12 @@ class VehiclesController < ApplicationController
     @vehicle = Vehicle.new(params[:vehicle])
     if @vehicle.save
       flash[:notice] = "New Vehicle Created"
+      redirect_to @vehicle
     else
       @customers = Customer.all.order(:name)
       render :edit
     end
     flash[:error] = @vehicle.errors.full_messages.to_sentence if @vehicle.errors
-    redirect_to @vehicle
   end
   
   # display a specific vehicle
