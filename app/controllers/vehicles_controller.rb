@@ -65,7 +65,7 @@ class VehiclesController < ApplicationController
     else
       render :edit
     end
-    flash[:error] = @vehicle.errors.full_messages.to_sentence if @vehicle.errors?
+    flash[:error] = @vehicle.errors.full_messages.to_sentence if @vehicle.errors
   end  
 
   # delete a specific vehicle
