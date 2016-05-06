@@ -48,12 +48,16 @@ class Vehicle < ActiveRecord::Base
     return @details['numOfDoors'] if @details
   end
   
+  # Force Upper Case for VIN numbers
+  def self.vin=(val)
+    self.vin = val.upcase
+  end
+  
   private
   
   # init method to pull JSON details from Edmunds
   def get_details
     if self.vin?
-      self.vin = self.vin.upcase
       begin
         @details = JSON.parse get_decoder.full(self.vin)
         raise @details['message'] if @details['status'] == "NOT_FOUND" 
