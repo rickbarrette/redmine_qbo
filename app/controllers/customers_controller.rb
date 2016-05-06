@@ -47,7 +47,6 @@ class CustomersController < ApplicationController
   
   # update a specific customer
   def update
-    @customers = Customer.all.order(:name)
     @customer = Customer.find_by_id(params[:id])
     if @customer.update_attributes(params[:customer])
       flash[:success] = "Customer updated"
