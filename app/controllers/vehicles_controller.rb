@@ -32,8 +32,11 @@ class VehiclesController < ApplicationController
   # create a new vehicle
   def create
     @vehicle = Vehicle.new(params[:vehicle])
-    @vehicle.save!
-    flash[:notice] = "New Vehicle Created"
+    if @vehicle.save
+      flash[:notice] = "New Vehicle Created"
+    else
+      render :edit
+    end
     flash[:error] = @vehicle.errors.full_messages.to_sentence if @vehicle.errors
     redirect_to @vehicle
   end
