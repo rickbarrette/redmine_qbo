@@ -60,18 +60,18 @@ class VehiclesController < ApplicationController
     @customer = params[:customer]
     @vehicle = Vehicle.find_by_id(params[:id])
     if @vehicle.update_attributes(params[:vehicle])
-      flash[:success] = "Vehicle updated"
+      flash[:notice] = "Vehicle updated"
       redirect_to @vehicle
     else
       render :edit
-      flash[:error] = @vehicle.errors.full_messages.to_sentence
     end
+    flash[:error] = @vehicle.errors.full_messages.to_sentence if @vehicle.errors?
   end  
 
   # delete a specific vehicle
   def destroy 
     v = Vehicle.find_by_id(params[:id])
-    if v != nil
+    if v?
       v.destroy
       flash.now[:notice] = "Vehicle deleted successfully"
     else
