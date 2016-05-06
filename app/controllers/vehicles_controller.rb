@@ -37,7 +37,7 @@ class VehiclesController < ApplicationController
       redirect_to @vehicle
     else
       flash[:error] = @vehicle.errors.full_messages.to_sentence 
-      redirect_to :new
+      redirect_to new_vehicle_path
     end
     
   end
@@ -68,7 +68,7 @@ class VehiclesController < ApplicationController
       flash[:notice] = "Vehicle updated"
       redirect_to @vehicle
     else
-      redirect_to :edit
+      redirect_to edit_vehicle_path
     end
     flash[:error] = @vehicle.errors.full_messages.to_sentence if @vehicle.errors
   end  
