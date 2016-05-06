@@ -33,6 +33,7 @@ class VehiclesController < ApplicationController
   def create
     @vehicle = Vehicle.new(params[:vehicle])
     @vehicle.save!
+    flash[:notice] = "New Vehicle Created"
     redirect_to @vehicle
   end
   
@@ -73,9 +74,9 @@ class VehiclesController < ApplicationController
     v = Vehicle.find_by_id(params[:id])
     if v?
       v.destroy
-      flash.now[:notice] = "Vehicle deleted successfully"
+      flash[:notice] = "Vehicle deleted successfully"
     else
-      flash.now[:error] = "No Vehicle Found"
+      flash[:error] = "No Vehicle Found"
     end
     redirect_to action: :index
   end
