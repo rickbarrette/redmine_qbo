@@ -36,10 +36,10 @@ class VehiclesController < ApplicationController
       flash[:notice] = "New Vehicle Created"
       redirect_to @vehicle
     else
-      @customers = Customer.all.order(:name)
-      render :edit
+      flash[:error] = @vehicle.errors.full_messages.to_sentence 
+      redirect_to :new
     end
-    flash[:error] = @vehicle.errors.full_messages.to_sentence if @vehicle.errors
+    
   end
   
   # display a specific vehicle
@@ -49,8 +49,7 @@ class VehiclesController < ApplicationController
       @customer = @vehicle.customer.name if @vehicle.customer
     else
       flash[:error] = "Vehicle Not Found"
-      @customers = Customer.all.order(:name)
-      render :index
+      redirect_to :index
     end
   end
   
@@ -63,14 +62,13 @@ class VehiclesController < ApplicationController
   
   # update a specific vehicle
   def update
-    @customers = Customer.all.order(:name)
     @customer = params[:customer]
     @vehicle = Vehicle.find_by_id(params[:id])
     if @vehicle.update_attributes(params[:vehicle])
       flash[:notice] = "Vehicle updated"
       redirect_to @vehicle
     else
-      render :edit
+      redirect_to :edit
     end
     flash[:error] = @vehicle.errors.full_messages.to_sentence if @vehicle.errors
   end  
