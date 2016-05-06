@@ -35,6 +35,7 @@ class VehiclesController < ApplicationController
     if @vehicle.save
       flash[:notice] = "New Vehicle Created"
     else
+      @customers = Customer.all.order(:name)
       render :edit
     end
     flash[:error] = @vehicle.errors.full_messages.to_sentence if @vehicle.errors
