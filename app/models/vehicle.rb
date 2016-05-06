@@ -57,8 +57,8 @@ class Vehicle < ActiveRecord::Base
     if self.vin?
       begin
         @details = JSON.parse get_decoder.full(self.vin)
-      rescue
-        return nil
+      rescue Exception => e
+        errors.add(:vin, e.message)
       end
     end
   end
