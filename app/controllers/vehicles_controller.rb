@@ -47,7 +47,8 @@ class VehiclesController < ApplicationController
     if @vehicle
       @customer = @vehicle.customer.name if @vehicle.customer
     else
-      flash[:error] = "Vehicle Not Found"  
+      flash[:error] = "Vehicle Not Found"
+      @customers = Customer.all.order(:name)
       render :index
     end
   end
