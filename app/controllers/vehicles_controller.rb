@@ -57,15 +57,14 @@ class VehiclesController < ApplicationController
   # update a specific vehicle
   def update
     @customers = Customer.all.order(:name)
+    @customer = params[:customer]
     @vehicle = Vehicle.find_by_id(params[:id])
     if @vehicle.update_attributes(params[:vehicle])
       flash[:success] = "Vehicle updated"
       redirect_to @vehicle
     else
       render :edit
-      @vehicle.errors.full_messages.each do |m|
-        flash[:error] = m
-      end
+      flash[:error] = @vehicle.errors.full_messages.to_sentence
     end
   end  
 
