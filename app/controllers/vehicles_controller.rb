@@ -24,9 +24,7 @@ class VehiclesController < ApplicationController
   # return an HTML form for creating a new vehicle
   def new
     @vehicle = Vehicle.new
-    Customer.skip_callback(:find, :after, :get_details)
     @customers = Customer.all.order(:name)
-    Customer.set_callback(:find, :after, :get_details)
   end
 
   # create a new vehicle
@@ -39,7 +37,6 @@ class VehiclesController < ApplicationController
       flash[:error] = @vehicle.errors.full_messages.to_sentence 
       redirect_to new_vehicle_path
     end
-    
   end
   
   # display a specific vehicle
@@ -74,12 +71,11 @@ class VehiclesController < ApplicationController
   end  
 
   # delete a specific vehicle
-  def destroy 
-    v = Vehicle.find_by_id(params[:id])
-    if v?
-      v.destroy
+  def destroy
+    begin
+      Vehicle.find_by_id(params[:id]).destroy
       flash[:notice] = "Vehicle deleted successfully"
-    else
+    rescue
       flash[:error] = "No Vehicle Found"
     end
     redirect_to action: :index
