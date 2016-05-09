@@ -11,10 +11,15 @@
 class Vehicle < ActiveRecord::Base
   
   unloadable
+  
   belongs_to :customer
+  
   attr_accessible :year, :make, :model, :customer, :notes, :vin
+  
   validates_presence_of :customer
   validates :vin, uniqueness: true
+  validates :year, numericality: { only_integer: true }
+  
   before_save :decode_vin
   after_initialize :get_details
   
@@ -39,7 +44,7 @@ class Vehicle < ActiveRecord::Base
   
   # returns the drive of the vehicle i.e. 2 wheel, 4 wheel, ect.
   def drive
-    return @details['drivenWheels'] if @details
+    return @details['drivenWheels'].to_s.upcase if @details
   end
   
   # returns the number of doors of the vehicle
@@ -48,8 +53,21 @@ class Vehicle < ActiveRecord::Base
   end
   
   # Force Upper Case for VIN numbers
-  def self.vin=(val)
-    self.vin = val.upcase
+  def make=(val)
+    # The to_s is in case you get nil/non-string
+    write_attribute(:make, val.to_s.titleize)
+  end
+  
+  # Force Upper Case for VIN numbers
+  def model=(val)
+    # The to_s is in case you get nil/non-string
+    write_attribute(:model, val.to_s.titleize)
+  end
+  
+  # Force Upper Case for VIN numbers
+  def vin=(val)
+    # The to_s is in case you get nil/non-string
+    write_attribute(:vin, val.to_s.upcase)
   end
   
   private
