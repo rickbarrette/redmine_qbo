@@ -12,16 +12,15 @@ class Vehicle < ActiveRecord::Base
   
   unloadable
   belongs_to :customer
-  
-  attr_accessible :year, :make, :model, :customer_id, :notes, :vin
-  validates_presence_of :customer_id
+  attr_accessible :year, :make, :model, :customer, :notes, :vin
+  validates_presence_of :customer
   validates :vin, uniqueness: true
   before_save :decode_vin
   after_initialize :get_details
   
   # returns a human readable string
   def to_s
-    return "#{self.year} #{self.make} #{self.model}"
+    return "#{self.customer.name} - #{self.year} #{self.make} #{self.model}"
   end
   
   # returns the raw JSON details from EMUNDS
