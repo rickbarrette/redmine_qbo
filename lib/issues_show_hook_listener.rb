@@ -42,7 +42,7 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     
     
     if issue.vehicles_id
-      v = Vehicle.find(issues.vehicles_is)
+      v = Vehicle.find(issue.vehicles_is)
       vehicle = link_to v.to_s, "#{Redmine::Utils::relative_url_root}/vehicles/#{v.id}"
       vin = v.vin 
       notes = v.notes
