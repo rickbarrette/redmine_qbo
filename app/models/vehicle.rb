@@ -13,7 +13,7 @@ class Vehicle < ActiveRecord::Base
   unloadable
   
   belongs_to :customer
-  has_many :issues
+  has_many :issues, :foreign_key => 'vehicles_id'
   
   attr_accessible :year, :make, :model, :customer, :notes, :vin
   
