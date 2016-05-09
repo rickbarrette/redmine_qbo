@@ -36,6 +36,11 @@
     </tr>
     
     <tr>
+        <th>Issues</th>
+        <td><%= @vehicle.issues.count %></td>
+    </tr>
+    
+    <tr>
       <td/>
       <td>
         <%= button_to "Edit", edit_vehicle_path(@vehicle), method: :get%> 
