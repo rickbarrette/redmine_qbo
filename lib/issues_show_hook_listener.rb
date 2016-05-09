@@ -41,11 +41,10 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     end
     
     
-    if issue.vehicles_id
-      v = Vehicle.find_by_id(issue.vehicles_id)
-      vehicle = link_to v.to_s, "#{Redmine::Utils::relative_url_root}/vehicles/#{v.id}"
-      vin = v.vin 
-      notes = v.notes
+    if issue.vehicle
+      vehicle = link_to issue.vehicle.to_s, "#{Redmine::Utils::relative_url_root}/vehicles/#{issue.vehicle.id}"
+      vin = issue.vehicle.vin 
+      notes = issue.vehicle.notes
     end
     
     return "
