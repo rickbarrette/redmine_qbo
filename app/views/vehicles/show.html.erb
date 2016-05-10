@@ -1,5 +1,8 @@
 <h1>Customer Vehicle</h1> 
 <br/> 
-<%= render :partial => 'vehicles/details' %>
 
-<%= render :partial => 'issues/list_simple', locals: {issues: @issues} %>
+<div style="text-align: left; width:90%;">
+  <%= render :partial => 'vehicles/details' %>
+
+  <%= render :partial => 'issues/list_simple', locals: {issues: @issues} %>
+</div>
