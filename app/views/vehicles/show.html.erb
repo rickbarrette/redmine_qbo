@@ -2,5 +2,4 @@
 <br/> 
 <%= render :partial => 'vehicles/details' %>
 
-<% issues = @issues %>
-<%= render :partial => 'issues/list_simple' %>
+<%= render :partial => 'issues/list_simple', locals: {issues: @issues} %>
