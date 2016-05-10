@@ -44,6 +44,7 @@ class VehiclesController < ApplicationController
     @vehicle = Vehicle.find_by_id(params[:id])
     if @vehicle
       @customer = @vehicle.customer.name if @vehicle.customer
+      issues = @vehicle.issues
     else
       flash[:error] = "Vehicle Not Found"
       redirect_to :index
