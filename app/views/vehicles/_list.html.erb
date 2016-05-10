@@ -5,6 +5,7 @@
         <% @customer = vehicle.customer.name if vehicle.customer %>
         <% @vehicle = vehicle %>
         <%= render :partial => 'vehicles/details' %>
+        <%= button_to "Details", vehicle_path(@vehicle), method: :get %>
       </fieldset>
     </div>
   </div>
