@@ -143,7 +143,7 @@ class Customer < ActiveRecord::Base
   def pull
     begin
       tries ||= 3
-      @details = Qbo.get_base(:customer).service.find_by_id(self.id)
+      @details = Qbo.get_base(:customer).find_by_id(self.id)
     rescue
       retry unless (tries -= 1).zero?
     end
