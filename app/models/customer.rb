@@ -75,19 +75,10 @@ class Customer < ActiveRecord::Base
     @details.mobile_phone = pn
   end
   
+  # Updates Both local DB name & QBO display_name
   def name=(s)
     @details.display_name = s if @details
     self.name = s
-  end
-  
-  # returns the customer's notes
-  def notes
-    return @details.notes if @details
-  end
-  
-  # updates the customer's notes in QBO
-  def notes=(s)
-    @details.notes = s if @details
   end
   
   # Magic Method  
