@@ -36,7 +36,7 @@
           Notes: 
           <div class="input">
             <p>  
-              <%= link_to_function content_tag(:span, l(:button_edit), :class => 'icon icon-edit'), '$(this).hide(); $("#issue_description_and_toolbar").show()' unless @vehicle.new_record? %>
+              <%= link_to_function content_tag(:span, l(:button_edit), :class => 'icon icon-edit'), '$(this).hide(); $("#issue_description_and_toolbar").show()' unless @customer.new_record? %>
               <%= content_tag 'span', :id => "issue_description_and_toolbar", :style => (@customer.new_record? ? nil : 'display:none') do %>
               <%= f.text_area :notes,
                     :cols => 60,
