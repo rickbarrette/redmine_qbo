@@ -41,17 +41,21 @@ class VehiclesController < ApplicationController
   
   # display a specific vehicle
   def show
-    @vehicle = Vehicle.find_by_id(params[:id])
-    if not @vehicle
-      flash[:error] = "Vehicle Not Found"
-      redirect_to :index
+    begin
+      @vehicle = Vehicle.find_by_id(params[:id])
+    rescue ActiveRecord::RecordNotFound
+      render_404
     end
   end
   
   # return an HTML form for editing a vehicle
   def edit
-    @vehicle = Vehicle.find_by_id(params[:id])
-    @customers = Customer.all.order(:name)
+    begin
+      @vehicle = Vehicle.find_by_id(params[:id])
+      @customers = Customer.all.order(:name)
+    rescue ActiveRecord::RecordNotFound
+      render_404
+    end
   end
   
   # update a specific vehicle
@@ -72,10 +76,10 @@ class VehiclesController < ApplicationController
     begin
       Vehicle.find_by_id(params[:id]).destroy
       flash[:notice] = "Vehicle deleted successfully"
-    rescue
-      flash[:error] = "No Vehicle Found"
+      redirect_to action: :index
+    rescue ActiveRecord::RecordNotFound
+      render_404
     end
-    redirect_to action: :index
   end
 
 end
