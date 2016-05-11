@@ -41,6 +41,7 @@ class CustomersController < ApplicationController
     @customer = Customer.find_by_id(params[:id])
     if @customer
       @vehicles = @customer.vehicles.paginate(:page => params[:page])
+      @issues = @customer.issues
     else
       flash[:error] = "Customer Not Found"  
       render :index
