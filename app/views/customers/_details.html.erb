@@ -2,38 +2,38 @@
   <tbody>
     <tr>
       <th>Customer</th>
-      <td><%= @customer.name %></td>
+      <td><%= customer.name %></td>
     </tr>
     
     <tr>
       <th>Email</th>
-      <td><%= @customer.email %></td>
+      <td><%= customer.email %></td>
     </tr>
     
     <tr>
       <th>Primary Phone</th>
-      <td><%= @customer.primary_phone %></td>
+      <td><%= customer.primary_phone %></td>
     </tr>
     
     <tr>
       <th>Mobile Phone</th>
-      <td><%= @customer.mobile_phone %></td>
+      <td><%= customer.mobile_phone %></td>
     </tr>
     
     <tr>
       <th>Notes</th>
-      <td><%= @customer.notes %></td>
+      <td><%= customer.notes %></td>
     </tr>
     
     <tr>
         <th>Issues</th>
-        <td><%= @issues.count %></td>
+        <td><%= customer.issues.count %></td>
     </tr>
     
         <tr>
       <td/>
       <td>
-        <%= button_to "Edit", edit_customer_path(@customer), method: :get%> 
+        <%= button_to "Edit", edit_customer_path(customer), method: :get%> 
       </td>
     </tr>
   </tbody>
