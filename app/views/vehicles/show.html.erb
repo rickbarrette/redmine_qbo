@@ -2,7 +2,7 @@
 <br/> 
 
 <div style="text-align: left; width:90%;">
-  <%= render :partial => 'vehicles/details' %>
+  <%= render :partial => 'vehicles/details', locals: {vehicle: @vehicle} %>
 
-  <%= render :partial => 'issues/list_simple', locals: {issues: @issues} %>
+  <%= render :partial => 'issues/list_simple', locals: {issues: @vehicle.issues} %>
 </div>
