@@ -64,9 +64,9 @@ class CustomersController < ApplicationController
         flash[:notice] = "Customer updated"
         redirect_to @customer
       else
-        flash[:error] = @customer.errors.full_messages.to_sentence if @customer.errors
         redirect_to edit_customer_path
       end
+      flash[:error] = @customer.errors.full_messages.to_sentence if @customer.errors
     rescue ActiveRecord::RecordNotFound
       render_404
     end
