@@ -7,7 +7,7 @@
         <div class="clearfix">
           Display Name: 
           <div class="input">
-            <%= f.text_field :display_name, :required => true %>
+            <%= f.text_field :name, :required => true %>
           </div>
         </div>
         
@@ -35,7 +35,18 @@
         <div class="clearfix">
           Notes: 
           <div class="input">
-            <%= f.text_area :notes, :rows => 6, :class => 'wiki-edit', :accesskey => accesskey(:edit), :cols => 60%>
+            <p>  
+              <%= link_to_function content_tag(:span, l(:button_edit), :class => 'icon icon-edit'), '$(this).hide(); $("#issue_description_and_toolbar").show()' unless @vehicle.new_record? %>
+              <%= content_tag 'span', :id => "issue_description_and_toolbar", :style => (@vehicle.new_record? ? nil : 'display:none') do %>
+              <%= f.text_area :notes,
+                    :cols => 60,
+                    :rows => 10,
+                    :accesskey => accesskey(:edit),
+                    :class => 'wiki-edit',
+                    :no_label => true %>
+              <% end %>
+            </p>
+            <%= wikitoolbar_for 'issue_description' %>
           </div>
         </div>
         
