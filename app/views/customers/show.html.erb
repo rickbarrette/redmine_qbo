@@ -1,6 +1,6 @@
 <h1>Customer Detail</h1> 
 <br/> 
-<%= render :partial => 'customers/details' %>
+<%= render :partial => 'customers/details', locals: {customers: @customers} %>
 <br/>
 <%= render :partial => 'vehicles/list' %>
 <br/>
