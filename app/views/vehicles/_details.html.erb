@@ -2,44 +2,44 @@
   <tbody>
     <tr>
       <th>Vehicle</th>
-      <td><%= @vehicle.to_s %></td>
+      <td><%= vehicle.to_s %></td>
     </tr>
     
     <tr>
       <th>VIN</th>
-      <td><%= @vehicle.vin %></td>
+      <td><%= vehicle.vin %></td>
     </tr>
     
     <tr>
       <th>Style</th>
-      <td><%= @vehicle.style %></td>
+      <td><%= vehicle.style %></td>
     </tr>
     
     <tr>
       <th>Drive</th>
-      <td><%= @vehicle.drive %></td>
+      <td><%= vehicle.drive %></td>
     </tr>
     
     <tr>
       <th>Doors</th>
-      <td><%= @vehicle.doors %></td>
+      <td><%= vehicle.doors %></td>
     </tr>
   
     <tr>
       <th>Notes</th>
-      <td><%= @vehicle.notes %></td>
+      <td><%= vehicle.notes %></td>
     </tr>
     
     <tr>
         <th>Issues</th>
-        <td><%= @vehicle.issues.count %></td>
+        <td><%= vehicle.issues.count %></td>
     </tr>
     
     <tr>
       <td/>
       <td>
-        <%= button_to "Edit", edit_vehicle_path(@vehicle), method: :get%> 
-        <%= button_to "Delete", @vehicle, method: :delete, data: {confirm: "You sure?"} %> 
+        <%= button_to "Edit", edit_vehicle_path(vehicle), method: :get%> 
+        <%= button_to "Delete", vehicle, method: :delete, data: {confirm: "You sure?"} %> 
       </td>
     </tr>
   </tbody>
