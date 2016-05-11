@@ -19,7 +19,7 @@ class Customer < ActiveRecord::Base
   
   validates_presence_of :id, :name
   
-  after_initialize :pull, unless: :skip_details
+  after_initialize :pull
   after_save  :push
   
   self.primary_key = :id
