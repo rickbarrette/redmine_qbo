@@ -140,6 +140,7 @@ class Customer < ActiveRecord::Base
    # begin
       #tries ||= 3
       @details = Qbo.get_base(:customer).service.update(@details)
+      raise "QBO Fault" if @details.fault?
    # rescue Exception => e
       #retry unless (tries -= 1).zero?
     #  errors.add(e.message)
@@ -152,10 +153,11 @@ class Customer < ActiveRecord::Base
      # begin
         #tries ||= 3
         @details = Qbo.get_base(:customer).service.create(@details)
+        raise "QBO Fault" if @details.fault?
         self.id = @details.id
      # rescue Exception => e
         #retry unless (tries -= 1).zero?
-        errors.add(:id, e.message)
+        #errors.add(:id, e.message)
       #end
     end
   end
