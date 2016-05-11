@@ -20,7 +20,8 @@ class Customer < ActiveRecord::Base
   attr_accessible :name, :skip_details
   validates_presence_of :id, :name
   
-  after_initialize :get_details
+  after_initialize :pull
+  after_save  :push
   
   self.primary_key = :id
   
@@ -57,7 +58,6 @@ class Customer < ActiveRecord::Base
     Quickbooks::Model::TelephoneNumber.new
     pn.free_form_number = n
     @details.primary_phone = pn
-    push
   end
   
   # returns the customer's mobile phone
@@ -74,7 +74,11 @@ class Customer < ActiveRecord::Base
     Quickbooks::Model::TelephoneNumber.new
     pn.free_form_number = n
     @details.mobile_phone = pn
-    push
+  end
+  
+  def name=(s)
+    @details.display_name = s if @details
+    self.name = s
   end
   
   # returns the customer's notes
@@ -85,7 +89,6 @@ class Customer < ActiveRecord::Base
   # updates the customer's notes in QBO
   def notes=(s)
     @details.notes = s if @details
-    push
   end
   
   # proforms a bruteforce sync operation
@@ -124,7 +127,6 @@ class Customer < ActiveRecord::Base
     if name[-1, 1] == "="
       method_name = name[0..-2]
       @details[method_name] = value
-      push
     else
       begin
         return @details[name]
@@ -140,7 +142,7 @@ class Customer < ActiveRecord::Base
   def push
     begin
       tries ||= 3
-      get_base.update(@details)
+      Qbo.get_base(:customer).service.update(@details)
     rescue
       retry unless (tries -= 1).zero?
     end
@@ -155,8 +157,8 @@ class Customer < ActiveRecord::Base
     end
   end
   
-  # init details
-  def get_details
+  # pull details
+  def pull
     begin
       tries ||= 3
       @details = get_customer(self.id)
