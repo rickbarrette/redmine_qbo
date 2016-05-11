@@ -3,3 +3,5 @@
 <%= render :partial => 'customers/details' %>
 <br/>
 <%= render :partial => 'vehicles/list' %>
+<br/>
+<%= render :partial => 'issues/list_simple', locals: {issues: @customer.issues} %>
