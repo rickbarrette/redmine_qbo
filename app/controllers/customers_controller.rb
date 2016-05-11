@@ -49,11 +49,11 @@ class CustomersController < ApplicationController
   
   # return an HTML form for editing a customer
   def edit
-    #begin
+    begin
       @customer = Customer.find_by_id(params[:id])
-    #rescue ActiveRecord::RecordNotFound
-    #  render_404
-    #end
+    rescue ActiveRecord::RecordNotFound
+      render_404
+    end
   end
   
   # update a specific customer
