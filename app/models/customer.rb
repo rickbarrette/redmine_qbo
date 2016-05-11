@@ -20,7 +20,7 @@ class Customer < ActiveRecord::Base
   attr_accessible :name, :skip_details
   validates_presence_of :id, :name
   
-  after_initialize :get_details unless: :skip_details
+  after_initialize :get_details, unless: :skip_details
   
   self.primary_key = :id
   
