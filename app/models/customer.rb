@@ -90,6 +90,24 @@ class Customer < ActiveRecord::Base
     @details.notes = s if @details
   end
   
+  # Magic Method  
+  def method_missing(name, *arguments)  
+    value = arguments[0]  
+    name = name.to_s  
+
+    # if the method's name ends with '='  
+    if name[-1, 1] == "="  
+      method_name = name[0..-2]  
+      @details[method_name] = value  
+    else  
+      begin  
+        return @details[name]  
+      rescue  
+        return nil  
+      end  
+    end  
+  end  
+  
   # proforms a bruteforce sync operation
   # This needs to be simplified
   def self.sync 
