@@ -20,7 +20,8 @@ class Customer < ActiveRecord::Base
   validates_presence_of :id, :name
   
   after_initialize :pull
-  before_save  :push
+  before_save :create_customer
+  after_save  :push
   
   self.primary_key = :id
   
@@ -123,46 +124,42 @@ class Customer < ActiveRecord::Base
   
   private
   
+  # pull the details
+  def pull
+    if new_record?
+      @details = Quickbooks::Model::Customer.new
+    else
+      begin
+        tries ||= 3
+        @details = Qbo.get_base(:customer).find_by_id(self.id)
+      rescue
+        retry unless (tries -= 1).zero?
+      end
+    end
+  end
+  
   # Push the updates
   def push
-    #begin
-    #  tries ||= 3
-      Qbo.get_base(:customer).service.update(@details)
-    #rescue Exception => e
-     # retry unless (tries -= 1).zero?
-    #  errors.add(:details, e.message)
-    #end
-  end
-  
-  def qbo
-    if new_record?
-      customer = Quickbooks::Model::Customer.new
-      customer.display_name = self.name
-      @details = Qbo.get_base(:customer).service.create(customer)
-      self.id = @details.id
-    end
-  end
-  
-  # pull details
-  def pull
     begin
       tries ||= 3
-      @details = Qbo.get_base(:customer).find_by_id(self.id)
-    rescue
+      Qbo.get_base(:customer).service.update(@details)
+    rescue Exception => e
       retry unless (tries -= 1).zero?
+      errors.add(:details, e.message)
     end
   end
   
-  # update's the customers name if updated
-  def update
-    begin
-      if not self.name == @detils.display_name
-        self.name = @details.display_name
-        self.save
+  # Creates a new qbo customer and aquires ID number
+  def create_customer
+    if new_record?
+      begin
+        tries ||= 3
+        @details = Qbo.get_base(:customer).service.create(@details)
+        self.id = @details.id
+      rescue Exception => e
+        retry unless (tries -= 1).zero?
+        errors.add(:id, e.message)
       end
-    rescue
-      return nil
     end
   end
-  
 end
