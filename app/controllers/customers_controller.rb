@@ -26,7 +26,14 @@ class CustomersController < ApplicationController
   end
   
   def create
-    flash[:error] @customer.errors.full_messages.to_sentence if @customer.errors
+    @customer = Customer.new(params[:customer])
+    if @customer.save
+      flash[:notice] = "New Customer Created"
+      redirect_to @customer
+    else
+      flash[:error] = @customer.errors.full_messages.to_sentence 
+      redirect_to new_customer_path
+    end
   end
   
   # display a specific customer
@@ -48,17 +55,24 @@ class CustomersController < ApplicationController
   # update a specific customer
   def update
     @customer = Customer.find_by_id(params[:id])
-    if @customer.update_attributes(params[:customer])
+    if @customer.update_attributes(params[:vehicle])
       flash[:notice] = "Customer updated"
       redirect_to @customer
     else
-      render :edit
+      redirect_to edit_customer_path
     end
-    flash[:error] @customer.errors.full_messages.to_sentence if @customer.errors
+    flash[:error] = @customer.errors.full_messages.to_sentence if @customer.errors
   end
   
   def destroy
-    
+    begin
+      Customer.find_by_id(params[:id]).destroy
+      flash[:notice] = "Customer deleted successfully"
+    rescue
+      flash[:error] = "No Customer Found"
+    end
+    redirect_to action: :index
+
   end
 
 end
