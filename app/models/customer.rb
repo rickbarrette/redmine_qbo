@@ -130,13 +130,13 @@ class Customer < ActiveRecord::Base
   
   # Push the updates
   def push
-    begin
-      tries ||= 3
+    #begin
+    #  tries ||= 3
       Qbo.get_base(:customer).service.update(@details)
-    rescue Exception => e
-      retry unless (tries -= 1).zero?
-      errors.add(:details, e.message)
-    end
+    #rescue Exception => e
+     # retry unless (tries -= 1).zero?
+    #  errors.add(:details, e.message)
+    #end
   end
   
   def qbo
