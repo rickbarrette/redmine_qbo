@@ -20,7 +20,7 @@ class Customer < ActiveRecord::Base
   attr_accessible :name
   validates_presence_of :id, :name
   
-  after_find :get_details, :unless 
+  after_initialize :get_details 
   
   self.primary_key = :id
   
@@ -137,11 +137,9 @@ class Customer < ActiveRecord::Base
     # if the method's name ends with '='
     if name[-1, 1] == "="
       method_name = name[0..-2]
-      puts "Setting '#{method_name}' to '#{value}'"
       @details[method_name] = value
       push
     else
-      puts "Getting '#{name}'"
       begin
         return @details[name]
       rescue
@@ -172,12 +170,9 @@ class Customer < ActiveRecord::Base
   
   # init details
   def get_details
-    t= Thread.new {
-      if self.id
-        @details = get_customer(self.id)
-      end
-    }
-    t.join
+    if self.id
+      @details = get_customer(self.id)
+    end
   end
   
   # update's the customers name if updated
