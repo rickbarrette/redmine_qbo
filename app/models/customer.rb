@@ -137,26 +137,26 @@ class Customer < ActiveRecord::Base
   
   # Push the updates
   def push
-    begin
+   # begin
       #tries ||= 3
       @details = Qbo.get_base(:customer).service.update(@details)
-    rescue Exception => e
+   # rescue Exception => e
       #retry unless (tries -= 1).zero?
-      errors.add(e.message)
-    end
+    #  errors.add(e.message)
+   # end
   end
   
   # Creates a new qbo customer and aquires ID number
   def create_customer
     if new_record?
-      begin
+     # begin
         #tries ||= 3
         @details = Qbo.get_base(:customer).service.create(@details)
         self.id = @details.id
-      rescue Exception => e
+     # rescue Exception => e
         #retry unless (tries -= 1).zero?
         errors.add(:id, e.message)
-      end
+      #end
     end
   end
 end
