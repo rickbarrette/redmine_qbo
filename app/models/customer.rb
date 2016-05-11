@@ -24,11 +24,6 @@ class Customer < ActiveRecord::Base
   
   self.primary_key = :id
   
-  # returns true if the customer is active
-  def active?
-    return @details.active? if @details
-  end
-  
   # returns a human readable string
   def to_s
     return name
@@ -77,7 +72,7 @@ class Customer < ActiveRecord::Base
   
   # Updates Both local DB name & QBO display_name
   def name=(s)
-    @details.display_name = s if @details
+    display_name = s
     self.name = s
   end
   
