@@ -15,12 +15,11 @@ class Customer < ActiveRecord::Base
   has_many :qbo_purchases
   has_many :vehicles
   
-  #before_save :qbo
+  attr_accessible :name, :notes, :email, :primary_phone, :mobile_phone, :skip_details
   
-  attr_accessible :name, :skip_details
   validates_presence_of :id, :name
   
-  after_initialize :pull
+  after_initialize :pull, unless: :skip_details
   after_save  :push
   
   self.primary_key = :id
