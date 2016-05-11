@@ -61,13 +61,17 @@ class VehiclesController < ApplicationController
   # update a specific vehicle
   def update
     @customer = params[:customer]
-    @vehicle = Vehicle.find_by_id(params[:id])
-    if @vehicle.update_attributes(params[:vehicle])
-      flash[:notice] = "Vehicle updated"
-      redirect_to @vehicle
-    else
-      flash[:error] = @vehicle.errors.full_messages.to_sentence if @vehicle.errors
-      redirect_to edit_vehicle_path
+    begin   
+      @vehicle = Vehicle.find_by_id(params[:id])
+      if @vehicle.update_attributes(params[:vehicle])
+        flash[:notice] = "Vehicle updated"
+        redirect_to @vehicle
+      else
+        flash[:error] = @vehicle.errors.full_messages.to_sentence if @vehicle.errors
+        redirect_to edit_vehicle_path
+      end
+    rescue ActiveRecord::RecordNotFound
+      render_404
     end
   end  
 
