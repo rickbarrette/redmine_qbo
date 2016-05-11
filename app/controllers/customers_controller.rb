@@ -38,42 +38,48 @@ class CustomersController < ApplicationController
   
   # display a specific customer
   def show
-    @customer = Customer.find_by_id(params[:id])
-    if @customer
+    begin
+      @customer = Customer.find_by_id(params[:id])
       @vehicles = @customer.vehicles.paginate(:page => params[:page])
       @issues = @customer.issues
-    else
-      flash[:error] = "Customer Not Found"  
-      render :index
+    rescue ActiveRecord::RecordNotFound
+      render_404
     end
   end
   
   # return an HTML form for editing a customer
   def edit
-    @customer = Customer.find_by_id(params[:id])
+    begin
+      @customer = Customer.find_by_id(params[:id])
+    rescue ActiveRecord::RecordNotFound
+      render_404
+    end
   end
   
   # update a specific customer
   def update
-    @customer = Customer.find_by_id(params[:id])
-    if @customer.update_attributes(params[:vehicle])
-      flash[:notice] = "Customer updated"
-      redirect_to @customer
-    else
-      redirect_to edit_customer_path
+    begin
+      @customer = Customer.find_by_id(params[:id])
+      if @customer.update_attributes(params[:vehicle])
+        flash[:notice] = "Customer updated"
+        redirect_to @customer
+      else
+        flash[:error] = @customer.errors.full_messages.to_sentence if @customer.errors
+        redirect_to edit_customer_path
+      end
+    rescue ActiveRecord::RecordNotFound
+      render_404
     end
-    flash[:error] = @customer.errors.full_messages.to_sentence if @customer.errors
   end
   
   def destroy
     begin
       Customer.find_by_id(params[:id]).destroy
       flash[:notice] = "Customer deleted successfully"
-    rescue
-      flash[:error] = "No Customer Found"
+      redirect_to action: :index
+    rescue ActiveRecord::RecordNotFound
+      render_404
     end
-    redirect_to action: :index
-
   end
 
 end
