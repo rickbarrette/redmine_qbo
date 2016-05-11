@@ -3,11 +3,10 @@
     <div class="span6 columns">
       <fieldset>
         <% @customer = vehicle.customer.name if vehicle.customer %>
-        <% @vehicle = vehicle %>
-        <%= render :partial => 'vehicles/details' %>
+        <%= render :partial => 'vehicles/details', locals: {vehicle: @vehicle}%>
         <br/>
         <div style="float: right;" >
-          <%= button_to "More", vehicle_path(@vehicle), method: :get %>
+          <%= button_to "More", vehicle_path(vehicle), method: :get %>
         </div>
       </fieldset>
     </div>
