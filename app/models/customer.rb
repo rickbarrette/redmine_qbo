@@ -127,10 +127,10 @@ class Customer < ActiveRecord::Base
   # pull the details
   def pull
     begin
-      tries ||= 3
+      #tries ||= 3
       @details = Qbo.get_base(:customer).find_by_id(self.id)
     rescue
-      retry unless (tries -= 1).zero?
+      #retry unless (tries -= 1).zero?
       @details = Quickbooks::Model::Customer.new
     end
   end
@@ -138,10 +138,10 @@ class Customer < ActiveRecord::Base
   # Push the updates
   def push
     begin
-      tries ||= 3
+      #tries ||= 3
       @details = Qbo.get_base(:customer).service.update(@details)
     rescue Exception => e
-      retry unless (tries -= 1).zero?
+      #retry unless (tries -= 1).zero?
       errors.add(e.message)
     end
   end
@@ -150,11 +150,11 @@ class Customer < ActiveRecord::Base
   def create_customer
     if new_record?
       begin
-        tries ||= 3
+        #tries ||= 3
         @details = Qbo.get_base(:customer).service.create(@details)
         self.id = @details.id
       rescue Exception => e
-        retry unless (tries -= 1).zero?
+        #retry unless (tries -= 1).zero?
         errors.add(:id, e.message)
       end
     end
