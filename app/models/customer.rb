@@ -88,20 +88,6 @@ class Customer < ActiveRecord::Base
     push
   end
   
-  # returns the bases QBO service for customers
-  def self.get_base
-    Qbo.get_base(:customer)
-  end
-  
-  # returns the QBO customer 
-  def get_customer (id)
-    begin
-      return get_base.find_by_id(id)
-    rescue
-      return nil
-    end
-  end
-
   # proforms a bruteforce sync operation
   # This needs to be simplified
   def self.sync 
@@ -170,8 +156,10 @@ class Customer < ActiveRecord::Base
   
   # init details
   def get_details
-    if self.id
+    begin
       @details = get_customer(self.id)
+    rescue
+      return nil
     end
   end
   
