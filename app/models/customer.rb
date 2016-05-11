@@ -138,10 +138,11 @@ class Customer < ActiveRecord::Base
   
   # Push the updates
   def push
-    begin 
+    begin
+      tries ||= 3
       get_base.update(@details)
     rescue
-      return nil
+      retry unless (tries -= 1).zero?
     end
   end
   
@@ -157,9 +158,10 @@ class Customer < ActiveRecord::Base
   # init details
   def get_details
     begin
+      tries ||= 3
       @details = get_customer(self.id)
     rescue
-      return nil
+      retry unless (tries -= 1).zero?
     end
   end
   
