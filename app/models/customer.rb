@@ -125,8 +125,9 @@ class Customer < ActiveRecord::Base
     begin
       tries ||= 3
       Qbo.get_base(:customer).service.update(@details)
-    rescue
+    rescue Exception => e
       retry unless (tries -= 1).zero?
+      errors.add(:details, e.message)
     end
   end
   
