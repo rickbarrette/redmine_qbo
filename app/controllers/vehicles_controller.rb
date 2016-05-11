@@ -42,10 +42,7 @@ class VehiclesController < ApplicationController
   # display a specific vehicle
   def show
     @vehicle = Vehicle.find_by_id(params[:id])
-    if @vehicle
-      @customer = @vehicle.customer.name if @vehicle.customer
-      @issues = @vehicle.issues
-    else
+    if not @vehicle
       flash[:error] = "Vehicle Not Found"
       redirect_to :index
     end
@@ -54,7 +51,6 @@ class VehiclesController < ApplicationController
   # return an HTML form for editing a vehicle
   def edit
     @vehicle = Vehicle.find_by_id(params[:id])
-    @customer = @vehicle.customer.id if @vehicle.customer
     @customers = Customer.all.order(:name)
   end
   
