@@ -62,9 +62,9 @@ class VehiclesController < ApplicationController
       flash[:notice] = "Vehicle updated"
       redirect_to @vehicle
     else
+      flash[:error] = @vehicle.errors.full_messages.to_sentence if @vehicle.errors
       redirect_to edit_vehicle_path
     end
-    flash[:error] = @vehicle.errors.full_messages.to_sentence if @vehicle.errors
   end  
 
   # delete a specific vehicle
