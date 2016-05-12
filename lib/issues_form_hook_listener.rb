@@ -25,7 +25,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     vehicle = context[:issue].vehicles_id
     
     # Generate the drop down list of quickbooks customers
-    select_customer = f.select :customer_id, Customer.all.pluck(:name, :id).sort, :selected => selected_customer, include_blank: true
+    select_customer = f.select :customer_id, Customer.without_callback(:initialize, :after, :pull).all.pluck(:name, :id).sort, :selected => selected_customer, include_blank: true
   
     # Generate the drop down list of quickbooks items
     select_item = f.select :qbo_item_id, QboItem.all.pluck(:name, :id).sort, :selected => selected_item, include_blank: true
