@@ -11,6 +11,9 @@
 class Customer < ActiveRecord::Base
   unloadable
   
+  require 'without_callback'
+  include WithoutCallback
+  
   has_many :issues
   has_many :qbo_purchases
   has_many :vehicles
