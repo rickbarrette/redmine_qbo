@@ -16,7 +16,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     f = context[:form]
  
     # Check to see if there is a quickbooks user attached to the issue
-    selected_customer =  context[:issue].customer ? context[:issue].customer.id  : nil
+    @@selected_customer =  context[:issue].customer ? context[:issue].customer.id  : nil
     selected_item = context[:issue].qbo_item ? context[:issue].qbo_item.id  : nil
     selected_invoice = context[:issue].qbo_invoice ? context[:issue].qbo_invoice.id  : nil
     selected_estimate =  context[:issue].qbo_estimate ? context[:issue].qbo_estimate.id  : nil
@@ -25,7 +25,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     
     # Generate the drop down list of quickbooks customers
     Customer.without_callback(:initialize, :after, :pull) do
-      customer = Customer.find_by_id(selected_customer) if selected_customer
+      @@customer = Customer.find_by_id(@@selected_customer) if @@selected_customer
       select_customer = f.select :customer_id, Customer.all.pluck(:name, :id).sort, :selected => selected_customer, include_blank: true
     end
     
@@ -41,7 +41,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     #@estimates_link = link_to qbo_update_estimates_path
     
     #render_on :view_issues_form_details_bottom, :partial => 'hooks/redmine_qbo/vehicles/dropdown'
-    vehicles = customer.vehicles.pluck(:name, :id).sort! if selected_customer
+    vehicles = @@customer.vehicles.pluck(:name, :id).sort! if @@selected_customer
     vehicles = Vehicle.all.order(:name) if not vehicles
     vehicle = f.select :vehicles_id, vehicles, include_blank: true, :selected => vehicle
     
