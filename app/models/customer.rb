@@ -125,6 +125,12 @@ class Customer < ActiveRecord::Base
     #where.not(customers.map(&:id)).destroy_all
   end
   
+  def without_callback(*args, &block)
+    skip_callback(*args)
+    yield
+    set_callback(*args)
+  end
+  
   private
   
   # pull the details
