@@ -24,7 +24,9 @@ class VehiclesController < ApplicationController
   # return an HTML form for creating a new vehicle
   def new
     @vehicle = Vehicle.new
-    @customers = Customer.without_callback(:initialize, :after, :pull).all.order(:name)
+    Customer.without_callback(:initialize, :after, :pull) do
+      @customers = Customer.all.order(:name)
+    end
   end
 
   # create a new vehicle
