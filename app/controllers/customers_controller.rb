@@ -18,7 +18,9 @@ class CustomersController < ApplicationController
   
   # display a list of all customers
   def index
-    @customers = Customer.paginate(:page => params[:page])
+    Customer.without_callback(:initialize, :after, :pull) do
+      @customers = Customer.paginate(:page => params[:page])
+    end
   end
   
   def new
