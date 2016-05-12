@@ -55,7 +55,7 @@ class VehiclesController < ApplicationController
     begin
       @vehicle = Vehicle.find_by_id(params[:id])
       Customer.without_callback(:initialize, :after, :pull) do
-        @customers = .all.order(:name)
+        @customers = Customer.all.order(:name)
       end
     rescue ActiveRecord::RecordNotFound
       render_404
