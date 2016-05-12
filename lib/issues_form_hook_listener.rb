@@ -26,7 +26,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     # Generate the drop down list of quickbooks customers
     Customer.without_callback(:initialize, :after, :pull) do
       @@customer = Customer.find_by_id(@@selected_customer) if @@selected_customer
-      select_customer = f.select :customer_id, Customer.all.pluck(:name, :id).sort, :selected => @@selected_customer, include_blank: true
+      @@select_customer = f.select :customer_id, Customer.all.pluck(:name, :id).sort, :selected => @@selected_customer, include_blank: true
     end
     
     # Generate the drop down list of quickbooks items
@@ -45,6 +45,6 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     vehicles = Vehicle.all.order(:name) if not vehicles
     vehicle = f.select :vehicles_id, vehicles, include_blank: true, :selected => vehicle
     
-    return "<p>#{select_customer}</p> <p>#{select_item}</p> <p>#{select_invoice}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>"
+    return "<p>#{@@select_customer}</p> <p>#{select_item}</p> <p>#{select_invoice}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>"
   end
 end
