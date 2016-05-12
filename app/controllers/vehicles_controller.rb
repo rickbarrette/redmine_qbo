@@ -54,6 +54,7 @@ class VehiclesController < ApplicationController
   def edit
     begin
       @vehicle = Vehicle.find_by_id(params[:id])
+      @customer = @vehicle.customer.id
       Customer.without_callback(:initialize, :after, :pull) do
         @customers = Customer.all.order(:name)
       end
