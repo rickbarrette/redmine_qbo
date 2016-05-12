@@ -54,7 +54,9 @@ class VehiclesController < ApplicationController
   def edit
     begin
       @vehicle = Vehicle.find_by_id(params[:id])
-      @customers = Customer.without_callback(:initialize, :after, :pull).all.order(:name)
+      Customer.without_callback(:initialize, :after, :pull) do
+        @customers = .all.order(:name)
+      end
     rescue ActiveRecord::RecordNotFound
       render_404
     end
