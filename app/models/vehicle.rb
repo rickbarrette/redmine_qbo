@@ -24,6 +24,8 @@ class Vehicle < ActiveRecord::Base
   before_save :decode_vin
   after_initialize :get_details
   
+  self.primary_key = :id
+  
   # returns a human readable string
   def to_s
     return "#{self.customer.name} - #{self.year} #{self.make} #{self.model}"
