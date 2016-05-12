@@ -4,7 +4,7 @@
   <div class="row">
     <div class="span6 columns">
       <fieldset>
-        <%= render :partial => 'customers/details', locals: {customer: c} %>
+        <%= c.name %>
         <%= button_to "Show", customer_path(c.id), method: :get %>
       </fieldset>
     </div>
