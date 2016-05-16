@@ -103,7 +103,7 @@ class Customer < ActiveRecord::Base
     query = "SELECT Id, DisplayName FROM Customer"
     query << " WHERE Metadata.LastUpdatedTime>'#{last}' " if last
     
-    customers = get_base.service.query()
+    customers = Qbo.get_base(:customer).service.query()
 
     transaction do
       # Update the customer table
