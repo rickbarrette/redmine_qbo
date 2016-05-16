@@ -109,13 +109,17 @@ class Customer < ActiveRecord::Base
       # Update the customer table
       customers.each { |customer|
       
-        background do 
-          qbo_customer = Customer.find_or_create_by(id: customer.id)
-          # only update if diffrent
-          if qbo_customer.new_record?
-            qbo_customer.name = customer.display_name
-            qbo_customer.id = customer.id
-            qbo_customer.save!
+        background do
+          Customer.without_callback(:initialize, :after, :pull) do
+            Customer.without_callback(:save, :before, :push) do
+              qbo_customer = Customer.find_or_create_by(id: customer.id)
+              # only update if diffrent
+              if qbo_customer.new_record?
+                qbo_customer.name = customer.display_name
+                qbo_customer.id = customer.id
+                qbo_customer.save!
+              end
+            end
           end
         end
       }
