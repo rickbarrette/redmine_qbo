@@ -108,12 +108,15 @@ class Customer < ActiveRecord::Base
     transaction do
       # Update the customer table
       customers.each { |customer|
-        qbo_customer = Customer.find_or_create_by(id: customer.id)
-        # only update if diffrent
-        if qbo_customer.new_record?
-          qbo_customer.name = customer.display_name
-          qbo_customer.id = customer.id
-          qbo_customer.save!
+      
+        background do 
+          qbo_customer = Customer.find_or_create_by(id: customer.id)
+          # only update if diffrent
+          if qbo_customer.new_record?
+            qbo_customer.name = customer.display_name
+            qbo_customer.id = customer.id
+            qbo_customer.save!
+          end
         end
       }
     end
@@ -129,6 +132,13 @@ class Customer < ActiveRecord::Base
   end
   
   private
+  
+  def background(&block)
+    Thread.new do
+      yield
+      ActiveRecord::Base.connection.close
+    end
+  end
   
   # pull the details
   def pull
