@@ -36,7 +36,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     # Generate the drop down list of quickbooks extimates
     select_estimate = f.select :qbo_estimate_id, QboEstimate.all.pluck(:doc_number, :id).sort! {|x, y| y <=> x}, :selected => selected_estimate, include_blank: true
     
-    vehicles = @@customer.vehicles.pluck(:name, :id).sort! if @@customer
+    vehicles = @@customer.vehicles.pluck(:name, :id).sort! if context[:issue].customer
     vehicles = Vehicle.all.order(:name) if not vehicles
     vehicle = f.select :vehicles_id, vehicles, include_blank: true, :selected => vehicle
     
