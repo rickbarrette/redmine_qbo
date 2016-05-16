@@ -21,7 +21,7 @@ class Customer < ActiveRecord::Base
   
   after_initialize :pull, unless: :new_record?
   #before_save :create_customer, unless: :new_record?
-  after_save  :push, unless: :new_record?
+  before_save  :push, unless: :new_record?
   
   self.primary_key = :id
   
@@ -159,7 +159,7 @@ class Customer < ActiveRecord::Base
       raise "QBO Fault" if @details.fault?
     rescue Exception => e
       #retry unless (tries -= 1).zero?
-      errors.add(e.message)
+      #errors.add(e.message)
     end
   end
   
