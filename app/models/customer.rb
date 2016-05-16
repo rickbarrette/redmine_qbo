@@ -133,7 +133,7 @@ class Customer < ActiveRecord::Base
   
   private
   
-  def background(&block)
+  def self.background(&block)
     Thread.new do
       yield
       ActiveRecord::Base.connection.close
