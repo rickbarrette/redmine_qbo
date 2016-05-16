@@ -19,9 +19,9 @@ class Customer < ActiveRecord::Base
   
   validates_presence_of :id, :name
   
-  after_initialize :pull
-  before_save :create_customer
-  after_save  :push
+  after_initialize :pull, unless: :new_record?
+  #before_save :create_customer, unless: :new_record?
+  after_save  :push, unless: :new_record?
   
   self.primary_key = :id
   
