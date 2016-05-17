@@ -21,10 +21,7 @@ class QboItem < ActiveRecord::Base
   def self.sync 
     last = Qbo.first.last_sync
     
-    QboItem.delete_all
-    
-    query = "SELECT Id, Name FROM Item "
-    query << " WHERE Type = 'Service' "
+    query = "SELECT Id, Name FROM Item WHERE Type = 'Service' "
     #query << " AND Metadata.LastUpdatedTime > '#{last}' " if last
     
     items = get_base.service.query()    
