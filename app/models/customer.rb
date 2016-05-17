@@ -111,7 +111,7 @@ class Customer < ActiveRecord::Base
     
     #without_callback(:save, :before, :save) do
       #customers = Qbo.get_base(:customer).service.query_in_batches(query, per_page: 100) do |batch|
-      customers = Qbo.get_base(:customer).service.all
+      batch = Qbo.get_base(:customer).service.all
         batch.each do |customer|
           # Update the customer table
           qbo_customer = Customer.find_or_create_by(id: customer.id)
@@ -119,7 +119,7 @@ class Customer < ActiveRecord::Base
           qbo_customer.id = customer.id
           qbo_customer.save
         end
-      end
+      #end
     #end
   
     # remove deleted customers
