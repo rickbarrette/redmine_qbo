@@ -26,9 +26,8 @@ class Customer < ActiveRecord::Base
   
   def all
     without_callback(:initialize, :after, :pull) do
-      @@customers = Customer.all
+      Customer.all
     end
-    return @@customers
   end 
   
   # returns a human readable string
