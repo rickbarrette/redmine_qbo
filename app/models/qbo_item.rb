@@ -19,11 +19,11 @@ class QboItem < ActiveRecord::Base
   end
   
   def self.sync 
-    items = get_base.service.find_by(:type, "Service")
-    #last = Qbo.first.last_sync
+    last = Qbo.first.last_sync
     
-    #query = "SELECT Id, Name FROM Item"
-    #query << " WHERE Metadata.LastUpdatedTime > '#{last}' AND Type = 'Service'" if last
+    query = "SELECT Id, Name FROM Item"
+    query << "WHERE Type = 'Service'"
+    #query << "AND Metadata.LastUpdatedTime > '#{last}'" if last
     
     #items = get_base.service.query()    
     transaction do
