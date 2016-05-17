@@ -19,24 +19,23 @@ class QboItem < ActiveRecord::Base
   end
   
   def self.sync 
-    #items = get_base.service.find_by(:type, "Service")
-    last = Qbo.first.last_sync
+    items = get_base.service.find_by(:type, "Service")
+    #last = Qbo.first.last_sync
     
-    query = "SELECT Id, Name FROM Item"
-    query << " WHERE Metadata.LastUpdatedTime > '#{last}' AND Type = 'Service'" if last
+    #query = "SELECT Id, Name FROM Item"
+    #query << " WHERE Metadata.LastUpdatedTime > '#{last}' AND Type = 'Service'" if last
     
-    items = get_base.service.query()    
+    #items = get_base.service.query()    
     transaction do
       # Update the item table
       items.each { |item|
         qbo_item = QboItem.find_or_create_by(id: item.id)
-        qbo_item.name = item.name
-        qbo_item.id = item.id
-        qbo_item.save!
+        qbo_item.update_column(:name, item.name)
+        qbo_item.update_column(:id, item.id)
       }
     end
     
     #remove deleted items
-    #where.not(items.map(&:id)).destroy_all
+    where.not(items.map(&:id)).destroy_all
   end
 end
