@@ -37,6 +37,6 @@ class QboItem < ActiveRecord::Base
     end
     
     #remove deleted items
-    destory_all(not items.map(&:id))
+    QboItem.where.not(items.map(&:id).destroy_all
   end
 end
