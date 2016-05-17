@@ -105,26 +105,16 @@ class Customer < ActiveRecord::Base
     
     customers = Qbo.get_base(:customer).service.query()
 
-    transaction do
-      # Update the customer table
-      customers.each { |customer|
-      
-        background do
-          Customer.without_callback(:initialize, :after, :pull) do
-            Customer.without_callback(:save, :before, :push) do
-              qbo_customer = Customer.find_or_create_by(id: customer.id)
-              # only update if diffrent
-              if qbo_customer.new_record?
-                qbo_customer.name = customer.display_name
-                qbo_customer.id = customer.id
-                qbo_customer.save!
-              end
-            end
-          end
-        end
-      }
-    end
-   
+    # Update the customer table
+    customers.each { |customer|
+      background do
+        qbo_customer = Customer.find_or_create_by(id: customer.id)
+        qbo_customer.update_column(:name, customer.display_name)
+        qbo_customer.update_column(:id, customer.id)
+        qbo_customer.save
+      end
+    }
+    
     # remove deleted customers
     #where.not(customers.map(&:id)).destroy_all
   end
