@@ -116,6 +116,7 @@ class Customer < ActiveRecord::Base
           qbo_customer = Customer.find_or_create_by(id: customer.id)
           qbo_customer.name = customer.display_name
           qbo_customer.id = customer.id
+          qbo_customer.save
         end
       end
     end
