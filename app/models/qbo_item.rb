@@ -30,8 +30,9 @@ class QboItem < ActiveRecord::Base
       # Update the item table
       items.each { |item|
         qbo_item = QboItem.find_or_create_by(id: item.id)
-        qbo_item.update_column(:name, item.name.to_s)
-        qbo_item.update_column(:id, item.id.to_i)
+        qbo_item.name = item.name
+        qbo_item.id = item.id
+        qbo_item.save
       }
     end
     
