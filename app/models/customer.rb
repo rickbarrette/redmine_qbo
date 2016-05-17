@@ -25,10 +25,10 @@ class Customer < ActiveRecord::Base
   self.primary_key = :id
   
   def all
-    Customer.skip_callback(:initialize, :after, :pull)
-      customers = Customer.all
-    Customer.set_callback(:initialize, :after, :pull)
-    return customers
+    without_callback(:initialize, :after, :pull) do
+      @@customers = Customer.all
+    end
+    return @@customers
   end 
   
   # returns a human readable string
@@ -125,9 +125,9 @@ class Customer < ActiveRecord::Base
   end
   
   def self.without_callback(*args, &block)
-    skip_callback(*args)
+    Customer.skip_callback(*args)
     yield
-    set_callback(*args)
+    Customer.set_callback(*args)
   end
   
   private
