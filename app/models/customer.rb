@@ -20,7 +20,7 @@ class Customer < ActiveRecord::Base
   validates_presence_of :id, :name
   
   after_initialize :pull
-  before_save  :push
+  #before_save  :push
   
   self.primary_key = :id
   
@@ -109,7 +109,7 @@ class Customer < ActiveRecord::Base
     #query << " Where Metadata.LastUpdatedTime >= '#{last.iso8601}' " if last
     query << " Order By DisplayName "
     
-    without_callback(:save, :before, :save) do
+    #without_callback(:save, :before, :save) do
       customers = Qbo.get_base(:customer).service.query_in_batches(query, per_page: 100) do |batch|
         batch.each do |customer|
           # Update the customer table
@@ -119,7 +119,7 @@ class Customer < ActiveRecord::Base
           qbo_customer.save
         end
       end
-    end
+    #end
   
     # remove deleted customers
     #where.not(customers.map(&:id)).destroy_all
