@@ -20,7 +20,7 @@ class Customer < ActiveRecord::Base
   validates_presence_of :id, :name
   
   after_initialize :pull
-  #before_save  :push
+  before_save  :push
   
   self.primary_key = :id
   
@@ -106,7 +106,7 @@ class Customer < ActiveRecord::Base
     last = Qbo.first.last_sync
     
     query = "Select Id, DisplayName From Customer"
-    #query << " Where Metadata.LastUpdatedTime >= '#{last.iso8601}' " if last
+    query << " Where Metadata.LastUpdatedTime >= '#{last.iso8601}' " if last
     query << " Order By DisplayName "
     
     without_callback(:save, :before, :save) do
