@@ -24,6 +24,12 @@ class Customer < ActiveRecord::Base
   
   self.primary_key = :id
   
+  def self.all
+    without_callback(:initialize, :after, :pull) do
+      return all
+    end
+  end 
+  
   # returns a human readable string
   def to_s
     return name
