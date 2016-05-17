@@ -111,10 +111,12 @@ class Customer < ActiveRecord::Base
     
     customers = Qbo.get_base(:customer).service.query_in_batches(query, per_page: 100) do |batch|
       batch.each do |customer|
-        # Update the customer table
-        qbo_customer = Customer.find_or_create_by(id: customer.id)
-        qbo_customer.update_column(:name, customer.display_name)
-        qbo_customer.update_column(:id, customer.id)
+        without_callback(:save, :before, :save) do
+          # Update the customer table
+          qbo_customer = Customer.find_or_create_by(id: customer.id)
+          qbo_customer.name = customer.display_name
+          qbo_customer.id = customer.id
+        end
       end
     end
     
