@@ -26,7 +26,7 @@ class Customer < ActiveRecord::Base
   
   def all
     without_callback(:initialize, :after, :pull) do
-      Customer.all
+      Customer.all.sort
     end
   end 
   
