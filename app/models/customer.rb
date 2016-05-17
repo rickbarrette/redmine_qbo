@@ -105,8 +105,9 @@ class Customer < ActiveRecord::Base
   def self.sync 
     last = Qbo.first.last_sync
     
-    query = "SELECT Id, DisplayName FROM Customer"
-    query << " WHERE Metadata.LastUpdatedTime>'#{last}' " if last
+    query = "Select Id, DisplayName From Customer"
+    query << " Where Metadata.LastUpdatedTime>'#{last.localtime}' " if last
+    query << " Order By DisplayName"
     
     customers = Qbo.get_base(:customer).service.query(query)
 
