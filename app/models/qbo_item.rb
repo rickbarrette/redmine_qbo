@@ -23,7 +23,7 @@ class QboItem < ActiveRecord::Base
     
     query = "SELECT Id, Name FROM Item"
     query << "WHERE Type = 'Service'"
-    #query << "AND Metadata.LastUpdatedTime > '#{last}'" if last
+    #query << " AND Metadata.LastUpdatedTime > '#{last}' " if last
     
     items = get_base.service.query()    
     transaction do
@@ -37,6 +37,6 @@ class QboItem < ActiveRecord::Base
     end
     
     #remove deleted items
-    where.not(items.map(&:id)).destroy_all
+    QboItem.where.not(items.map(&:id)).destroy_all
   end
 end
