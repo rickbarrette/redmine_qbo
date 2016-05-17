@@ -15,13 +15,12 @@ class Customer < ActiveRecord::Base
   has_many :qbo_purchases
   has_many :vehicles
   
-  attr_accessible :name, :notes, :email, :primary_phone, :mobile_phone, :skip_details
+  attr_accessible :name, :notes, :email, :primary_phone, :mobile_phone
   
   validates_presence_of :id, :name
   
-  after_initialize :pull, unless: :new_record?
-  #before_save :create_customer, unless: :new_record?
-  before_save  :push, unless: :new_record?
+  after_initialize :pull
+  before_save  :push
   
   self.primary_key = :id
   
@@ -101,7 +100,7 @@ class Customer < ActiveRecord::Base
     last = Qbo.first.last_sync
     
     query = "SELECT Id, DisplayName FROM Customer"
-    #query << " WHERE Metadata.LastUpdatedTime>'#{last}' " if last
+    query << " WHERE Metadata.LastUpdatedTime>'#{last}' " if last
     
     customers = Qbo.get_base(:customer).service.query()
 
@@ -111,7 +110,6 @@ class Customer < ActiveRecord::Base
         qbo_customer = Customer.find_or_create_by(id: customer.id)
         qbo_customer.update_column(:name, customer.display_name)
         qbo_customer.update_column(:id, customer.id)
-        qbo_customer.save
       end
     }
     
@@ -151,24 +149,11 @@ class Customer < ActiveRecord::Base
       #tries ||= 3
       @details = Qbo.get_base(:customer).service.update(@details)
       raise "QBO Fault" if @details.fault?
+      update_column(:id, @details.id)
     rescue Exception => e
       #retry unless (tries -= 1).zero?
-      #errors.add(e.message)
+      errors.add(e.message)
     end
   end
   
-  # Creates a new qbo customer and aquires ID number
-  def create_customer
-    if new_record?
-      begin
-        #tries ||= 3
-        @details = Qbo.get_base(:customer).service.create(@details)
-        raise "QBO Fault" if @details.fault?
-        self.id = @details.id
-      rescue Exception => e
-        #retry unless (tries -= 1).zero?
-        errors.add(:id, e.message)
-      end
-    end
-  end
 end
