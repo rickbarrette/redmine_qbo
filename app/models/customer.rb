@@ -106,18 +106,16 @@ class Customer < ActiveRecord::Base
     last = Qbo.first.last_sync
     
     query = "Select Id, DisplayName From Customer"
-    query << " Where Metadata.LastUpdatedTime>'#{last.localtime}' " if last
+    query << " Where Metadata.LastUpdatedTime >= '#{last}' " if last
     query << " Order By DisplayName"
     
-    customers = Qbo.get_base(:customer).service.query(query)
-
-    # Update the customer table
-    customers.each { |customer|
-      background do
+    customers = Qbo.get_base(:customer).service.query_in_batches(query, per_page: 100) do |batch|
+      batch.each do |customer|
+        # Update the customer table
         qbo_customer = Customer.find_or_create_by(id: customer.id)
         qbo_customer.update_column(:name, customer.display_name)
         qbo_customer.update_column(:id, customer.id)
-      end
+      }
     }
     
     # remove deleted customers
