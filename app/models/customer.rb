@@ -24,7 +24,7 @@ class Customer < ActiveRecord::Base
   
   self.primary_key = :id
   
-  def self.all
+  def all
     Customer.skip_callback(:initialize, :after, :pull)
       customers = Customer.all
     Customer.set_callback(:initialize, :after, :pull)
