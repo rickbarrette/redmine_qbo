@@ -11,7 +11,7 @@
 class Customer < ActiveRecord::Base
   unloadable
   
-  has_many :issues, :foreign_key => 'customers_id'
+  has_many :issues
   has_many :qbo_purchases
   has_many :vehicles
   
