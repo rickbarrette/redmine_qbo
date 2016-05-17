@@ -22,7 +22,7 @@ class QboItem < ActiveRecord::Base
     last = Qbo.first.last_sync
     
     query = "SELECT Id, Name FROM Item WHERE Type = 'Service' "
-    #query << " AND Metadata.LastUpdatedTime > '#{last}' " if last
+    query << " AND Metadata.LastUpdatedTime > '#{last}' " if last
     
     items = get_base.service.query(query)    
     transaction do
