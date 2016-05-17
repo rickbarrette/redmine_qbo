@@ -24,7 +24,7 @@ class QboItem < ActiveRecord::Base
     query = "SELECT Id, Name FROM Item WHERE Type = 'Service' "
     #query << " AND Metadata.LastUpdatedTime > '#{last}' " if last
     
-    items = get_base.service.query()    
+    items = get_base.service.query(query)    
     transaction do
       # Update the item table
       items.each { |item|
