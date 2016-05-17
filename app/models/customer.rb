@@ -106,12 +106,11 @@ class Customer < ActiveRecord::Base
     last = Qbo.first.last_sync
     
     query = "Select Id, DisplayName From Customer"
-    query << " Where Metadata.LastUpdatedTime >= '#{last.iso8601}' " if last
+    #query << " Where Metadata.LastUpdatedTime >= '#{last.iso8601}' " if last
     query << " Order By DisplayName "
     
-    #without_callback(:save, :before, :save) do
-      #customers = Qbo.get_base(:customer).service.query_in_batches(query, per_page: 100) do |batch|
-      batch = Qbo.get_base(:customer).service.all
+    without_callback(:save, :before, :save) do
+      Qbo.get_base(:customer).service.query_in_batches(query, per_page: 100) do |batch|
         batch.each do |customer|
           # Update the customer table
           qbo_customer = Customer.find_or_create_by(id: customer.id)
@@ -119,8 +118,8 @@ class Customer < ActiveRecord::Base
           qbo_customer.id = customer.id
           qbo_customer.save
         end
-      #end
-    #end
+      end
+    end
   
     # remove deleted customers
     #where.not(customers.map(&:id)).destroy_all
