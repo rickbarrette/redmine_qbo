@@ -111,8 +111,8 @@ class Customer < ActiveRecord::Base
     
     without_callback(:save, :before, :save) do
       #Qbo.get_base(:customer).service.query_in_batches(query, per_page: 100) do |batch|
-      Qbo.get_base(:customer).service.query(query)
-        batch.each do |customer|
+      Qbo.get_base(:customer).service.query(query) do |customer|
+      #batch.each do |customer|
           Customer.transaction do
             # Update the customer table
             qbo_customer = Customer.find_or_create_by(id: customer.id)
