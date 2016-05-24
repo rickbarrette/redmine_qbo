@@ -20,8 +20,6 @@ class Customer < ActiveRecord::Base
   validates_presence_of :id, :name
   
   after_initialize :pull
-  #before_save  :push
-  
   alias_method_chain :save, :push
   
   self.primary_key = :id
@@ -129,27 +127,6 @@ class Customer < ActiveRecord::Base
     Customer.set_callback(*args)
   end
   
-  protected
-  
-  def self.background(&block)
-    Thread.new do
-      yield
-      ActiveRecord::Base.connection.close
-    end
-  end
-  
-  # pull the details
-  def pull
-    begin
-      #tries ||= 3
-      raise Exception unless self.id
-      @details = Qbo.get_base(:customer).find_by_id(self.id)
-    rescue Exception => e
-      #retry unless (tries -= 1).zero?
-      @details = Quickbooks::Model::Customer.new
-    end
-  end
-  
   # Push the updates
   def save_with_push
     super
@@ -163,4 +140,19 @@ class Customer < ActiveRecord::Base
       errors.add(e.message)
     end
   end
+  
+  private
+  
+  # pull the details
+  def pull
+    begin
+      #tries ||= 3
+      raise Exception unless self.id
+      @details = Qbo.get_base(:customer).find_by_id(self.id)
+    rescue Exception => e
+      #retry unless (tries -= 1).zero?
+      @details = Quickbooks::Model::Customer.new
+    end
+  end
+  
 end
