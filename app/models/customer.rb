@@ -126,8 +126,8 @@ class Customer < ActiveRecord::Base
   end
   
   # Push the updates
-  def self.save_with_push
-    self.save_without_push
+  def save_with_push
+    save_without_push
     begin
       #tries ||= 3
       @details = Qbo.get_base(:customer).service.update(@details)
