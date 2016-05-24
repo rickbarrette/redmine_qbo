@@ -110,7 +110,8 @@ class Customer < ActiveRecord::Base
     #query << " Order By DisplayName "
     
     without_callback(:save, :before, :save) do
-      Qbo.get_base(:customer).service.query_in_batches(query, per_page: 100) do |batch|
+      #Qbo.get_base(:customer).service.query_in_batches(query, per_page: 100) do |batch|
+      Qbo.get_base(:customer).service.query(query)
         batch.each do |customer|
           Customer.transaction do
             # Update the customer table
@@ -120,7 +121,7 @@ class Customer < ActiveRecord::Base
             qbo_customer.save
           end
         end
-      end
+      #end
     end
   
     # remove deleted customers
