@@ -20,8 +20,7 @@ class Customer < ActiveRecord::Base
   validates_presence_of :id, :name
   
   after_initialize :pull
-  alias_method :save_without_push, :save
-  alias_method :save, :save_with_push
+  
   
   self.primary_key = :id
   
@@ -129,7 +128,7 @@ class Customer < ActiveRecord::Base
   end
   
   # Push the updates
-  def self.save_with_push
+  def save_with_push
     save_without_push
     begin
       #tries ||= 3
@@ -141,6 +140,9 @@ class Customer < ActiveRecord::Base
       errors.add(e.message)
     end
   end
+  
+  alias_method :save_without_push, :save
+  alias_method :save, :save_with_push
   
   private
   
