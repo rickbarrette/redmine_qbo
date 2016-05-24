@@ -2,8 +2,7 @@
   <div class="row">
     <div class="span6 columns">
       <fieldset>
-        <% @customer = vehicle.customer.name if vehicle.customer %>
-        <%= render :partial => 'vehicles/details', locals: {vehicle: vehicle}%>
+        <%= vehicle.to_s %>
         <br/>
         <div style="float: right;" >
           <%= button_to "More", vehicle_path(vehicle), method: :get %>
