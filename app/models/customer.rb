@@ -20,7 +20,9 @@ class Customer < ActiveRecord::Base
   validates_presence_of :id, :name
   
   after_initialize :pull
-  before_save  :push
+  #before_save  :push
+  
+  alias_method_chain :save, :push
   
   self.primary_key = :id
   
@@ -108,14 +110,12 @@ class Customer < ActiveRecord::Base
     query = "Select Id, DisplayName From Customer"
     query << " Where Metadata.LastUpdatedTime >= '#{last.iso8601}' " if last
     
-    without_callback(:save, :before, :save) do
-      Qbo.get_base(:customer).service.query(query).each do |customer|
-        Customer.transaction do
-          qbo_customer = Customer.find_or_create_by(id: customer.id)
-          qbo_customer.name = customer.display_name
-          qbo_customer.id = customer.id
-          qbo_customer.save
-        end
+    Qbo.get_base(:customer).service.query(query).each do |customer|
+      Customer.transaction do
+        qbo_customer = Customer.find_or_create_by(id: customer.id)
+        qbo_customer.name = customer.display_name
+        qbo_customer.id = customer.id
+        qbo_customer.save_without_push
       end
     end
   
@@ -151,7 +151,7 @@ class Customer < ActiveRecord::Base
   end
   
   # Push the updates
-  def push
+  def save_with_push
     begin
       #tries ||= 3
       @details = Qbo.get_base(:customer).service.update(@details)
