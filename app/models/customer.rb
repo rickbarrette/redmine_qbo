@@ -146,9 +146,9 @@ class Customer < ActiveRecord::Base
   def pull
     begin
       #tries ||= 3
-      raise Exception if self.id
+      raise Exception unless self.id
       @details = Qbo.get_base(:customer).find_by_id(self.id)
-    rescue
+    rescue Exception => e
       #retry unless (tries -= 1).zero?
       @details = Quickbooks::Model::Customer.new
     end
