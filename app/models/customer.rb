@@ -129,7 +129,7 @@ class Customer < ActiveRecord::Base
     Customer.set_callback(*args)
   end
   
-  private
+  protected
   
   def self.background(&block)
     Thread.new do
@@ -152,6 +152,7 @@ class Customer < ActiveRecord::Base
   
   # Push the updates
   def save_with_push
+    super
     begin
       #tries ||= 3
       @details = Qbo.get_base(:customer).service.update(@details)
@@ -162,5 +163,4 @@ class Customer < ActiveRecord::Base
       errors.add(e.message)
     end
   end
-  
 end
