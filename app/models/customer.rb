@@ -129,7 +129,7 @@ class Customer < ActiveRecord::Base
   end
   
   # Push the updates
-  def save_with_push
+  def self.save_with_push
     save_without_push
     begin
       #tries ||= 3
