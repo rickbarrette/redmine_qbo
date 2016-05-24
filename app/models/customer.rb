@@ -109,12 +109,10 @@ class Customer < ActiveRecord::Base
     query << " Where Metadata.LastUpdatedTime >= '#{last.iso8601}' " if last
     
     Qbo.get_base(:customer).service.query(query).each do |customer|
-      Customer.transaction do
-        qbo_customer = Customer.find_or_create_by(id: customer.id)
-        qbo_customer.name = customer.display_name
-        qbo_customer.id = customer.id
-        qbo_customer.save_without_push
-      end
+      qbo_customer = Customer.find_or_create_by(id: customer.id)
+      qbo_customer.name = customer.display_name
+      qbo_customer.id = customer.id
+      qbo_customer.save_without_push
     end
   
     # remove deleted customers
@@ -128,8 +126,8 @@ class Customer < ActiveRecord::Base
   end
   
   # Push the updates
-  def save_with_push
-    save_without_push
+  def self.save_with_push
+    self.save_without_push
     begin
       #tries ||= 3
       @details = Qbo.get_base(:customer).service.update(@details)
