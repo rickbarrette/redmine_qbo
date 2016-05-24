@@ -20,7 +20,8 @@ class Customer < ActiveRecord::Base
   validates_presence_of :id, :name
   
   after_initialize :pull
-  alias_method_chain :save, :push
+  alias_method_chain :save_without_push, :save
+  alias_method_chain :save, :save_with_push
   
   self.primary_key = :id
   
@@ -129,7 +130,7 @@ class Customer < ActiveRecord::Base
   
   # Push the updates
   def save_with_push
-    super
+    save_without_push
     begin
       #tries ||= 3
       @details = Qbo.get_base(:customer).service.update(@details)
