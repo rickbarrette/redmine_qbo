@@ -25,10 +25,14 @@ class Qbo < ActiveRecord::Base
 
   # Configure quickbooks-ruby-base to access our database
   Quickbooks::Base.configure do |c|
-      c.persistent_token = 'qb_token'
-      c.persistent_secret = 'qb_secret'
-      c.persistent_company_id =  'company_id'
-   end
+    c.persistent_token = 'qb_token'
+    c.persistent_secret = 'qb_secret'
+    c.persistent_company_id =  'company_id'
+  end
+   
+  def self.get_oauth_consumer
+    return $qb_oauth_consumer
+  end
 
   # Get a quickbooks base object for type
   # @params type of base
