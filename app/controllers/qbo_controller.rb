@@ -42,20 +42,17 @@ class QboController < ApplicationController
   #
   def oauth_callback
     at = session[:qb_request_token].get_access_token(:oauth_verifier => params[:oauth_verifier])
-    token = at.token
-    secret = at.secret
-    realm_id = params['realmId']
     
     #There can only be one...
     Qbo.destroy_all
 
     # Save the authentication information 
     qbo = Qbo.new
-    qbo.token = token
-    qbo.secret = secret
+    qbo.qb_token = at.token
+    qbo.qb_secret = at.secret
     qbo.token_expires_at = 6.months.from_now.utc
     qbo.reconnect_token_at = 5.months.from_now.utc
-    qbo.realmId = realm_id
+    qbo.company_id = params['realmId']
     if qbo.save!
       redirect_to qbo_sync_path, :flash => { :notice => "Successfully connected to Quickbooks" }
     else
