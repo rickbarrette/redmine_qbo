@@ -7,7 +7,6 @@
 #The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
 module BaseBackgroundHelper
   
   # abstact methods to be overriden
@@ -30,7 +29,7 @@ module BaseBackgroundHelper
     Job.create(
       owner:       self.to_s,
       method_name: "perform",
-      title:       "Working in Background",
+      title:       "Working job in Background",
       method_args: { type: obj.type, id: obj.id } ,
       succes_url:  success_path,
       error_url:   error_path,
