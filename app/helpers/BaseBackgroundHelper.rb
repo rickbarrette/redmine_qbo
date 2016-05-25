@@ -10,7 +10,7 @@
 module BaseBackgroundHelper
   
   # abstact methods to be overriden
-  def run (customer); raise "run method is missing"; end
+  def run (results); raise "run method is missing"; end
   def success_path; raise "success_path is missing"; end
   def error_path; raise "error_path is missing"; end
   
