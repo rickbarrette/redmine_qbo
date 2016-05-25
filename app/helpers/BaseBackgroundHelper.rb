@@ -10,7 +10,7 @@
 module BaseBackgroundHelper
   
   # abstact methods to be overriden
-  def run (results); raise "run method is missing"; end
+  def results (results); raise "results method is missing"; end
   def success_path; raise "success_path is missing"; end
   def error_path; raise "error_path is missing"; end
   
@@ -18,8 +18,8 @@ module BaseBackgroundHelper
   def self.perform(args)
     job = Job.find_by_id(args[:job_id])
     
-    # Call the abstact method passing the service 
-    run(Qbo.get_base(args[:type]).service.fetch_by_id(args[:id]))
+    # Call the abstact method passing the results 
+    results(Qbo.get_base(args[:type]).service.fetch_by_id(args[:id]))
     
     job.change_status("succes")  
   end
