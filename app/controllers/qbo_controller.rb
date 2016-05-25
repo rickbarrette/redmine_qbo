@@ -67,10 +67,10 @@ class QboController < ApplicationController
   def sync
     if Qbo.exists?
       Customer.sync
-      #QboItem.sync
-      #QboEmployee.sync
-      #QboEstimate.sync
-      #QboInvoice.sync
+      QboItem.sync
+      QboEmployee.sync
+      QboEstimate.sync
+      QboInvoice.sync
       #QboPurchase.sync
       
       # Record the last sync time
