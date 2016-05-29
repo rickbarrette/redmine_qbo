@@ -19,7 +19,6 @@ class Customer < ActiveRecord::Base
   
   validates_presence_of :id, :name
   
-  
   self.primary_key = :id
   
   # returns a human readable string
@@ -108,9 +107,12 @@ class Customer < ActiveRecord::Base
     query = "Select Id, DisplayName From Customer"
     query << " Where Metadata.LastUpdatedTime >= '#{last.iso8601}' " if last
     
-    customers = service.query(query)
-    customers = service.all if count == 0
-
+    if count == 0
+      customers = service.all
+    else
+      customers = service.query(query)
+    end
+    
     customers.each do |customer|
       qbo_customer = Customer.find_or_create_by(id: customer.id)
       qbo_customer.name = customer.display_name
