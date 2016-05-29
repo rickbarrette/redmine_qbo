@@ -26,11 +26,13 @@ class QboInvoice < ActiveRecord::Base
     
     query = "SELECT Id, DocNumber FROM Invoice"
     query << " WHERE  Metadata.LastUpdatedTime >= '#{last.iso8601}' " if last
+  
+    if count == 0
+      invoices = get_base.service.all 
+    else
+      invoices = get_base.service.query()
+    end
     
-    invoices = get_base.service.query()
-    
-    invoices = get_base.service.all if count == 0    
-
     # Update the invoice table 
     invoices.each { | invoice | 
       qbo_invoice = find_or_create_by(id: invoice.id) 
