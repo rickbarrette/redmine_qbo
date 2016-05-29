@@ -13,29 +13,33 @@ class QboItem < ActiveRecord::Base
   has_many :issues
   attr_accessible :name
   validates_presence_of :id, :name
-  
+
+  self.primary_key = :id
+
   def self.get_base
     Qbo.get_base(:item)
   end
   
   def self.sync 
     last = Qbo.first.last_sync
-    
+
     query = "SELECT Id, Name FROM Item WHERE Type = 'Service' "
-    query << " AND Metadata.LastUpdatedTime > '#{last}' " if last
-    
-    items = get_base.service.query(query)    
-    transaction do
-      # Update the item table
-      items.each { |item|
-        qbo_item = QboItem.find_or_create_by(id: item.id)
-        qbo_item.name = item.name
-        qbo_item.id = item.id
+    query << " AND  Metadata.LastUpdatedTime >= '#{last.iso8601}' " if last 
+   
+    items = get_base.service.query(query)
+
+    items = get_base.service.all if count == 0    
+
+    unless items.count = 0
+      items.find_by(:type, "Service").each { |i|
+        qbo_item = QboItem.find_or_create_by(id: i.id)
+        qbo_item.name = i.name
+        qbo_item.id = i.id
         qbo_item.save
       }
-      
-      QboItem.where.not(items.map(&:id)).destroy_all
     end
+      
+#    QboItem.where.not(items.map(&:id)).destroy_all
   end
   
 end

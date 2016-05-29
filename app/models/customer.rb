@@ -21,12 +21,11 @@ class Customer < ActiveRecord::Base
   
   after_initialize :pull
   
-  
   self.primary_key = :id
   
   def all
     without_callback(:initialize, :after, :pull) do
-      Customer.all.sort
+      super
     end
   end 
   
@@ -79,7 +78,7 @@ class Customer < ActiveRecord::Base
   # Updates Both local DB name & QBO display_name
   def name=(s)
     display_name = s
-    self.name = s
+    super
   end
   
   # Magic Method  
@@ -104,11 +103,15 @@ class Customer < ActiveRecord::Base
   # This needs to be simplified
   def self.sync 
     last = Qbo.first.last_sync
-    
+    service =  Qbo.get_base(:customer).service
+
     query = "Select Id, DisplayName From Customer"
     query << " Where Metadata.LastUpdatedTime >= '#{last.iso8601}' " if last
     
-    Qbo.get_base(:customer).service.query(query).each do |customer|
+    customers = service.query(query)
+    customers = service.all if count == 0
+
+    customers.each do |customer|
       qbo_customer = Customer.find_or_create_by(id: customer.id)
       qbo_customer.name = customer.display_name
       qbo_customer.id = customer.id

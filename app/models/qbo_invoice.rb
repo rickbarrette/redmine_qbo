@@ -25,19 +25,19 @@ class QboInvoice < ActiveRecord::Base
     last = Qbo.first.last_sync
     
     query = "SELECT Id, DocNumber FROM Invoice"
-    query << " WHERE Metadata.LastUpdatedTime>'#{last}' " if last
+    query << " WHERE  Metadata.LastUpdatedTime >= '#{last.iso8601}' " if last
     
     invoices = get_base.service.query()
     
+    invoices = get_base.service.all if count == 0    
+
     # Update the invoice table 
-    transaction do
-      invoices.each { | invoice | 
-        qbo_invoice = find_or_create_by(id: invoice.id) 
-	qbo_invoice.doc_number = invoice.doc_number 
-	qbo_invoice.id = invoice.id
-	qbo_invoice.save! 
-      }
-    end 
+    invoices.each { | invoice | 
+      qbo_invoice = find_or_create_by(id: invoice.id) 
+      qbo_invoice.doc_number = invoice.doc_number 
+      qbo_invoice.id = invoice.id
+      qbo_invoice.save! 
+    }
     
     #remove deleted invoices 
     #where.not(invoices.map(&:id)).destroy_all
