@@ -45,9 +45,9 @@ module QueryPatch
         @available_filters = available_filters_without_qbo 
         
         qbo_filters = {
-          :customer_id => { 
-            :name => l(:field_customer),
-            :type => :text, 
+          :customer => { 
+            :id => l(:field_customer),
+            :type => :integer, 
             :order => @available_filters.size + 1},
         }
         
