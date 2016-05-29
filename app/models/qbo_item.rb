@@ -26,9 +26,11 @@ class QboItem < ActiveRecord::Base
     query = "SELECT Id, Name FROM Item WHERE Type = 'Service' "
     query << " AND  Metadata.LastUpdatedTime >= '#{last.iso8601}' " if last 
    
-    items = get_base.service.query(query)
-
-    items = get_base.service.all if count == 0    
+    if count == 0
+      items = get_base.service.all
+    else
+      items = get_base.service.query(query)
+    end
 
     unless items.count = 0
       items.find_by(:type, "Service").each { |i|
