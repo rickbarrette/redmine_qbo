@@ -24,9 +24,7 @@ class VehiclesController < ApplicationController
   # return an HTML form for creating a new vehicle
   def new
     @vehicle = Vehicle.new
-    Customer.without_callback(:initialize, :after, :pull) do
-      @customers = Customer.all.order(:name)
-    end
+    @customers = Customer.all.order(:name)
   end
 
   # create a new vehicle
@@ -55,9 +53,7 @@ class VehiclesController < ApplicationController
     begin
       @vehicle = Vehicle.find_by_id(params[:id])
       @customer = @vehicle.customer.id
-      Customer.without_callback(:initialize, :after, :pull) do
-        @customers = Customer.all.order(:name)
-      end
+      @customers = Customer.all.order(:name)
     rescue ActiveRecord::RecordNotFound
       render_404
     end

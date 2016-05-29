@@ -19,15 +19,8 @@ class Customer < ActiveRecord::Base
   
   validates_presence_of :id, :name
   
-  after_initialize :pull
   
   self.primary_key = :id
-  
-  def all
-    without_callback(:initialize, :after, :pull) do
-      super
-    end
-  end 
   
   # returns a human readable string
   def to_s
@@ -36,6 +29,7 @@ class Customer < ActiveRecord::Base
   
   # returns the customer's email
   def email
+    pull unless @details
     begin
       return @details.email_address.address
     rescue
@@ -45,6 +39,7 @@ class Customer < ActiveRecord::Base
   
   # returns the customer's primary phone
   def primary_phone
+    pull unless @details
     begin
       return @details.primary_phone.free_form_number
     rescue
@@ -54,6 +49,7 @@ class Customer < ActiveRecord::Base
   
   # Updates the customer's primary phone number
   def primary_phone=(n)
+    pull unless @details
     Quickbooks::Model::TelephoneNumber.new
     pn.free_form_number = n
     @details.primary_phone = pn
@@ -61,6 +57,7 @@ class Customer < ActiveRecord::Base
   
   # returns the customer's mobile phone
   def mobile_phone
+    pull unless @details
     begin
       return @details.mobile_phone.free_form_number
     rescue
@@ -70,6 +67,7 @@ class Customer < ActiveRecord::Base
   
   # Updates the custome's mobile phone number
   def mobile_phone=(n)
+    pull unless @details
     Quickbooks::Model::TelephoneNumber.new
     pn.free_form_number = n
     @details.mobile_phone = pn
@@ -77,12 +75,14 @@ class Customer < ActiveRecord::Base
   
   # Updates Both local DB name & QBO display_name
   def name=(s)
+    pull unless @details
     display_name = s
     super
   end
   
   # Magic Method  
   def method_missing(name, *arguments)  
+    pull unless @details
     value = arguments[0]  
     name = name.to_s  
 
@@ -120,12 +120,6 @@ class Customer < ActiveRecord::Base
   
     # remove deleted customers
     #where.not(customers.map(&:id)).destroy_all
-  end
-  
-  def self.without_callback(*args, &block)
-    Customer.skip_callback(*args)
-    yield
-    Customer.set_callback(*args)
   end
   
   # Push the updates
