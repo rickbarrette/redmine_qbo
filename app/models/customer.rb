@@ -15,7 +15,7 @@ class Customer < ActiveRecord::Base
   has_many :qbo_purchases
   has_many :vehicles
   
-  attr_accessible :name, :notes, :email, :primary_phone, :mobile_phone
+  attr_accessible :name 
   
   validates_presence_of :id, :name
   
@@ -49,7 +49,7 @@ class Customer < ActiveRecord::Base
   # Updates the customer's primary phone number
   def primary_phone=(n)
     pull unless @details
-    Quickbooks::Model::TelephoneNumber.new
+    pn = Quickbooks::Model::TelephoneNumber.new
     pn.free_form_number = n
     @details.primary_phone = pn
   end
@@ -67,7 +67,7 @@ class Customer < ActiveRecord::Base
   # Updates the custome's mobile phone number
   def mobile_phone=(n)
     pull unless @details
-    Quickbooks::Model::TelephoneNumber.new
+    pn = Quickbooks::Model::TelephoneNumber.new
     pn.free_form_number = n
     @details.mobile_phone = pn
   end
@@ -75,27 +75,25 @@ class Customer < ActiveRecord::Base
   # Updates Both local DB name & QBO display_name
   def name=(s)
     pull unless @details
-    display_name = s
+    @details.display_name = s
     super
   end
   
   # Magic Method  
-  def method_missing(name, *arguments)  
+  def method_missing(n, *arguments)  
     pull unless @details
     value = arguments[0]  
-    name = name.to_s  
-
-    # if the method's name ends with '='  
-    if name[-1, 1] == "="  
-      method_name = name[0..-2]  
-      @details[method_name] = value  
-    else  
-      begin  
-        return @details[name]  
-      rescue  
-        return nil  
-      end  
-    end  
+    method_name = n.to_s
+    #if @detils.respond_to?(n) 
+      # if the method's name ends with '='  
+      if method_name[-1, 1] == "="  
+        @details.method(method_name).call(value)  
+      else  
+        return @details.method(method_name).call 
+      end
+    #else
+    #  super
+    #end  
   end  
   
   # proforms a bruteforce sync operation
@@ -126,16 +124,14 @@ class Customer < ActiveRecord::Base
   
   # Push the updates
   def save_with_push
-    save_without_push
     begin
-      #tries ||= 3
       @details = Qbo.get_base(:customer).service.update(@details)
-      raise "QBO Fault" if @details.fault?
-      update_column(:id, @details.id)
+      #raise "QBO Fault" if @details.fault?
+      self.id = @details.id
     rescue Exception => e
-      #retry unless (tries -= 1).zero?
       errors.add(e.message)
     end
+    save_without_push
   end
   
   alias_method :save_without_push, :save
