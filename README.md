@@ -53,10 +53,9 @@ Note: Customers, Employees, and Service Items with automaticly update during nor
 
 ## TODO
   * Abiltiy to add line items to a ticket in a dynamic table so they can be added to the invoice upon closing of the issue
-  * Customer Creation, Update, Deletion
+  * Customer ~~Creation~~, ~~Update~~, Deletion
   * Email Customer updates, provding a link that would: bypass the login page, go directly to the issue directing them to, and allow them to view only that issue. 
   * Add a rake file to create required Trackers or statuses required
-  * Clean up view hook code, possibly use a controller hook and reder partial views
   * Add Setting for Sandbox Mode
 
 ##License
