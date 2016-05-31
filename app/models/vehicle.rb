@@ -28,7 +28,7 @@ class Vehicle < ActiveRecord::Base
   
   # returns a human readable string
   def to_s
-    return "#{customer.name if customer} - #{year} #{make} #{model}"
+    return "#{customer.name} - #{year} #{make} #{model}"
   end
   
   # returns the raw JSON details from EMUNDS
