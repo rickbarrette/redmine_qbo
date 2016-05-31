@@ -60,13 +60,13 @@ class CustomersController < ApplicationController
   def update
     begin
       @customer = Customer.find_by_id(params[:id])
-      if @customer.update_attributes(params[:vehicle])
+      if @customer.update_attributes(params[:customer])
         flash[:notice] = "Customer updated"
         redirect_to @customer
       else
         redirect_to edit_customer_path
+        flash[:error] = @customer.errors.full_messages.to_sentence if @customer.errors
       end
-      flash[:error] = @customer.errors.full_messages.to_sentence if @customer.errors
     rescue ActiveRecord::RecordNotFound
       render_404
     end
