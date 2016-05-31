@@ -84,16 +84,16 @@ class Customer < ActiveRecord::Base
     pull unless @details
     value = arguments[0]  
     method_name = n.to_s
-    #if @detils.respond_to?(n) 
-      # if the method's name ends with '='  
+    # Check to see if the method exists
+    if @detils.method_defined?(n) 
       if method_name[-1, 1] == "="  
         @details.method(method_name).call(value)  
       else  
         return @details.method(method_name).call 
       end
-    #else
-    #  super
-    #end  
+    else
+      super
+    end  
   end  
   
   # proforms a bruteforce sync operation
