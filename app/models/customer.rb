@@ -15,8 +15,8 @@ class Customer < ActiveRecord::Base
   has_many :qbo_purchases
   has_many :vehicles
   
-  attr_accessible :name, :notes, :email, :primary_phone, :mobile_phone
-  
+  attr_accessor :notes, :email, :primary_phone, :mobile_phone
+  attr_accessible :name
   validates_presence_of :id, :name
   
   self.primary_key = :id
