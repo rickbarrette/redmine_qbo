@@ -26,6 +26,7 @@ class Customer < ActiveRecord::Base
     return name
   end
   
+  # Convenience Method
   # returns the customer's email
   def email
     pull unless @details
@@ -36,6 +37,7 @@ class Customer < ActiveRecord::Base
     end
   end
   
+  # Convenience Method
   # returns the customer's primary phone
   def primary_phone
     pull unless @details
@@ -46,6 +48,7 @@ class Customer < ActiveRecord::Base
     end
   end
   
+  # Convenience Method
   # Updates the customer's primary phone number
   def primary_phone=(n)
     pull unless @details
@@ -54,6 +57,7 @@ class Customer < ActiveRecord::Base
     @details.primary_phone = pn
   end
   
+  # Convenience Method
   # returns the customer's mobile phone
   def mobile_phone
     pull unless @details
@@ -64,6 +68,7 @@ class Customer < ActiveRecord::Base
     end
   end
   
+  # Convenience Method
   # Updates the custome's mobile phone number
   def mobile_phone=(n)
     pull unless @details
@@ -72,6 +77,7 @@ class Customer < ActiveRecord::Base
     @details.mobile_phone = pn
   end
   
+  # Convenience Method
   # Updates Both local DB name & QBO display_name
   def name=(s)
     pull unless @details
@@ -79,47 +85,53 @@ class Customer < ActiveRecord::Base
     super
   end
   
-  # Magic Method  
-  def method_missing(n, *arguments)  
-    pull unless @details
-    value = arguments[0]  
-    method_name = n.to_s
+  # Magic Method
+  # Maps Get/Set methods to QBO customer object
+  def method_missing(sym, *arguments)  
     # Check to see if the method exists
-    if Quickbooks::Model::Customer.method_defined?(n) 
+    if Quickbooks::Model::Customer.method_defined?(sym)
+      # download details if required
+      pull unless @details
+      method_name = sym.to_s
+      # Setter
       if method_name[-1, 1] == "="  
-        @details.method(method_name).call(value)  
+        @details.method(method_name).call(arguments[0])  
+      # Getter
       else  
         return @details.method(method_name).call 
       end
-    #else
-    #  super
     end  
   end  
   
   # proforms a bruteforce sync operation
   # This needs to be simplified
   def self.sync 
-    last = Qbo.first.last_sync
-    service =  Qbo.get_base(:customer).service
+    service = Qbo.get_base(:customer).service
 
-    query = "Select Id, DisplayName From Customer"
-    query << " Where Metadata.LastUpdatedTime >= '#{last.iso8601}' " if last
-    
+    # Sync ALL customers if the database is empty
     if count == 0
       customers = service.all
     else
+      last = Qbo.first.last_sync
+      query = "Select Id, DisplayName From Customer"
+      query << " Where Metadata.LastUpdatedTime >= '#{last.iso8601}' " if last
       customers = service.query(query)
     end
     
     customers.each do |customer|
       qbo_customer = Customer.find_or_create_by(id: customer.id)
-      qbo_customer.name = customer.display_name
-      qbo_customer.id = customer.id
-      qbo_customer.save_without_push
+      if customer.active?
+        if not qbo_customer.name.eql? customer.display_name
+          qbo_customer.name = customer.display_name
+          qbo_customer.id = customer.id
+          qbo_customer.save_without_push
+        end
+      else
+        if not qbo_customer.new_record?
+          qbo_customer.delete
+        end
+      end
     end
-  
-    # remove deleted customers
-    #where.not(customers.map(&:id)).destroy_all
   end
   
   # Push the updates
@@ -142,11 +154,9 @@ class Customer < ActiveRecord::Base
   # pull the details
   def pull
     begin
-      #tries ||= 3
       raise Exception unless self.id
       @details = Qbo.get_base(:customer).find_by_id(self.id)
     rescue Exception => e
-      #retry unless (tries -= 1).zero?
       @details = Quickbooks::Model::Customer.new
     end
   end
