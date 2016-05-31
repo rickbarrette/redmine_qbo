@@ -37,6 +37,13 @@ class Customer < ActiveRecord::Base
   end
   
   # Convenience Method
+  # Sets the email
+  def email=(s)
+    pull unless @details
+    @details.email_address = s
+  end
+  
+  # Convenience Method
   # returns the customer's primary phone
   def primary_phone
     pull unless @details
