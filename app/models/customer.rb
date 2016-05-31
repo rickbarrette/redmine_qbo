@@ -85,7 +85,7 @@ class Customer < ActiveRecord::Base
     value = arguments[0]  
     method_name = n.to_s
     # Check to see if the method exists
-    if @details.method_defined?(n) 
+    if @details.instance_methods(true).include?(n) 
       if method_name[-1, 1] == "="  
         @details.method(method_name).call(value)  
       else  
