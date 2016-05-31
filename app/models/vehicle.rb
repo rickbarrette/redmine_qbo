@@ -15,7 +15,7 @@ class Vehicle < ActiveRecord::Base
   belongs_to :customer
   has_many :issues, :foreign_key => 'vehicles_id'
   
-  attr_accessible :year, :make, :model, :customer, :notes, :vin
+  attr_accessible :year, :make, :model, :customer_id, :notes, :vin
   
   validates_presence_of :customer
   validates :vin, uniqueness: true
