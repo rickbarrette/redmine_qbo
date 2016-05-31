@@ -97,7 +97,7 @@ class Vehicle < ActiveRecord::Base
   # decodes a vin and updates self
   def decode_vin
     get_details
-    if @details and self.vin?
+    if @details
       begin
         self.year = @details['years'][0]['year']
         self.make = @details['make']['name']
