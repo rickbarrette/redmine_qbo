@@ -91,8 +91,8 @@ class Customer < ActiveRecord::Base
       else  
         return @details.method(method_name).call 
       end
-    else
-      super
+    #else
+    #  super
     end  
   end  
   
