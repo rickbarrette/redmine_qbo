@@ -13,7 +13,20 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 <table >
   <tbody>
     <tr>
-      <th>OAuth Consumer Key</th>
+      <th>Edmunds API Key</th>
+      <td>
+        <input type="text" style="width:350px" id="settingsEdmundsAPIKey" 
+                           value="<%= settings['settingsEdmundsAPIKey'] %>" 
+                           name="settings[settingsEdmundsAPIKey]" >
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table >
+  <tbody>
+    <tr>
+      <th>Intuit QBO OAuth Consumer Key</th>
       <td>
         <input type="text" style="width:350px" id="settingsOAuthConsumerKey" 
                            value="<%= settings['settingsOAuthConsumerKey'] %>" 
@@ -22,7 +35,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     </tr>
 
     <tr>
-      <th>OAuth Consumer Secret</th>
+      <th>Intuit QBO OAuth Consumer Secret</th>
       <td>
         <input type="text" style="width:350px" id="settingsOAuthConsumerSecret"
                            value="<%= settings['settingsOAuthConsumerSecret'] %>"
