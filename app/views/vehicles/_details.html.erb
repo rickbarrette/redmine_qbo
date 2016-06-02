@@ -44,6 +44,8 @@
     <tr>
       <td/>
       <td>
+      
+        <%= button_to "New Issue", new_issue_path(:vehicle_id => vehicle.id, :customer_id => vehicle.customer.id), method: :get%> 
         <%= button_to "Edit", edit_vehicle_path(vehicle), method: :get%> 
         <%= button_to "Delete", vehicle, method: :delete, data: {confirm: "You sure?"} %> 
       </td>
