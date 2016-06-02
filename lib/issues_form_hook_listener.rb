@@ -20,6 +20,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     selected_item = context[:issue].qbo_item ? context[:issue].qbo_item.id  : nil
     selected_invoice = context[:issue].qbo_invoice ? context[:issue].qbo_invoice.id  : nil
     selected_estimate =  context[:issue].qbo_estimate ? context[:issue].qbo_estimate.id  : nil
+    selected_vehicle = context[:issue].vehicle ? context[:issue].vehicle.id : nil
     
     # Load customer information without callbacks
     customer = Customer.find_by_id(selected_customer) if selected_customer
@@ -40,7 +41,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
       vehicles = Vehicle.all.order(:name)
     end
     
-    vehicle = f.select :vehicles_id, vehicles, include_blank: true, :selected => context[:issue].vehicle
+    vehicle = f.select :vehicles_id, vehicles, include_blank: true, :selected => 
     
     return "<p>#{select_customer}</p> <p>#{select_item}</p> <p>#{select_invoice}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>"
   end
