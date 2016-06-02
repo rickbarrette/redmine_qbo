@@ -16,14 +16,14 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     f = context[:form]
  
     # Check to see if there is a quickbooks user attached to the issue
-    @selected_customer =  context[:issue].customer ? context[:issue].customer.id  : nil
+    selected_customer =  context[:issue].customer ? context[:issue].customer.id  : nil
     selected_item = context[:issue].qbo_item ? context[:issue].qbo_item.id  : nil
     selected_invoice = context[:issue].qbo_invoice ? context[:issue].qbo_invoice.id  : nil
     selected_estimate =  context[:issue].qbo_estimate ? context[:issue].qbo_estimate.id  : nil
     
     # Load customer information without callbacks
-    @customer = Customer.find_by_id(@selected_customer) if @selected_customer
-    @select_customer = f.select :customer_id, Customer.all.pluck(:name, :id).sort, :selected => @selected_customer, include_blank: true
+    customer = Customer.find_by_id(selected_customer) if selected_customer
+    select_customer = f.select :customer_id, Customer.all.pluck(:name, :id).sort, :selected => selected_customer, include_blank: true
     
     # Generate the drop down list of quickbooks items
     select_item = f.select :qbo_item_id, QboItem.all.pluck(:name, :id).sort, :selected => selected_item, include_blank: true
@@ -34,10 +34,14 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     # Generate the drop down list of quickbooks extimates
     select_estimate = f.select :qbo_estimate_id, QboEstimate.all.pluck(:doc_number, :id).sort! {|x, y| y <=> x}, :selected => selected_estimate, include_blank: true
     
-    vehicles = @customer.vehicles.pluck(:name, :id).sort! if context[:issue].customer
-    vehicles = Vehicle.all.order(:name) if not vehicles
-    vehicle = f.select :vehicles_id, vehicles, include_blank: true, :selected => vehicle
+    if context[:issue].customer
+      vehicles = customer.vehicles.pluck(:name, :id).sort! 
+    else
+      vehicles = Vehicle.all.order(:name)
+    end
     
-    return "<p>#{@select_customer}</p> <p>#{select_item}</p> <p>#{select_invoice}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>"
+    vehicle = f.select :vehicles_id, vehicles, include_blank: true, :selected => context[:issue].vehicle
+    
+    return "<p>#{select_customer}</p> <p>#{select_item}</p> <p>#{select_invoice}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>"
   end
 end
