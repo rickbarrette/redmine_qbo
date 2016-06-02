@@ -41,7 +41,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
       vehicles = Vehicle.all.order(:name)
     end
     
-    vehicle = f.select :vehicles_id, vehicles, include_blank: true, :selected => selected_vehicle
+    vehicle = f.select :vehicles_id, vehicles.pluck(:name, :id), include_blank: true, :selected => selected_vehicle
     
     return "<p>#{select_customer}</p> <p>#{select_item}</p> <p>#{select_invoice}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>"
   end
