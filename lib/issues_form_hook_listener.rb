@@ -20,7 +20,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     selected_item = context[:issue].qbo_item ? context[:issue].qbo_item.id  : nil
     selected_invoice = context[:issue].qbo_invoice ? context[:issue].qbo_invoice.id  : nil
     selected_estimate =  context[:issue].qbo_estimate ? context[:issue].qbo_estimate.id  : nil
-    selected_vehicle = context[:issue].vehicle ? context[:issue].vehicle.id : nil
+    selected_vehicle = context[:issue].vehicles_id ? context[:issue].vehicles_id : nil
     
     # Load customer information without callbacks
     customer = Customer.find_by_id(selected_customer) if selected_customer
