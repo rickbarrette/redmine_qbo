@@ -51,7 +51,7 @@ module IssuesPdfHelperPatch
       vin = v ? v.vin : nil
       notes = v ? v.notes : nil
       left << [l(:field_vehicles), vehicle]
-      left << [l(:field_vin), vin.gsub(/(.{9})/, '\1 ') if vin]
+      left << [l(:field_vin), vin.gsub(/(.{9})/, '\1 ')]
       #left << [l(:field_notes), notes]
       
       right = []
