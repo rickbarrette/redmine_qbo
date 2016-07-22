@@ -82,7 +82,7 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
         
       <div class=\"vehicle_vin attribute\">
         <div class=\"label\"><span>VIN</span>:</div>
-        <div class=\"value\">#{vin}</div>
+        <div class=\"value\">#{vin.gsub(/(.{9})/, '\1 ')}</div>
       </div>
       
       <div class=\"vehicle_notes attribute\">
