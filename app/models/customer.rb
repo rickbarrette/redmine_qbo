@@ -115,14 +115,14 @@ class Customer < ActiveRecord::Base
     service = Qbo.get_base(:customer).service
 
     # Sync ALL customers if the database is empty
-    if count == 0
+    #if count == 0
       customers = service.all
-    else
-      last = Qbo.first.last_sync
-      query = "Select Id, DisplayName From Customer"
-      query << " Where Metadata.LastUpdatedTime >= '#{last.iso8601}' " if last
-      customers = service.query(query)
-    end
+    #else
+    #  last = Qbo.first.last_sync
+    #  query = "Select Id, DisplayName From Customer"
+    #  query << " Where Metadata.LastUpdatedTime >= '#{last.iso8601}' " if last
+    #  customers = service.query(query)
+    #end
     
     customers.each do |customer|
       qbo_customer = Customer.find_or_create_by(id: customer.id)
