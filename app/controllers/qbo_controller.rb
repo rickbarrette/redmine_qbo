@@ -72,7 +72,7 @@ class QboController < ApplicationController
       data = params.as_json
     end
     
-    entities = data[0]['eventNotifications'][0]['dataChangeEvent']['entities']
+    entities = data['eventNotifications'][0]['dataChangeEvent']['entities']
   
     # The webhook doesn't require a response but let's make sure
     # we don't send anything
