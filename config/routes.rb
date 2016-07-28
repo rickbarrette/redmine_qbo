@@ -17,5 +17,8 @@ get 'qbo/oauth_callback', :to => 'qbo#oauth_callback'
 get 'qbo/sync', :to => 'qbo#sync'
 get 'qbo/estimate/:id', :to => 'estimate#show', as: :estimate
 get 'qbo/invoice/:id', :to => 'invoice#show', as: :invoice
+
+post 'qbo/webhook', :to => 'qbo#qbo_webhook'
+
 resources :vehicles
 resources :customers
