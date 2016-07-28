@@ -60,6 +60,20 @@ class QboController < ApplicationController
     end
 
   end
+  
+  # Quickbooks Webhook Callback
+  def qbo_webhook
+    
+    # If the body contains the event notifications parameter...
+    if params[:eventNotifications].present?
+      # Process the entities
+      #TODO stuff
+    end
+    
+    # The webhook doesn't require a response but let's make sure
+    # we don't send anything
+    render :nothing => true
+  end
 
   #
   # Synchronizes the QboCustomer table with QBO
