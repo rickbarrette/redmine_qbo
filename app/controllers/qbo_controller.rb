@@ -34,9 +34,9 @@ class QboController < ApplicationController
   def authenticate
     callback = request.base_url + qbo_oauth_callback_path
     token = Qbo.get_oauth_consumer.get_request_token(:oauth_callback => callback)
-    #session[:qb_request_token] = token
+    session[:qb_request_token] = token
     # If Rails >= 4.1 you need to do this => 
-    session[:qb_request_token] = Marshal.dump(token)
+    #session[:qb_request_token] = Marshal.dump(token)
     redirect_to("https://appcenter.intuit.com/Connect/Begin?oauth_token=#{token.token}") and return
   end
 
@@ -44,9 +44,9 @@ class QboController < ApplicationController
   # Called by QBO after authentication has been processed
   #
   def oauth_callback
-    #at = session[:qb_request_token].get_access_token(:oauth_verifier => params[:oauth_verifier])
+    at = session[:qb_request_token].get_access_token(:oauth_verifier => params[:oauth_verifier])
     # If Rails >= 4.1 you need to do this =>  
-    at = Marshal.load(session[:qb_request_token]).get_access_token(:oauth_verifier => params[:oauth_verifier])
+    #at = Marshal.load(session[:qb_request_token]).get_access_token(:oauth_verifier => params[:oauth_verifier])
     
     #There can only be one...
     Qbo.destroy_all
