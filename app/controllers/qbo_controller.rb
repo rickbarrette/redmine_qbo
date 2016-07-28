@@ -75,8 +75,9 @@ class QboController < ApplicationController
     entities = data['eventNotifications'][0]['dataChangeEvent']['entities']
     
     entities.each do |entity|
-      puts entity['name']
-      puts entity['id']
+      if entity['name'].eql? "Customer"
+        Customer.sync(entity['id'].to_i)
+      end
     end
   
     # The webhook doesn't require a response but let's make sure
