@@ -80,15 +80,15 @@ class QboController < ApplicationController
       end
       
       if entity['name'].eql? "Invoice"
-        Invoice.sync_by_id(entity['id'].to_i)
+        QboInvoice.sync_by_id(entity['id'].to_i)
       end
       
       if entity['name'].eql? "Estimate"
-        Estimate.sync_by_id(entity['id'].to_i)
+        QboEstimate.sync_by_id(entity['id'].to_i)
       end
       
       if entity['name'].eql? "Employee"
-        Employee.sync_by_id(entity['id'].to_i)
+        QboEmployee.sync_by_id(entity['id'].to_i)
       end
     end
   
