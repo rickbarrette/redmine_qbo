@@ -64,12 +64,15 @@ class QboController < ApplicationController
   # Quickbooks Webhook Callback
   def qbo_webhook
     
-    # If the body contains the event notifications parameter...
-    if params[:eventNotifications].present?
-      # Process the entities
-      #TODO stuff
+    if request.headers['Content-Type'] == 'application/json'
+      data = JSON.parse(request.body.read)
+    else
+      # application/x-www-form-urlencoded
+      data = params.as_json
     end
     
+    entities = data[0]['eventNotifications'][0]['dataChangeEvent']['entities']
+  
     # The webhook doesn't require a response but let's make sure
     # we don't send anything
     render :nothing => true
