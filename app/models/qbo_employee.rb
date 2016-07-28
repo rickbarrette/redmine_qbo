@@ -30,7 +30,8 @@ class QboEmployee < ActiveRecord::Base
         qbo_employee.save!
       }
     end
-    
+  end
+
   def self.sync_by_id(id)
     employee = get_base.service.fetch_by_id(id)
     
