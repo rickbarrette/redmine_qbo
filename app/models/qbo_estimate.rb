@@ -35,6 +35,14 @@ class QboEstimate < ActiveRecord::Base
     where.not(estimates.map(&:id)).destroy_all
   end
   
+  def self.sync_by_id(id)
+    estimates = get_base.service.fetch_by_id(id)
+    qbo_estimate = QboEstimate.find_or_create_by(id: estimate.id)
+    qbo_estimate.doc_number = estimate.doc_number
+    qbo_estimate.id = estimate.id
+    qbo_estimate.save!
+  end
+  
   def self.update(id)
     # Update the item table
     estimate = get_base.service.fetch_by_id(id)
