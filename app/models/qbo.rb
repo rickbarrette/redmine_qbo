@@ -20,8 +20,11 @@ class Qbo < ActiveRecord::Base
   end
    
   def self.get_oauth_consumer
+    OAUTH_CONSUMER_KEY = Setting.plugin_redmine_qbo['settingsOAuthConsumerKey']
+    OAUTH_CONSUMER_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
+    
     # Quickbooks Config Info
-    return OAuth::Consumer.new(Setting.plugin_redmine_qbo['settingsOAuthConsumerKey'], Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret'], {
+    return OAuth::Consumer.new(OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET, {
       :site                 => "https://oauth.intuit.com",
       :request_token_path   => "/oauth/v1/get_request_token",
       :authorize_url        => "https://appcenter.intuit.com/Connect/Begin",
