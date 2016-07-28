@@ -140,6 +140,26 @@ class Customer < ActiveRecord::Base
     end
   end
   
+  # proforms a bruteforce sync operation
+  # This needs to be simplified
+  def self.sync(id) 
+    service = Qbo.get_base(:customer).service
+
+    customer = service.find_by_id(id)
+    qbo_customer = Customer.find_or_create_by(id: customer.id)
+    if customer.active?
+      if not qbo_customer.name.eql? customer.display_name
+        qbo_customer.name = customer.display_name
+        qbo_customer.id = customer.id
+        qbo_customer.save_without_push
+      end
+    else
+      if not qbo_customer.new_record?
+        qbo_customer.delete
+      end
+    end
+  end
+  
   # Push the updates
   def save_with_push
     begin
