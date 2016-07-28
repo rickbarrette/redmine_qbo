@@ -142,7 +142,7 @@ class Customer < ActiveRecord::Base
   
   # proforms a bruteforce sync operation
   # This needs to be simplified
-  def self.sync(id) 
+  def self.sync_by_id(id) 
     service = Qbo.get_base(:customer).service
 
     customer = service.fetch_by_id(id)
