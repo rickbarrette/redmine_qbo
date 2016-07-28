@@ -145,7 +145,7 @@ class Customer < ActiveRecord::Base
   def self.sync(id) 
     service = Qbo.get_base(:customer).service
 
-    customer = service.find_by_id(id)
+    customer = service.fetch_by_id(id)
     qbo_customer = Customer.find_or_create_by(id: customer.id)
     if customer.active?
       if not qbo_customer.name.eql? customer.display_name
