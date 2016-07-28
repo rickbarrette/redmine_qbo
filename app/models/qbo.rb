@@ -11,7 +11,10 @@
 class Qbo < ActiveRecord::Base
   unloadable
   validates_presence_of :qb_token, :qb_secret, :company_id, :token_expires_at, :reconnect_token_at
-
+  
+  OAUTH_CONSUMER_KEY = Setting.plugin_redmine_qbo['settingsOAuthConsumerKey']
+  OAUTH_CONSUMER_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
+    
   # Configure quickbooks-ruby-base to access our database
   Quickbooks::Base.configure do |c|
     c.persistent_token = 'qb_token'
@@ -20,9 +23,6 @@ class Qbo < ActiveRecord::Base
   end
    
   def self.get_oauth_consumer
-    OAUTH_CONSUMER_KEY = Setting.plugin_redmine_qbo['settingsOAuthConsumerKey']
-    OAUTH_CONSUMER_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
-    
     # Quickbooks Config Info
     return OAuth::Consumer.new(OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET, {
       :site                 => "https://oauth.intuit.com",
