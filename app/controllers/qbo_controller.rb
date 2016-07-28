@@ -13,7 +13,7 @@ class QboController < ApplicationController
   
   include AuthHelper
   
-  before_filter :require_user
+  before_filter :require_user, :except => :qbo_webhook
 
   #
   # Called when the QBO Top Menu us shown
