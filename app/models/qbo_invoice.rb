@@ -45,6 +45,14 @@ class QboInvoice < ActiveRecord::Base
     #where.not(invoices.map(&:id)).destroy_all
   end
   
+  def self.sync_by_id(id)
+    invoice = get_base.service.fetch_by_id(id) 
+    qbo_invoice = find_or_create_by(id: invoice.id) 
+    qbo_invoice.doc_number = invoice.doc_number 
+    qbo_invoice.id = invoice.id
+    qbo_invoice.save! 
+  end
+  
   def self.update(id)
     # Update the item table
     invoice = get_base.service.fetch_by_id(id)
