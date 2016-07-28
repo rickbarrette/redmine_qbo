@@ -76,7 +76,7 @@ class QboController < ApplicationController
     
     entities.each do |entity|
       if entity['name'].eql? "Customer"
-        Customer.sync(entity['id'].to_i)
+        Customer.sync_by_id(entity['id'].to_i)
       end
     end
   
