@@ -10,6 +10,17 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -->
 
+<!-- somewhere in your document include the Javascript -->
+<script type="text/javascript" src="https://appcenter.intuit.com/Content/IA/intuit.ipp.anywhere.js"></script>
+
+<!-- configure the Intuit object: 'grantUrl' is a URL in your application which kicks off the flow, see below -->
+<script>
+intuit.ipp.anywhere.setup({menuProxy: '/path/to/blue-dot', grantUrl: '<%=qbo_authenticate_path%>'});
+</script>
+
+<!-- this will display a button that the user clicks to start the flow -->
+<ipp:connectToIntuit></ipp:connectToIntuit>
+
 <table >
   <tbody>
     <tr>
