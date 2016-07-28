@@ -42,7 +42,13 @@ class QboController < ApplicationController
   # Called by QBO after authentication has been processed
   #
   def oauth_callback
-    at = session[:qb_request_token].get_access_token(:oauth_verifier => params[:oauth_verifier])
+    
+    session[:qb_request_token] = Marshal.dump(token)
+    
+    at = Marshal.load(session[:qb_request_token]).get_access_token(:oauth_verifier => params[:oauth_verifier])
+    
+    
+    #at = session[:qb_request_token].get_access_token(:oauth_verifier => params[:oauth_verifier])
     
     #There can only be one...
     Qbo.destroy_all
