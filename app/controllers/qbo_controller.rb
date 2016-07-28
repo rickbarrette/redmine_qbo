@@ -54,11 +54,6 @@ class QboController < ApplicationController
     # Save the authentication information 
     qbo = Qbo.new
     qbo.qb_token = at.token
-    
-    session[:qb_request_token] = Marshal.dump(at.token)
-    
-    Marshal.load(session[:qb_request_token]).get_access_token(:oauth_verifier => params[:oauth_verifier])
-    
     qbo.qb_secret = at.secret
     qbo.token_expires_at = 6.months.from_now.utc
     qbo.reconnect_token_at = 5.months.from_now.utc
