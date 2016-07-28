@@ -78,6 +78,18 @@ class QboController < ApplicationController
       if entity['name'].eql? "Customer"
         Customer.sync_by_id(entity['id'].to_i)
       end
+      
+      if entity['name'].eql? "Invoice"
+        Invoice.sync_by_id(entity['id'].to_i)
+      end
+      
+      if entity['name'].eql? "Estimate"
+        Estimate.sync_by_id(entity['id'].to_i)
+      end
+      
+      if entity['name'].eql? "Employee"
+        Employee.sync_by_id(entity['id'].to_i)
+      end
     end
   
     # The webhook doesn't require a response but let's make sure
