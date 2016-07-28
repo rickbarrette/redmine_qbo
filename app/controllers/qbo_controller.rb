@@ -32,7 +32,7 @@ class QboController < ApplicationController
   # Called when the user requests that Redmine to connect to QBO
   #
   def authenticate
-    callback = quickbooks_oauth_callback_url
+    callback = qbo_oauth_callback_url
     token = Qbo.get_oauth_consumer.get_request_token(:oauth_callback => callback)
     #session[:qb_request_token] = token
     session[:qb_request_token] = Marshal.dump(token)
