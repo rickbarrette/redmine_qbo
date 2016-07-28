@@ -73,6 +73,11 @@ class QboController < ApplicationController
     end
     
     entities = data['eventNotifications'][0]['dataChangeEvent']['entities']
+    
+    entities.each do |entity|
+      puts entity['name']
+      puts entity['id']
+    end
   
     # The webhook doesn't require a response but let's make sure
     # we don't send anything
