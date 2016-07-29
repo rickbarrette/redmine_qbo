@@ -4,6 +4,10 @@
       <fieldset>
         <%= vehicle.to_s %>
         <br/>
+        <%= vehicle.customer %>
+        <br/>
+        <%= vehicle.vin %>
+        <br/>
         <div style="float: right;" >
           <%= button_to "More", vehicle_path(vehicle), method: :get %>
         </div>
