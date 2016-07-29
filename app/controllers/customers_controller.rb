@@ -20,7 +20,7 @@ class CustomersController < ApplicationController
   def index
     if params[:search]
       @customers = Customer.search(params[:search]).paginate(:page => params[:page])
-      if @customers.count = 1
+      if only_one_non_zero?(@customers)
         redirect_to @customers.first
       end
     else
@@ -87,6 +87,19 @@ class CustomersController < ApplicationController
     rescue ActiveRecord::RecordNotFound
       render_404
     end
+  end
+  
+  private
+  
+  def only_one_non_zero?( array )
+    found_non_zero = false
+    array.each do |val|
+      if val!=0
+        return false if found_non_zero
+        found_non_zero = true
+      end
+    end
+    found_non_zero
   end
 
 end
