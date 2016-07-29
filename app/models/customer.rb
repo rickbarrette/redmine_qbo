@@ -140,6 +140,11 @@ class Customer < ActiveRecord::Base
     end
   end
   
+  def self.search(search)
+    where("name LIKE ?", "%#{search}%") 
+    where("id LIKE ?", "%#{search}%")
+  end
+  
   # proforms a bruteforce sync operation
   # This needs to be simplified
   def self.sync_by_id(id) 
