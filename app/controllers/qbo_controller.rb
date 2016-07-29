@@ -58,7 +58,7 @@ class QboController < ApplicationController
     qbo.reconnect_token_at = 5.months.from_now.utc
     qbo.company_id = params['realmId']
     if qbo.save!
-      redirect_to qbo_sync_path, :flash => { :notice => "Successfully connected to Quickbooks" }
+      redirect_to qbo_path, :flash => { :notice => "Successfully connected to Quickbooks" }
     else
       redirect_to plugin_settings_path(:redmine_qbo), :flash => { :error => "Error" }
     end
