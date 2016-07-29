@@ -20,6 +20,9 @@ class CustomersController < ApplicationController
   def index
     if params[:search]
       @customers = Customer.search(params[:search]).paginate(:page => params[:page])
+      if @customers.count = 1
+        redirect_to @customers.first
+      end
     else
       @customers = Customer.paginate(:page => params[:page])
     end
