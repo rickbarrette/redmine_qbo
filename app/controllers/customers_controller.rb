@@ -18,7 +18,11 @@ class CustomersController < ApplicationController
   
   # display a list of all customers
   def index
-    @customers = Customer.paginate(:page => params[:page])
+    if params[:search]
+      @customers = Customer.search(params[:search]).paginate(:page => params[:page])
+    else
+      @customers = Customer.paginate(:page => params[:page])
+    end
   end
   
   def new
