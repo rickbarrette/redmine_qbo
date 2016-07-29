@@ -5,6 +5,9 @@
 <%= submit_tag "Search" %>
 <% end %>
 <br/>
+<% if @customers.present? %>
+  
+<br/>
 <% @customers.each do |c| %>
   <div class="row">
     <div class="span6 columns">
@@ -14,6 +17,10 @@
       </fieldset>
     </div>
   </div>
+<% end %>
+
+<% else %>
+  <p>There are no posts containing the term(s) <%= params[:search] %>.</p>
 <% end %>
 
 <br/>
