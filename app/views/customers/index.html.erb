@@ -1,5 +1,10 @@
 <h1>Customers</h1> 
 <br/> 
+<%= form_tag(customers_path, :method => "get", id: "search-form") do %>
+<%= text_field_tag :search, params[:search], placeholder: "Search Customers" %>
+<%= submit_tag "Search" %>
+<% end %>
+<br/>
 <% @customers.each do |c| %>
   <div class="row">
     <div class="span6 columns">
