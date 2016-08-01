@@ -20,6 +20,7 @@ The goal of this project is to allow redmine to connect with Quickbooks Online t
 
 * Sign up to become a developer for Intuit https://developer.intuit.com/
 * Create your own aplication to obtain your API keys
+* Set up webhook service to https://redmine.yourdomain.com/qbo/webhook
 
 ##The Install
 
@@ -47,9 +48,7 @@ The goal of this project is to allow redmine to connect with Quickbooks Online t
   
   ![Alt plugin_issue-edit](/Screenshots/plugin_issue_edit.png)
 
-Note: Customers, Employees, and Service Items with automaticly update during normal usage of redmine i.e. a page refresh. You can also manualy force redmine to sync its database with QBO clicking the sync link in the Quickbooks top menu page 
-
-  ![Alt plugin_top_menu](/Screenshots/plugin_top_menu.png)
+Note: After the inital synchronization, this plugin will recieve push notifications via Intuit's webhook service.
 
 ## TODO
   * Abiltiy to add line items to a ticket in a dynamic table so they can be added to the invoice upon closing of the issue
