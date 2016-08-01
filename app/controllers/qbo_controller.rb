@@ -93,6 +93,8 @@ class QboController < ApplicationController
       if entity['name'].eql? "Employee"
         QboEmployee.sync_by_id(entity['id'].to_i)
       end
+      
+      Qbo.update_time_stamp
     end
   
     # The webhook doesn't require a response but let's make sure
