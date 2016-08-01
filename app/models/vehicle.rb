@@ -21,7 +21,7 @@ class Vehicle < ActiveRecord::Base
   
   validates_presence_of :customer
   validates :vin, uniqueness: true
-  validates :year, numericality: { only_integer: true }
+  #validates :year, numericality: { only_integer: true }
   
   before_save :decode_vin
   after_initialize :get_details
