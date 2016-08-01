@@ -61,7 +61,7 @@ class Customer < ActiveRecord::Base
   def primary_phone=(n)
     pull unless @details
     pn = Quickbooks::Model::TelephoneNumber.new
-    pn.free_form_number = number_to_phone(n, area_code: true)
+    pn.free_form_number = n
     @details.primary_phone = pn
   end
   
@@ -81,7 +81,7 @@ class Customer < ActiveRecord::Base
   def mobile_phone=(n)
     pull unless @details
     pn = Quickbooks::Model::TelephoneNumber.new
-    pn.free_form_number = number_to_phone(n, area_code: true)
+    pn.free_form_number = n
     @details.mobile_phone = pn
   end
   
