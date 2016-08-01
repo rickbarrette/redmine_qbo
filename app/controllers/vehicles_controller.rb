@@ -18,7 +18,12 @@ class VehiclesController < ApplicationController
   
   # display a list of all vehicles
   def index
-    @vehicles = Vehicle.paginate(:page => params[:page])
+    if params[:search]
+      @vehicles = Customer.search(params[:search]).paginate(:page => params[:page])
+      if only_one_non_zero?(@vehicles)
+        redirect_to @vehicles.first
+      end
+    end
   end
 
   # return an HTML form for creating a new vehicle
