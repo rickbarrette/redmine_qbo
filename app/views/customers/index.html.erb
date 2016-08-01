@@ -24,3 +24,7 @@
 <% else %>
   <p>There are no customers containing the term(s) <%= params[:search] %>.</p>
 <% end %>
+
+<div>
+  <b>Last Sync: </b> <%= Qbo.first.last_sync %>
+</div>
