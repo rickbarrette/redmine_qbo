@@ -121,4 +121,9 @@ class Vehicle < ActiveRecord::Base
     v = self.vin[0,11]
     return v.slice(0,8) + v.slice(9,11)
   end
+  
+  # search for a vin
+  def self.search(search)
+    where("vin LIKE ?", "%#{search}%")
+  end
 end
