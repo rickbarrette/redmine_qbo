@@ -18,6 +18,8 @@ class Customer < ActiveRecord::Base
   attr_accessible :name, :notes, :email, :primary_phone, :mobile_phone
   validates_presence_of :id, :name
   
+  acts_as_searchable :columns => ["#{table_name}.name"]
+  
   self.primary_key = :id
   
   # returns a human readable string
