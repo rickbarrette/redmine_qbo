@@ -16,6 +16,8 @@ class CustomersController < ApplicationController
   
   before_filter :require_user
   
+  default_search_scope :names
+  
   # display a list of all customers
   def index
     if params[:search]
