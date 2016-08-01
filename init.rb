@@ -49,4 +49,8 @@ Redmine::Plugin.register :redmine_qbo do
     menu :top_menu, :qbo, { :controller => :qbo, :action => :index }, :caption => 'Quickbooks', :if => Proc.new { User.current.admin? }
     menu :top_menu, :vehicles, { :controller => :vehicles, :action => :index }, :caption => 'Vehicles', :if => Proc.new { User.current.logged? }
     menu :top_menu, :customers, { :controller => :customers, :action => :index }, :caption => 'Customers', :if => Proc.new { User.current.logged? }
+    
+    Redmine::Search.map do |search|
+      search.register :names
+    end
 end
