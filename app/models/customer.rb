@@ -143,7 +143,7 @@ class Customer < ActiveRecord::Base
   end
   
   def self.search(search)
-    where("name LIKE ?", "%#{search}%") 
+    where("name LIKE ?", "%#{search}%").sort
     #where("id LIKE ?", "%#{search}%")
   end
   
