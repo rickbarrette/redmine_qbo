@@ -5,7 +5,7 @@
 <%= submit_tag "Search" %>
 <% end %>
 <br/>
-<% if @customers.present? %>
+<% if @customers.present? or !@customers.nil? %>
   
 <br/>
 <% @customers.each do |c| %>
