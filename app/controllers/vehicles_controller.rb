@@ -19,7 +19,7 @@ class VehiclesController < ApplicationController
   # display a list of all vehicles
   def index
     if params[:search]
-      @vehicles = Customer.search(params[:search]).paginate(:page => params[:page])
+      @vehicles = Vehicle.search(params[:search]).paginate(:page => params[:page])
       if only_one_non_zero?(@vehicles)
         redirect_to @vehicles.first
       end
