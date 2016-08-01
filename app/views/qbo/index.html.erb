@@ -12,44 +12,31 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 <body>
     <h1> Redmine Quickbooks</h1>
-    <%= form_for @qbo do |f|%>   
-      <div>
-        <%= f.label "Customer Count:"+@customer_count.to_s%>
-        <br/>
-        <%= f.select :customer_id, Customer.all.pluck(:name, :id).sort, :selected => @selected_customer, include_blank: true %>
-      </div>
-      
-      <br/>
-      
-      <div>
-        <%= f.label "Item Count: "+@qbo_item_count.to_s %>
-        <br/>
-        <%= f.select :qbo_item_id, QboItem.all.pluck(:name, :id).sort.reverse, :selected => @selected_item, include_blank: true %>
-      </div>
-      
-      <br/>
-      
-      <div>
-        <%= f.label "Employee Count: "+@qbo_employee_count.to_s %>
-        <br/>
-        <%= f.select :qbo_employee_id, QboEmployee.all.pluck(:name, :id).sort, :selected => @selected_employee, include_blank: true %>
-      </div>
     
-    
-      <p>
-        <%= f.label "Invoice Count: "+@qbo_invoice_count.to_s %>
-        <br/>
-        <%=f.select :qbo_invoice_id, QboInvoice.all.pluck(:doc_number, :id).sort! {|x, y| y <=> x}, :selected => @selected_invoice, include_blank: true%>
-      </p> 
-      <p>
-        <%= f.label "Estimate Count: "+@qbo_estimate_count.to_s %>
-        <br/>
-        <%=f.select :qbo_estimate_id, QboEstimate.all.pluck(:doc_number, :id).sort! {|x, y| y <=> x}, :selected => @selected_estimate, include_blank: true%>
-       </p>
-    
+    <div>
+        <b>Customer Count:</b> <%= @customer_count.to_s%>
+    </div>
       
-    <% end %>    
     <br/>
+      
+    <div>
+        <b>Item Count:</b> <%= @qbo_item_count.to_s %>
+    </div>
+      
     <br/>
-    <%= link_to "Sync", qbo_sync_path %>
+      
+    <div>
+        <b>Employee Count:</b> <%= @qbo_employee_count.to_s %>
+    </div>
+    
+    <div>
+        <b>Invoice Count:</b> <%= @qbo_invoice_count.to_s %>
+    </div>
+    
+    <div>
+        <b>Estimate Count:</b> <%= @qbo_estimate_count.to_s %>
+    </div>
+      
+    <br/>
+    Last sync: <%= Qbo.first.last_sync %>
 </body>
