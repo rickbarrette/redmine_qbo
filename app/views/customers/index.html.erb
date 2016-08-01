@@ -12,7 +12,7 @@
 <% @customers.each do |c| %>
   <div class="row">
     <div class="span6 columns">
-      <%= link_to c, c_path %>
+      <%= link_to c, customer_path(c.id) %>
     </div>
   </div>
 <% end %>
