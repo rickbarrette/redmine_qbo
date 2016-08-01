@@ -91,5 +91,18 @@ class VehiclesController < ApplicationController
       render_404
     end
   end
+  
+  private
+  
+  def only_one_non_zero?( array )
+    found_non_zero = false
+    array.each do |val|
+      if val!=0
+        return false if found_non_zero
+        found_non_zero = true
+      end
+    end
+    found_non_zero
+  end
 
 end
