@@ -51,4 +51,8 @@ class Qbo < ActiveRecord::Base
     qbo.last_sync = DateTime.now
     qbo.save
   end
+  
+  def self.last_sync
+    format_time(Qbo.first.last_sync)
+  end
 end
