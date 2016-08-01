@@ -17,13 +17,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         <b>Customer Count:</b> <%= @customer_count.to_s%>
     </div>
       
-    <br/>
-      
     <div>
         <b>Item Count:</b> <%= @qbo_item_count.to_s %>
     </div>
-      
-    <br/>
       
     <div>
         <b>Employee Count:</b> <%= @qbo_employee_count.to_s %>
@@ -38,5 +34,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     </div>
       
     <br/>
-    Last sync: <%= Qbo.first.last_sync %>
+    
+    <div>
+        <b>Last sync: </b> <%= Qbo.first.last_sync %>
+    </div>
+    
 </body>
