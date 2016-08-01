@@ -21,7 +21,7 @@ class CustomersController < ApplicationController
   # display a list of all customers
   def index
     if params[:search]
-      @customers = Customer.search(params[:search]).sort.paginate(:page => params[:page])
+      @customers = Customer.search(params[:search]).paginate(:page => params[:page])
       if only_one_non_zero?(@customers)
         redirect_to @customers.first
       end
