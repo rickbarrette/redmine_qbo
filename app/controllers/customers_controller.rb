@@ -25,8 +25,8 @@ class CustomersController < ApplicationController
       if only_one_non_zero?(@customers)
         redirect_to @customers.first
       end
-    else
-      @customers = Customer.paginate(:page => params[:page])
+    #else
+    #  @customers = Customer.paginate(:page => params[:page])
     end
   end
   
