@@ -5,7 +5,7 @@
 <%= submit_tag "Search" %>
 <% end %>
 <br/>
-<% if @customers.present? or !@customers.nil? %>
+<% if @customers.present? %>
   
 <br/>
 <% @customers.each do |c| %>
@@ -19,6 +19,10 @@
   </div>
 <% end %>
 
+<div class="actions">
+  <%= will_paginate @customers %>
+</div>
+
 <% else %>
   <p>There are no customers containing the term(s) <%= params[:search] %>.</p>
 <% end %>
@@ -26,6 +30,5 @@
 <br/>
 
 <div class="actions">
-  <%= will_paginate @customers %>
   <%= button_to "New", new_customer_path, method: :get %>       
 </div>
