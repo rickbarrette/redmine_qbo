@@ -3,6 +3,7 @@
 <%= form_tag(customers_path, :method => "get", id: "search-form") do %>
 <%= text_field_tag :search, params[:search], placeholder: "Search Customers" %>
 <%= submit_tag "Search" %>
+<%= button_to "New Customer", new_customer_path, method: :get %>       
 <% end %>
 <br/>
 <% if @customers.present? %>
@@ -11,9 +12,7 @@
 <% @customers.each do |c| %>
   <div class="row">
     <div class="span6 columns">
-      <fieldset>
-        <%= link_to c %>
-      </fieldset>
+      <%= link_to c, c_path %>
     </div>
   </div>
 <% end %>
@@ -25,9 +24,3 @@
 <% else %>
   <p>There are no customers containing the term(s) <%= params[:search] %>.</p>
 <% end %>
-
-<br/>
-
-<div class="actions">
-  <%= button_to "New", new_customer_path, method: :get %>       
-</div>
