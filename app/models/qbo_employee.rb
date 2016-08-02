@@ -34,8 +34,7 @@ class QboEmployee < ActiveRecord::Base
 
   def self.sync_by_id(id)
     employee = get_base.service.fetch_by_id(id)
-    
-    qbo_employee = 	find_or_create_by(id: employee.id)
+    qbo_employee = find_or_create_by(id: employee.id)
     qbo_employee.name = employee.display_name
     qbo_employee.id = employee.id
     qbo_employee.save!
