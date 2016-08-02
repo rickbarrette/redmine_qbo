@@ -93,11 +93,11 @@ class QboController < ApplicationController
         obj = name.constantize
         
         # for merge events
-        obj.delete(entity['deletedId']) if entity['deletedId']
+        obj.destroy(entity['deletedId']) if entity['deletedId']
         
         #Check to see if we are deleting a record
         if entity['operation'].eql? "Delete"
-            obj.delete(id)
+            obj.destroy(id)
         #if not then update!
         else
           obj.sync_by_id(id)
