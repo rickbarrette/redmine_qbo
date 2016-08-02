@@ -66,6 +66,7 @@ class QboController < ApplicationController
     
     #TODO check the payload
     signature = request.headers['intuit-signature']
+    token = Setting.plugin_redmine_qbo['settingsWebhookToken']
     
     if request.headers['content-type'] == 'application/json'
       data = JSON.parse(request.body.read)
