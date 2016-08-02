@@ -46,6 +46,15 @@ intuit.ipp.anywhere.setup({menuProxy: '/path/to/blue-dot', grantUrl: '<%= qbo_au
                            name="settings[settingsOAuthConsumerSecret]" >
       </td>
     </tr>
+    
+    <tr>
+      <th>Intuit QBO Webhook Token</th>
+      <td>
+        <input type="text" style="width:350px" id="settingsWebhookToken"
+                           value="<%= settings['settingsWebhookToken'] %>"
+                           name="settings[settingsWebhookToken]" >
+      </td>
+    </tr>
 
      <tr>
        <th>Token Expires At</th>
