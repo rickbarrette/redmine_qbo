@@ -12,8 +12,7 @@ class QboController < ApplicationController
   unloadable
   
   require 'openssl'
-  #require 'Base64'
-
+  
   include AuthHelper
   
   before_filter :require_user, :except => :qbo_webhook
