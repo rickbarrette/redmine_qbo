@@ -103,9 +103,9 @@ class QboController < ApplicationController
         else
           obj.sync_by_id(id)
         end
-      else
-        render nothing: true, status: 400
       end
+    else
+      render nothing: true, status: 400
     end
     
     # Record that last time we updated
