@@ -50,6 +50,8 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
       #do nothing
     end
     
+    split_vin = vin.scan(/.{9}/)[0] if vin
+    
     return "
     <div class=\"attributes\">
     
@@ -82,7 +84,7 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
         
       <div class=\"vehicle_vin attribute\">
         <div class=\"label\"><span>VIN</span>:</div>
-        <div class=\"value\">#{vin.scan(/.{9}/)[0] if vin}<b>#{vin.scan(/.{9}/)[1] if vin}</b></div>
+        <div class=\"value\">#{split_vin[0]}<b>#{split_vin[1]}</b></div>
       </div>
       
       <div class=\"vehicle_notes attribute\">
