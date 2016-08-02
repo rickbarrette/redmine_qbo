@@ -21,6 +21,7 @@ The goal of this project is to allow redmine to connect with Quickbooks Online t
 * Sign up to become a developer for Intuit https://developer.intuit.com/
 * Create your own aplication to obtain your API keys
 * Set up webhook service to https://redmine.yourdomain.com/qbo/webhook
+  - See https://developer.intuit.com/docs/0100_accounting/0300_developer_guides/webhooks
 
 ##The Install
 
