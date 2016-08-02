@@ -64,7 +64,10 @@ class QboController < ApplicationController
   # Quickbooks Webhook Callback
   def qbo_webhook
     
-    if request.headers['Content-Type'] == 'application/json'
+    #TODO check the payload
+    signature = request.headers['intuit-signature']
+    
+    if request.headers['content-type'] == 'application/json'
       data = JSON.parse(request.body.read)
     else
       # application/x-www-form-urlencoded
