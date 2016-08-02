@@ -3,7 +3,7 @@
   
     <tr>
       <th>Customer</th>
-      <td><%= link_to customer_path(vehicle.customer), vehicle.customer.name %></td>
+      <td><%= link_to vehicle.customer.name, customer_path(vehicle.customer) %></td>
     </tr>
   
     <tr>
