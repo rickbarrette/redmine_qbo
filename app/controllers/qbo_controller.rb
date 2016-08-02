@@ -74,21 +74,21 @@ class QboController < ApplicationController
     entities = data['eventNotifications'][0]['dataChangeEvent']['entities']
     
     entities.each do |entity|
-      if entity['name'].eql? "Customer"
-        Customer.sync_by_id(entity['id'].to_i)
+      
+      id = entity['id'].to_i
+      obj = entity['name'].constantize
+      
+      # for merge events
+      obj.delete(entity['deletedId']) if entity['deletedId']
+      
+      #Check to see if we are deleting a record
+      if entity['operation'].eql? "Delete"
+          obj.delete(id)
+      #if not then update!
+      else
+        obj.sync_by_id(id)
       end
       
-      if entity['name'].eql? "Invoice"
-        QboInvoice.sync_by_id(entity['id'].to_i)
-      end
-      
-      if entity['name'].eql? "Estimate"
-        QboEstimate.sync_by_id(entity['id'].to_i)
-      end
-      
-      if entity['name'].eql? "Employee"
-        QboEmployee.sync_by_id(entity['id'].to_i)
-      end
     end
     
     # Record that last time we updated
