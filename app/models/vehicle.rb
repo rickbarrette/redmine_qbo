@@ -75,6 +75,11 @@ class Vehicle < ActiveRecord::Base
     write_attribute(:vin, val.to_s.upcase)
   end
   
+  # search for a vin
+  def self.search(search)
+    where("vin LIKE ?", "%#{search}%")
+  end
+  
   private
   
   # init method to pull JSON details from Edmunds
@@ -122,8 +127,4 @@ class Vehicle < ActiveRecord::Base
     return v.slice(0,8) + v.slice(9,11)
   end
   
-  # search for a vin
-  def self.search(search)
-    where("vin LIKE ?", "%#{search}%")
-  end
 end
