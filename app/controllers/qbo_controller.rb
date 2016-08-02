@@ -11,6 +11,9 @@
 class QboController < ApplicationController
   unloadable
   
+  require 'openssl'
+  require 'Base64'
+
   include AuthHelper
   
   before_filter :require_user, :except => :qbo_webhook
@@ -64,37 +67,44 @@ class QboController < ApplicationController
   # Quickbooks Webhook Callback
   def qbo_webhook
     
-    #TODO check the payload
+    # check the payload
     signature = request.headers['intuit-signature']
-    token = Setting.plugin_redmine_qbo['settingsWebhookToken']
+    key = Setting.plugin_redmine_qbo['settingsWebhookToken']
+    data = request.body.read
+    hash = Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new('sha256'), key, data)).strip()
     
-    if request.headers['content-type'] == 'application/json'
-      data = JSON.parse(request.body.read)
-    else
-      # application/x-www-form-urlencoded
-      data = params.as_json
-    end
-    # Process the information
-    entities = data['eventNotifications'][0]['dataChangeEvent']['entities']
-    entities.each do |entity|
-      id = entity['id'].to_i
-      name = entity['name']
-      
-      # TODO rename all other models!
-      name.prepend("Qbo") if not name.eql? "Customer"
-      
-      # Magicly initialize the correct class
-      obj = name.constantize
-      
-      # for merge events
-      obj.delete(entity['deletedId']) if entity['deletedId']
-      
-      #Check to see if we are deleting a record
-      if entity['operation'].eql? "Delete"
-          obj.delete(id)
-      #if not then update!
+    # proceed if the request is good
+    if hash.eql? signature
+      if request.headers['content-type'] == 'application/json'
+        data = JSON.parse(data)
       else
-        obj.sync_by_id(id)
+        # application/x-www-form-urlencoded
+        data = params.as_json
+      end
+      # Process the information
+      entities = data['eventNotifications'][0]['dataChangeEvent']['entities']
+      entities.each do |entity|
+        id = entity['id'].to_i
+        name = entity['name']
+        
+        # TODO rename all other models!
+        name.prepend("Qbo") if not name.eql? "Customer"
+        
+        # Magicly initialize the correct class
+        obj = name.constantize
+        
+        # for merge events
+        obj.delete(entity['deletedId']) if entity['deletedId']
+        
+        #Check to see if we are deleting a record
+        if entity['operation'].eql? "Delete"
+            obj.delete(id)
+        #if not then update!
+        else
+          obj.sync_by_id(id)
+        end
+      else
+        render nothing: true, status: 400
       end
     end
     
