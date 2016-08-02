@@ -84,7 +84,7 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
         
       <div class=\"vehicle_vin attribute\">
         <div class=\"label\"><span>VIN</span>:</div>
-        <div class=\"value\">#{split_vin[0]}<b>#{split_vin[1]}</b></div>
+        <div class=\"value\">#{split_vin[0] if split_vin}<b>#{split_vin[1] if split_vin}</b></div>
       </div>
       
       <div class=\"vehicle_notes attribute\">
