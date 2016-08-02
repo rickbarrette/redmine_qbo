@@ -25,7 +25,7 @@ Redmine::Plugin.register :redmine_qbo do
     name 'Redmine Quickbooks Online plugin'
     author 'Rick Barrette'
     description 'This is a plugin for Redmine to intergrate with Quickbooks Online to allow for seamless intergration CRM and invoicing of completed issues'
-    version '0.0.7'
+    version '0.0.8'
     url 'https://github.com/rickbarrette/redmine_qbo'
     author_url 'http://rickbarrette.org'
     settings :default => {'empty' => true}, :partial => 'qbo/settings'
@@ -49,8 +49,5 @@ Redmine::Plugin.register :redmine_qbo do
     menu :top_menu, :qbo, { :controller => :qbo, :action => :index }, :caption => 'Quickbooks', :if => Proc.new { User.current.admin? }
     menu :top_menu, :vehicles, { :controller => :vehicles, :action => :index }, :caption => 'Vehicles', :if => Proc.new { User.current.logged? }
     menu :top_menu, :customers, { :controller => :customers, :action => :index }, :caption => 'Customers', :if => Proc.new { User.current.logged? }
-    
-    Redmine::Search.map do |search|
-      search.register :names
-    end
+
 end
