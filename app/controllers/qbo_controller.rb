@@ -104,15 +104,15 @@ class QboController < ApplicationController
           obj.sync_by_id(id)
         end
       end
+      
+      # Record that last time we updated
+      Qbo.update_time_stamp
+      
+      # The webhook doesn't require a response but let's make sure we don't send anything
+      render :nothing => true
     else
       render nothing: true, status: 400
     end
-    
-    # Record that last time we updated
-    Qbo.update_time_stamp
-    
-    # The webhook doesn't require a response but let's make sure we don't send anything
-    render :nothing => true
   end
 
   #
