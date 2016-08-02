@@ -3,8 +3,9 @@
   <% @vehicles.each do |vehicle| %>
     <div class="row">
       <div>
-        <%= button_to "##{vehicle.id}", vehicle_path(vehicle) %>
+        <b><%= link_to "##{vehicle.id}", vehicle_path(vehicle) %> </b>
       </div>
+      
       <div>
         <%= vehicle.to_s %>
         <br/>
@@ -13,6 +14,7 @@
         <%= vehicle.vin %>
       </div>
     </div>
+    <br/>
   <% end %>
   
   <br/>
