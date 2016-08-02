@@ -1,26 +1,25 @@
 <% if @vehicles.present? %>
 
-<% @vehicles.each do |vehicle| %>
-  <div class="row">
-    <div>
-      <%= button_to "##{vehicle.id}, vehicle_path(vehicle) %>
+  <% @vehicles.each do |vehicle| %>
+    <div class="row">
+      <div>
+        <%= button_to "##{vehicle.id}", vehicle_path(vehicle) %>
+      </div>
+      <div>
+        <%= vehicle.to_s %>
+        <br/>
+        <%= vehicle.customer %>
+        <br/>
+        <%= vehicle.vin %>
+      </div>
     </div>
-    <div>
-      <%= vehicle.to_s %>
-      <br/>
-      <%= vehicle.customer %>
-      <br/>
-      <%= vehicle.vin %>
-    </div>
+  <% end %>
+  
+  <br/>
+
+  <div class="actions">
+    <%= will_paginate @vehicles %>
   </div>
-<% end %>
-
-<br/>
-
-<div class="actions">
-  <%= will_paginate @vehicles %>
-  <%= button_to "New Vehicle", new_vehicle_path, method: :get %>       
-</div>
 
 <% else %>
   <p>There are no vehicles containing the term(s) <%= params[:search] %>.</p>
