@@ -70,18 +70,16 @@ class QboController < ApplicationController
       # application/x-www-form-urlencoded
       data = params.as_json
     end
-    
+    # Process the information
     entities = data['eventNotifications'][0]['dataChangeEvent']['entities']
-    
     entities.each do |entity|
-      
       id = entity['id'].to_i
-      
       name = entity['name']
       
       # TODO rename all other models!
       name.prepend("Qbo") if not name.eql? "Customer"
       
+      # Magicly initialize the correct class
       obj = name.constantize
       
       # for merge events
@@ -94,7 +92,6 @@ class QboController < ApplicationController
       else
         obj.sync_by_id(id)
       end
-      
     end
     
     # Record that last time we updated
