@@ -2,18 +2,15 @@
 
 <% @vehicles.each do |vehicle| %>
   <div class="row">
-    <div class="span6 columns">
-      <fieldset>
-        <%= vehicle.to_s %>
-        <br/>
-        <%= vehicle.customer %>
-        <br/>
-        <%= vehicle.vin %>
-        <br/>
-        <div style="float: right;" >
-          <%= button_to "More", vehicle_path(vehicle), method: :get %>
-        </div>
-      </fieldset>
+    <div>
+      <%= button_to "##{vehicle.id}, vehicle_path(vehicle) %>
+    </div>
+    <div>
+      <%= vehicle.to_s %>
+      <br/>
+      <%= vehicle.customer %>
+      <br/>
+      <%= vehicle.vin %>
     </div>
   </div>
 <% end %>
