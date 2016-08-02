@@ -76,7 +76,13 @@ class QboController < ApplicationController
     entities.each do |entity|
       
       id = entity['id'].to_i
-      obj = entity['name'].constantize
+      
+      name = entity['name']
+      
+      # TODO rename all other models!
+      name.prepend("Qbo") if not name.eql? "Customer"
+      
+      obj = name.constantize
       
       # for merge events
       obj.delete(entity['deletedId']) if entity['deletedId']
