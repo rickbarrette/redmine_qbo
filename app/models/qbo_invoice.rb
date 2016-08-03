@@ -54,7 +54,7 @@ class QboInvoice < ActiveRecord::Base
     qbo_invoice.save! 
     
     # Scan the line items for hashtags and attach to the applicable issues
-    lines = invoice.line_items
+    lines = qbo_invoice.line_items
     lines.each |line|
       issues = line.description.scan(/#(\w+)/).flatten
       issues.each |issue|
