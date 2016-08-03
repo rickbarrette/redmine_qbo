@@ -46,11 +46,27 @@ class QboInvoice < ActiveRecord::Base
   end
   
   def self.sync_by_id(id)
+    #update the information in the database
     invoice = get_base.service.fetch_by_id(id) 
     qbo_invoice = find_or_create_by(id: invoice.id) 
     qbo_invoice.doc_number = invoice.doc_number 
     qbo_invoice.id = invoice.id
     qbo_invoice.save! 
+    
+    # Scan the line items for hashtags and attach to the applicable issues
+    if invoice.line_items
+      invoice.line_items.each |line_item| do
+        if line_item.description
+          line_item.description.scan(/#(\w+)/).flatten.each |issue| do
+            i = issue.find_by_id(issue.to_i)
+            if i
+              i.qbo_invoice = issue.to_i
+              i.save!
+            end
+          end
+        end
+      end
+    end
   end
   
   def self.update(id)
