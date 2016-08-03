@@ -57,7 +57,7 @@ class QboInvoice < ActiveRecord::Base
     invoice.line_items.each { |line|
       line.description.scan(/#(\w+)/).flatten.each { |issue|
         i = Issue.find_by_id(issue.to_i)
-        i.qbo_invoice = invoice.id.to_i
+        i.qbo_invoice = QboInvoice.find_by_id(invoice.id.to_i)
         i.save!
       }
     }
