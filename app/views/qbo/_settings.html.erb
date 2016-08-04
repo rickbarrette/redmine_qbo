@@ -75,3 +75,29 @@ Note: You need to authenticate after saving your key and secret above
 
 <!-- this will display a button that the user clicks to start the flow -->
 <ipp:connectToIntuit></ipp:connectToIntuit>
+
+<div>
+    <b>Customer Count:</b> <%= Customer.count%>
+    </div>
+      
+    <div>
+        <b>Item Count:</b> <%= QboItem.count %>
+    </div>
+      
+    <div>
+        <b>Employee Count:</b> <%= QboEmployee.count %>
+    </div>
+    
+    <div>
+        <b>Invoice Count:</b> <%= QboInvoice.count %>
+    </div>
+    
+    <div>
+        <b>Estimate Count:</b> <%= QboEstimate.count %>
+    </div>
+      
+    <br/>
+    
+    <div>
+        <b>Last Sync: </b> <%= Qbo.last_sync %>
+</div>
