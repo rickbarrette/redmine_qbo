@@ -4,7 +4,7 @@
 <br/>
 <%= render :partial => 'vehicles/list' %>
 <br/>
-<%= button_to "New Customer", [:new, @cutomer, Vehicle.new], method: :get %>
+<%= button_to "New Customer", new_customer_vehicle_path(@customer), method: :get %>
 <br/>
 <br/>
 <%= render :partial => 'issues/list_simple', locals: {issues: @issues} %>
