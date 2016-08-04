@@ -26,3 +26,5 @@ get "update_vehicles" => 'vehicles#update_vehicles', as: 'update_vehicles'
 resources :customers do
   resources :vehicles
 end
+
+resources :vehicles
