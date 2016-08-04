@@ -8,6 +8,5 @@
 <br/>
 <%= button_to "New Vehicle", new_customer_vehicle_path(@customer), method: :get %>
 <br/>
-<br/>
 <h2>Issues:</h2>
 <%= render :partial => 'issues/list_simple', locals: {issues: @issues} %>
