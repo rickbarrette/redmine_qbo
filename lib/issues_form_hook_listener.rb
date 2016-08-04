@@ -10,6 +10,11 @@
 
 class IssuesFormHookListener < Redmine::Hook::ViewListener
   
+  # Load the javascript
+  def view_layouts_base_html_head(context = {})
+    javascript_include_tag ' vehicles.js.coffee ', :plugin => 'redmine_qbo'
+  end
+  
   # Edit Issue Form
   # Show a dropdown for quickbooks contacts
   def view_issues_form_details_bottom(context={})
