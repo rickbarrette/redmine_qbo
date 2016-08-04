@@ -21,7 +21,7 @@ get 'qbo/invoice/:id', :to => 'invoice#show', as: :invoice
 post 'qbo/webhook', :to => 'qbo#qbo_webhook'
 
 #ajax
-get "update_vehicles" => 'vehicles#update_vehicles', defaults: { format: 'js' }, as: 'update_vehicles'
+get "update_vehicles" => 'vehicles#update_vehicles', as: 'update_vehicles'
 
 resources :vehicles
 resources :customers
