@@ -98,7 +98,9 @@ class VehiclesController < ApplicationController
   # returns a dynamic list of vehicles owned by a customer
   def update_vehicles
     @vehicles = Customer.find_by_id(params[:customer_id].to_i).vehicles
-    respond_to :js
+    respond_to do |format|
+        format.js
+    end
   end
   
   private
