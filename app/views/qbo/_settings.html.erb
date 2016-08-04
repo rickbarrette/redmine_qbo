@@ -70,11 +70,15 @@ intuit.ipp.anywhere.setup({menuProxy: '/path/to/blue-dot', grantUrl: '<%= qbo_au
 </table>
 
 <br/>
-Note: You need to authenticate after saving your key and secret above
+Note: You need to authenticate after saving your key and secret above <%= link_to " Sync", qbo_sync_path %>
+<br/>
 <br/>
 
 <!-- this will display a button that the user clicks to start the flow -->
 <ipp:connectToIntuit></ipp:connectToIntuit>
+
+<br/>
+<br/>
 
 <div>
     <b>Customer Count:</b> <%= Customer.count%>
