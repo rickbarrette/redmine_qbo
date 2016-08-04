@@ -46,9 +46,10 @@ Redmine::Plugin.register :redmine_qbo do
     WillPaginate.per_page = 10
 
     # Register QBO top menu item
-    menu :top_menu, :qbo, { :controller => :qbo, :action => :index }, :caption => 'Quickbooks', :if => Proc.new { User.current.admin? }
-    #menu :top_menu, :vehicles, { :controller => :vehicles, :action => :index }, :caption => 'Vehicles', :if => Proc.new { User.current.logged? }
+    #menu :top_menu, :qbo, { :controller => :qbo, :action => :index }, :caption => 'Quickbooks', :if => Proc.new { User.current.admin? }
     menu :top_menu, :customers, { :controller => :customers, :action => :index }, :caption => 'Customers', :if => Proc.new { User.current.logged? }
+    menu :top_menu, :vehicles, { :controller => :vehicles, :action => :index }, :caption => 'Vehicles', :if => Proc.new { User.current.logged? }
+    
     menu :application_menu, :new_customer, { :controller => :customers, :action => :new }, :caption => 'New Customer', :if => Proc.new { User.current.logged? }
     
     permission :customers, { :customers => [:index, :new] }, :public => false
