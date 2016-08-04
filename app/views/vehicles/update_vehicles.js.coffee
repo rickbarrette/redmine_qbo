@@ -1,1 +1,1 @@
-$("#vehicles_select").empty().append("<%= escape_javascript(render(:partial => @vehicles)) %>")
+$("#issue_vehicles_id").empty().append("<%= escape_javascript(render(:partial => @vehicles)) %>")
