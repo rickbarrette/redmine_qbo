@@ -70,7 +70,7 @@ intuit.ipp.anywhere.setup({menuProxy: '/path/to/blue-dot', grantUrl: '<%= qbo_au
 </table>
 
 <br/>
-Note: You need to authenticate after saving your key and secret above <%= link_to " Sync", qbo_sync_path %>
+Note: You need to authenticate after saving your key and secret above
 <br/>
 <br/>
 
@@ -103,5 +103,5 @@ Note: You need to authenticate after saving your key and secret above <%= link_t
     <br/>
     
     <div>
-        <b>Last Sync: </b> <%= Qbo.last_sync %>
+        <b>Last Sync: </b> <%= Qbo.last_sync %> <%= link_to " Sync Now", qbo_sync_path %>
 </div>
