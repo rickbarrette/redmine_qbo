@@ -3,12 +3,12 @@
 # You can use CoffeeScript in this file: http://coffeescript.org/
 
 $ ->
-  $(document).on 'change', '#vehicles_select', (evt) ->
+  $(document).on 'change', '#customer_id', (evt) ->
     $.ajax 'update_vehicles',
       type: 'GET'
       dataType: 'script'
       data: {
-        vehicle_id: $("#vehicles_select option:selected").val()
+        customer_id: $("#customer_id option:selected").val()
       }
       error: (jqXHR, textStatus, errorThrown) ->
         console.log("AJAX Error: #{textStatus}")
