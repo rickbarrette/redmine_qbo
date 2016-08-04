@@ -4,6 +4,7 @@
 
 $ ->
   $(document).on 'change', '#issue_customer_id', (evt) ->
+    $window.alert("Customer Changed");
     $.ajax 'update_vehicles',
       type: 'GET'
       dataType: 'script'
