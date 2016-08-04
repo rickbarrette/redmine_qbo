@@ -12,7 +12,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
   
   # Load the javascript
   def view_layouts_base_html_head(context = {})
-    javascript_include_tag 'vehicles.js.coffee', :plugin => 'redmine_qbo'
+    javascript_include_tag 'vehicles', :plugin => 'redmine_qbo'
   end
   
   # Edit Issue Form
