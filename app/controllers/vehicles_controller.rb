@@ -18,10 +18,12 @@ class VehiclesController < ApplicationController
   
   # display a list of all vehicles
   def index
-    begin
-      @vehicles = Customer.find_by_id(params[:customer_id]).vehicles.paginate(:page => params[:page])
-    rescue ActiveRecord::RecordNotFound
-      render_404
+    if params[:customer_id]
+      begin
+        @vehicles = Customer.find_by_id(params[:customer_id]).vehicles.paginate(:page => params[:page])
+      rescue ActiveRecord::RecordNotFound
+        render_404
+      end
     end
     
     if params[:search]
