@@ -46,7 +46,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
       vehicles = Vehicle.all.order(:name).pluck(:name, :id)
     end
     
-    vehicle = f.select :vehicles_id, vehicles, :selected => selected_vehicle, include_blank: true, update_vehicles_path(:customer_id => select_customer.id)
+    vehicle = f.select :vehicles_id, vehicles, :selected => selected_vehicle, include_blank: true, update_vehicles_path(:customer_id => select_customer.id), remote: true
     
     return "<p>#{select_customer}</p> <p>#{select_item}</p> <p>#{select_invoice}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>"
   end
