@@ -23,5 +23,6 @@ post 'qbo/webhook', :to => 'qbo#qbo_webhook'
 #ajax
 get "update_vehicles" => 'vehicles#update_vehicles', as: 'update_vehicles'
 
-resources :vehicles
-resources :customers
+resources :customers do
+  resources :vehicles
+end
