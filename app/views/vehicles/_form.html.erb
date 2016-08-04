@@ -6,7 +6,7 @@
         <div class="clearfix">
           Customer: 
           <div class="input">
-            <%= f.collection_select :customer_id, @customers, :id, :name, include_blank: true, :selected => @customer, :required => true%>
+            <%= f.collection_select :customer_id, @customers, :id, :name, include_blank: true, :selected => params[:customer_id], :required => true%>
             </div>
         </div>
         
