@@ -4,4 +4,8 @@
 <br/>
 <%= render :partial => 'vehicles/list' %>
 <br/>
+<%= form_tag(new_vehicle_path, :method => "get", id: "new") do %>
+<%= hidden_field :customer, params[:customer], @customer %>
+<%= submit_tag "New Vehicle" %>
+<br/>
 <%= render :partial => 'issues/list_simple', locals: {issues: @issues} %>
