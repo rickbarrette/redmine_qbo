@@ -99,7 +99,8 @@ class VehiclesController < ApplicationController
   def update_vehicles
     @vehicles = Customer.find_by_id(params[:customer_id].to_i).vehicles
     respond_to do |format|
-        format.js
+      format.html { render(:text => "not implemented") }
+      format.js
     end
   end
   
