@@ -144,14 +144,14 @@ class Customer < ActiveRecord::Base
   def self.search(search)
     customers = where("name LIKE ?", "%#{search}%")
     
-    if customers.empty?
-      service = Qbo.get_base(:customer).service
-      results = service.query("Select Id From Customer Where PrimaryPhone LIKE '%#{search}%' AND Mobile LIKE '%#{search}%'")
+    #if customers.empty?
+    #  service = Qbo.get_base(:customer).service
+    #  results = service.query("Select Id From Customer Where PrimaryPhone LIKE '%#{search}%' AND Mobile LIKE '%#{search}%'")
       
-      results.each do |customer| 
-        customers << Customer.find_by_id(customer.id)
-      end
-    end
+    #  results.each do |customer| 
+    #    customers << Customer.find_by_id(customer.id)
+    #  end
+    #end
     
     return customers.order(:name)
   end
