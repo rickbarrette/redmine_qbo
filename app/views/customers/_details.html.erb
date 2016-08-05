@@ -20,6 +20,16 @@
       <td><%= customer.mobile_phone %></td>
     </tr>
     
+     <tr>
+        <th>Bill Address</th>
+        <td><%= customer.billing_address %></td>
+    </tr>
+    
+     <tr>
+        <th>Shipping Address</th>
+        <td><%= customer.shipping_address %></td>
+    </tr>
+    
     <tr>
       <th>Notes</th>
       <td><%= customer.notes %></td>
@@ -28,6 +38,16 @@
     <tr>
         <th>Issues</th>
         <td><%= customer.issues.count %></td>
+    </tr>
+    
+    <tr>
+        <th>Account Balance</th>
+        <td>$<%= customer.balance %></td>
+    </tr>
+    
+    <tr>
+        <th>Balance With Jobs</th>
+        <td>$<%= customer.balance_with_jobs %></td>
     </tr>
     
     <tr>
