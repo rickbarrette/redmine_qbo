@@ -38,7 +38,7 @@ class VehiclesController < ApplicationController
   def new
     @vehicle = Vehicle.new
     @customers = Customer.all.order(:name)
-    @customer = params[:customer_id]) if params[:customer_id]
+    @customer = params[:customer_id] if params[:customer_id]
   end
 
   # create a new vehicle
