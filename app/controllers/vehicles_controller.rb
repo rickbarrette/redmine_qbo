@@ -38,9 +38,6 @@ class VehiclesController < ApplicationController
   def new
     @vehicle = Vehicle.new
     @customers = Customer.all.order(:name)
-    if params[:customer]
-      @customer = Customer.find_by_id(params[:customer])
-    end
   end
 
   # create a new vehicle
