@@ -41,8 +41,7 @@
         <div class="clearfix">
           Notes: 
           <div class="input">
-            <p>  
-              <%= link_to_function content_tag(:span, l(:button_edit), :class => 'icon icon-edit') %>
+            <p>
               <%= content_tag 'span', :id => "issue_description_and_toolbar", :style => (@vehicle.new_record? ? nil : 'display:none') do %>
                 <%= f.text_area :notes,
                     :cols => 60,
