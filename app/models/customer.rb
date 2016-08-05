@@ -146,7 +146,7 @@ class Customer < ActiveRecord::Base
     
     if customers.empty?
       service = Qbo.get_base(:customer).service
-      results = service.query("Select Id From Customer Where PrimaryPhone LIKE '%#{search}%' OR Mobile LIKE '%#{search}%'")
+      results = service.query("Select Id From Customer Where PrimaryPhone LIKE '%#{search}%' AND Mobile LIKE '%#{search}%'")
       
       results.each do |customer| 
         customers << Customer.find_by_id(customer.id)
