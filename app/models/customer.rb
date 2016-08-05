@@ -142,7 +142,18 @@ class Customer < ActiveRecord::Base
   
   # Searchs the database for a customer by name
   def self.search(search)
-    where("name LIKE ?", "%#{search}%").order(:name)
+    customers = where("name LIKE ?", "%#{search}%").order(:name)
+    
+    if customers.empty?
+      service = Qbo.get_base(:customer).service
+      results = service.query("Select Id From Customer Where ((PrimaryPhone LIKE '%#{search}%') OR (Mobile LIKE '%#{search}%') Order By DisplayName")
+      
+      results.each do |customer| 
+        customers << Customer.find_by_id(customer.id)
+      end
+    end
+    
+    return customers
   end
   
   # proforms a bruteforce sync operation
