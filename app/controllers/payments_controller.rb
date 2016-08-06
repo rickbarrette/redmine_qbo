@@ -27,13 +27,14 @@ class PaymentsController < ApplicationController
   end
   
   def create
-    @customer = Customer.find_by_id(params[:customer_id])
-    if @customer
-      # TODO things
+    @payment = Payment.new(params[:payment])
+    if @payment.save
+      flash[:notice] = "Payment Saved"
+      redirect_to Customer.find_by_id(@payment.customer_id)
     else
-      flash[:error] = @customer.errors.full_messages.to_sentence 
-      redirect_to new_payment_path
-    end
+      flash[:error] = @payment.errors.full_messages.to_sentence 
+      redirect_to new_customer_path
+end
   end
   
   private
