@@ -11,6 +11,12 @@
 class Payment
   unloadable
   
-  # TODO things & stuff
+  def new
+    # TODO things & stuff
+  end
+  
+  def create
+    # TODO more things
+  end
   
 end
