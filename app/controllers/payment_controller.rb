@@ -15,6 +15,8 @@ class PaymentController < ApplicationController
   before_filter :require_user
 
   def new
+    @payment = Payment.new
+    
     @customers = Customer.all
     
     account_base = Qbo.get_base(:account).service
