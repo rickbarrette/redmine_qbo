@@ -17,26 +17,6 @@ class Payment
   validates_presence_of :customer_id, :account_id, :payment_method_id, :total_amount
   validates :total_amount, numericality: true
   
-  #Required dependency for ActiveModel::Errors
-  extend ActiveModel::Naming
-
-  def initialize
-    @errors = ActiveModel::Errors.new(self)
-  end
-  
-  # The following methods are needed to be minimally implemented
-  def read_attribute_for_validation(attr)
-    send(attr)
-  end
-
-  def self.human_attribute_name(attr, options = {})
-    attr
-  end
-
-  def self.lookup_ancestors
-    [self]
-  end
-
   def save
     payment = Quickbooks::Model::Payment.new
     
