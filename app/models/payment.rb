@@ -24,7 +24,7 @@ class Payment
     
     payment.deposit_to_account_ref = Qbo.get_base(:account).service.fetch_by_id(@account_id)
     
-    payment.payment_method_ref = Qbo.get_base(:payment_method).service.fetch_by_id(@payment_id)
+    payment.payment_method_ref = Qbo.get_base(:payment_method).service.fetch_by_id(@payment_method_id)
     
     payment.total = @total_amount
     
