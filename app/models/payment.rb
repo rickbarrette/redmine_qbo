@@ -48,11 +48,11 @@ class Payment
     
     payment.total = @total_amount
     
-    begin
+    #begin
       Qbo.get_base(:payment).service.update(payment)
-    rescue Exception => e
-      @errors.add(e.message)
-    end
+    #rescue Exception => e
+    #  @errors.add(e.message)
+    #end
   end
   
   def save!
