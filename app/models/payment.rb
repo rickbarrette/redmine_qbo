@@ -8,8 +8,39 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+require 'active_record/validations'
+
 class Payment
   unloadable
+  
+   # Mix in that validation goodness!
+  include ActiveRecord::Validations
+  
+  attr_accessor :errors, :customer_id, :account_id, :payment_method_id, :total_amount
+  validates_presence_of :customer_id, :account_id, :payment_method_id, :total_amount
+  validates :total_amount, numericality: true
+
+  def initialize(opts = {})
+      # Create an Errors object, which is required by validations and to use some view methods.
+      @errors = ActiveRecord::Errors.new(self)
+  end
+  
+  def save
+    # TODO Save the payment
+  end
+  
+  def save!
+    # TODO Save! the payment
+  end
+  
+  # Dummy stub to make validtions happy.
+  def new_record?
+      true
+  end
+  
+  # Dummy stub to make validtions happy.
+  def update_attribute
+  end
   
   def new
     # TODO things & stuff
