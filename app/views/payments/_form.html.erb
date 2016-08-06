@@ -1,0 +1,42 @@
+<div class="row">
+  <div class="span6 columns">
+    <fieldset>
+
+      <%= form_for @payment do |f| %> 
+       
+        <div class="clearfix">
+          Customer: 
+          <div class="input">
+            <%= f.collection_select :customer_id, @customers, :id, :name, include_blank: true, :selected => @customer, :required => true%>
+          </div>
+        </div>
+        
+        <div class="clearfix">
+          Deposit to Account: 
+          <div class="input">
+            <%= f.collection_select :account_id, @accounts, :id, :name, include_blank: true, :selected => @account, :required => true%>
+          </div>
+        </div>
+        
+        <div class="clearfix">
+          Payment Method: 
+          <div class="input">
+            <%= f.collection_select :payment_method_id, @payment_methods, :id, :name, include_blank: true, :selected => @payment_method, :required => true%>
+          </div>
+        </div>
+        
+        <div class="clearfix">
+          Amount: 
+          <div class="input">
+            <%= f.number_field :amount %>
+          </div>
+        </div>
+        
+       <div class="actions">
+        <%= f.submit %>
+       </div>
+      <% end %>
+
+    </fieldset>
+  </div>
+</div>
