@@ -23,6 +23,19 @@ class Payment
   def initialize
     @errors = ActiveModel::Errors.new(self)
   end
+  
+  # The following methods are needed to be minimally implemented
+  def read_attribute_for_validation(attr)
+    send(attr)
+  end
+
+  def self.human_attribute_name(attr, options = {})
+    attr
+  end
+
+  def self.lookup_ancestors
+    [self]
+  end
 
   def save
     payment = Quickbooks::Model::Payment.new
