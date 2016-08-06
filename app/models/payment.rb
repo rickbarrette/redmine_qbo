@@ -18,18 +18,18 @@ class Payment
   validates :total_amount, numericality: true
   
   def save
-    payment = Quickbooks::Model::Payment.new
+    @payment = Quickbooks::Model::Payment.new
     
-    payment.customer_ref = Qbo.get_base(:customer).service.fetch_by_id(@customer_id)
+    @payment.customer_ref = Qbo.get_base(:customer).service.fetch_by_id(@customer_id)
     
-    payment.deposit_to_account_ref = Qbo.get_base(:account).service.fetch_by_id(@account_id)
+    @payment.deposit_to_account_ref = Qbo.get_base(:account).service.fetch_by_id(@account_id)
     
-    payment.payment_method_ref = Qbo.get_base(:payment_method).service.fetch_by_id(@payment_method_id)
+    @payment.payment_method_ref = Qbo.get_base(:payment_method).service.fetch_by_id(@payment_method_id)
     
-    payment.total = @total_amount
+    @payment.total = @total_amount
     
     #begin
-      Qbo.get_base(:payment).service.update(payment)
+      Qbo.get_base(:payment).service.create(@payment)
     #rescue Exception => e
     #  @errors.add(e.message)
     #end
