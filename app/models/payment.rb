@@ -31,7 +31,7 @@ class Payment
     begin
       Qbo.get_base(:payment).service.update(payment)
     rescue Exception => e
-      @errors.add(e.message)
+      errors.add(e.message)
     end
   end
   
