@@ -19,12 +19,9 @@ class PaymentsController < ApplicationController
     
     @customers = Customer.all
     
-    account_base = Qbo.get_base(:account).service
-    query = "SELECT Id, Name FROM Account WHERE AccountType = 'Checking' "
-    @accounts = account_base.all
+    @accounts = Qbo.get_base(:account).service.query("SELECT Id, Name FROM Account WHERE AccountType = 'Checking' ")
     
-    payment_method_base = Qbo.get_base(:payment_method).service
-    @payment_methods = payment_method_base.all
+    @payment_methods = Qbo.get_base(:payment_method).service.all
   end
   
   def create
