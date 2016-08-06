@@ -23,8 +23,8 @@ get 'qbo/estimate/:id', :to => 'estimate#show', as: :estimate
 get 'qbo/invoice/:id', :to => 'invoice#show', as: :invoice
 
 #payments
-get 'qbo/payment', :to => 'payment#new'
-post 'qbo/payment', :to => 'payment#create'
+get 'qbo/payments', :to => 'payments#new'
+post 'qbo/payments', :to => 'payments#create'
 
 #webhook
 post 'qbo/webhook', :to => 'qbo#qbo_webhook'
