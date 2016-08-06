@@ -19,9 +19,9 @@ class Payment
   
   def save
     payment = Quickbooks::Model::Payment.new
-    payment.customer_ref = payment_method_refQbo.get_base(:customer).service.fetch_by_id(@customer_id)
-    payment.deposit_to_account_ref = payment_method_refQbo.get_base(:account).service.fetch_by_id(@account_id)
-    payment.payment_method_ref = payment_method_refQbo.get_base(:payment_method).service.fetch_by_id(@payment_method_id)
+    payment.customer_id = @customer_id.to_i #Qbo.get_base(:customer).service.fetch_by_id(@customer_id)
+    payment.deposit_to_account_id = @account_id.to_i #Qbo.get_base(:account).service.fetch_by_id(@account_id)
+    payment.payment_method_id = @payment_method_id.to_i #Qbo.get_base(:payment_method).service.fetch_by_id(@payment_method_id)
     payment.total = @total_amount
     
     #begin
