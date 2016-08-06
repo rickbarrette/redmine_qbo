@@ -19,16 +19,11 @@ class Payment
   
   def save
     payment = Quickbooks::Model::Payment.new
-    payment.customer_id = @customer_id.to_i #Qbo.get_base(:customer).service.fetch_by_id(@customer_id)
-    payment.deposit_to_account_id = @account_id.to_i #Qbo.get_base(:account).service.fetch_by_id(@account_id)
-    payment.payment_method_id = @payment_method_id.to_i #Qbo.get_base(:payment_method).service.fetch_by_id(@payment_method_id)
+    payment.customer_id = @customer_id.to_i
+    payment.deposit_to_account_id = @account_id.to_i
+    payment.payment_method_id = @payment_method_id.to_i
     payment.total = @total_amount
-    
-    #begin
-      Qbo.get_base(:payment).service.update(payment)
-    #rescue Exception => e
-    #  @errors.add(e.message)
-    #end
+    Qbo.get_base(:payment).service.update(payment)
   end
   
   def save!
@@ -37,10 +32,6 @@ class Payment
 
   # Dummy stub to make validtions happy.
   def update_attribute
-  end
-  
-  def new
-    # TODO things & stuff
   end
 
 end
