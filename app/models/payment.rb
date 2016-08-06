@@ -16,6 +16,13 @@ class Payment
   attr_accessor :errors, :customer_id, :account_id, :payment_method_id, :total_amount
   validates_presence_of :customer_id, :account_id, :payment_method_id, :total_amount
   validates :total_amount, numericality: true
+  
+  #Required dependency for ActiveModel::Errors
+  extend ActiveModel::Naming
+
+  def initialize
+    @errors = ActiveModel::Errors.new(self)
+  end
 
   def save
     payment = Quickbooks::Model::Payment.new
@@ -31,7 +38,7 @@ class Payment
     begin
       Qbo.get_base(:payment).service.update(payment)
     rescue Exception => e
-      errors.add(e.message)
+      @errors.add(e.message)
     end
   end
   
