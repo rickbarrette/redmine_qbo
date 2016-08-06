@@ -20,7 +20,7 @@ class Payment
   def save
     payment = Quickbooks::Model::Payment.new
     
-    payment.customer_ref = Qbo.get_base(:account).service.fetch_by_id(@customer_id)
+    payment.customer_ref = Qbo.get_base(:customer).service.fetch_by_id(@customer_id)
     
     payment.deposit_to_account_ref = Qbo.get_base(:account).service.fetch_by_id(@account_id)
     
