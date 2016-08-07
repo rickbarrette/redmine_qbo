@@ -21,6 +21,10 @@ Redmine::Plugin.register :redmine_qbo do
     require_dependency 'user_patch'
     require_dependency 'query_patch'
     require_dependency 'pdf_patch'
+    
+    Rails.configuration.to_prepare do
+      Redmine::Search.available_search_types << 'customers'
+    end
 
     name 'Redmine Quickbooks Online plugin'
     author 'Rick Barrette'
