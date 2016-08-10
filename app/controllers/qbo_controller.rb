@@ -57,7 +57,7 @@ class QboController < ApplicationController
     qbo.reconnect_token_at = 5.months.from_now.utc
     qbo.company_id = params['realmId']
     if qbo.save!
-      redirect_to qbo_path, :flash => { :notice => "Successfully connected to Quickbooks" }
+      redirect_to qbo_sync_path, :flash => { :notice => "Successfully connected to Quickbooks" }
     else
       redirect_to plugin_settings_path(:redmine_qbo), :flash => { :error => "Error" }
     end
@@ -118,15 +118,19 @@ class QboController < ApplicationController
   # Synchronizes the QboCustomer table with QBO
   #
   def sync
-    if Qbo.exists?
-      Customer.sync
-      QboItem.sync
-      QboEmployee.sync
-      QboEstimate.sync
-      QboInvoice.sync
-      
-      # Record the last sync time
-      Qbo.update_time_stamp
+    # Update info in background
+    Thread.new do
+      if Qbo.exists?
+        Customer.sync
+        QboItem.sync
+        QboEmployee.sync
+        QboEstimate.sync
+        QboInvoice.sync
+        
+        # Record the last sync time
+        Qbo.update_time_stamp
+      end
+      ActiveRecord::Base.connection.close
     end
 
     redirect_to qbo_path(:redmine_qbo), :flash => { :notice => "Successfully synced to Quickbooks" }
