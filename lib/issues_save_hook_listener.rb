@@ -88,7 +88,7 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
         
         # Convert float spent time to hours and minutes
         hours = val.to_i
-        minutesDecimal = (( spent_hours - hours) * 60)
+        minutesDecimal = (( val - hours) * 60)
         minutes = minutesDecimal.to_i
         
         item = item_service.query("SELECT * FROM Item WHERE Name = '#{key}' ").first
