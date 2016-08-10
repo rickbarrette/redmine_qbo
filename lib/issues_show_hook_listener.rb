@@ -25,9 +25,6 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
       customer =  link_to issue.customer.name, "#{Redmine::Utils::relative_url_root}/customers/#{issue.customer.id}"
     end
     
-    # Check to see if there is a quickbooks item attached to the issue
-    item =  issue.qbo_item ? issue.qbo_item.name : nil
-    
     # Estimate Number
     if issue.qbo_estimate
       estimate =  issue.qbo_estimate.doc_number
@@ -39,7 +36,6 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
       invoice =  issue.qbo_invoice.doc_number
       invoice_link = link_to invoice, "#{Redmine::Utils::relative_url_root}/qbo/invoice/#{issue.qbo_invoice.id}", :target => "_blank"
     end
-    
     
     begin
       v = Vehicle.find(issue.vehicles_id)
@@ -58,11 +54,6 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
       <div class=\"customer_id attribute\">
         <div class=\"label\"><span>Customer</span>:</div>
         <div class=\"value\">#{customer}</div>
-      </div>
-    
-      <div class=\"qbo_item_id attribute\">
-        <div class=\"label\"><span>Item</span>:</div>
-        <div class=\"value\">#{item}</div>
       </div>
 
       <div class=\"qbo_estimate_id attribute\">
