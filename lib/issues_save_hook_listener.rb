@@ -85,14 +85,13 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
       end
       
       h.each do |key, val|
-        item_id = Qbo.get_base(:item).service.query("SELECT Id FROM Item WHERE Name = '#{key}' ").first.id
         
         # Convert float spent time to hours and minutes
         hours = val.to_i
         minutesDecimal = (( spent_hours - hours) * 60)
         minutes = minutesDecimal.to_i
         
-        item = item_service.fetch_by_id issue.qbo_item_id
+        item = item_service.query("SELECT Id FROM Item WHERE Name = '#{key}' ").first
         time_entry.description = "#{issue.tracker} ##{issue.id}: #{issue.subject}"
         # TODO entry.user.qbo_employee.id
         time_entry.employee_id = employee_id 
@@ -103,7 +102,7 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
         time_entry.name_of = "Employee"
         time_entry.txn_date = Date.today
         time_entry.hourly_rate = item.unit_price
-        time_entry.item_id = item_id #issue.qbo_item_id 
+        time_entry.item_id = item.id 
         time_entry.start_time = issue.start_date
         time_entry.end_time = Time.now
         time_service.create(time_entry)
