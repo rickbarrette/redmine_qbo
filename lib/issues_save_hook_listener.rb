@@ -85,7 +85,7 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
       end
       
       h.each do |key, val|
-        item = Qbo.get_base(:item).service.query("SELECT Id FROM Item WHERE Name = '#{key}' ").first.id
+        item_id = Qbo.get_base(:item).service.query("SELECT Id FROM Item WHERE Name = '#{key}' ").first.id
         
         # Convert float spent time to hours and minutes
         hours = val.to_i
