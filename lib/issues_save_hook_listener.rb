@@ -91,7 +91,7 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
         minutesDecimal = (( spent_hours - hours) * 60)
         minutes = minutesDecimal.to_i
         
-        item = item_service.query("SELECT Id FROM Item WHERE Name = '#{key}' ").first
+        item = item_service.query("SELECT * FROM Item WHERE Name = '#{key}' ").first
         time_entry.description = "#{issue.tracker} ##{issue.id}: #{issue.subject}"
         # TODO entry.user.qbo_employee.id
         time_entry.employee_id = employee_id 
