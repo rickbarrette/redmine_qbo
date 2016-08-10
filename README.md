@@ -1,20 +1,31 @@
 #Redmine Quickbooks Online
 
-A simple plugin for Redmine to connect to Quickbooks Online
+A plugin for Redmine to connect to Quickbooks Online
 
-The goal of this project is to allow redmine to connect with Quickbooks Online to create time activity entries for completed work when an issue is closed.
+The goal of this project is to allow Redmine to connect with Quickbooks Online to create `Time Activity Entries` for completed work when an Issue is closed.
 
-`Note: This project is under heavy development. Currently the initial functionality goal has been meet, however I am still working on adding other features. Tags should be stable`
+`Note: Although the core functionality is complete, this project is still under heavy development. I am still working on refining everthing and adding other features. Tags should be stable`
 
-####How it works
-* Issues can be assigned to a QBO Customer and QBO Service Item via drop down in issues form
-  - The `QBO Employee` for the issue is assigned via the assigned redmine user
-  - IF an `Issue` has been assined a `QBO Customer`, `QBO Service Item` & `QBO Employee` when an `Issue` is closed the following will happen:
-  - A new `QBO Time Activity` agaist the `QBO Customer` will be created using the total spent hours logged agaist an `Issue`.
-  - The rate will be the set via the `QBO Service Item` price
-* `Issues` with the Tracker `Quote` will generate an estimate based on the estimated hours and `QBO Service Item` cost.
-  - Needs to have a `QBO Customer` & `QBO Service Item` Assiged
-* Users will be assigned a `QBO Employee` via a drop down in the user admistration page.
+####Features
+* Issues can be assigned to a `Customer` via drop down in the edit Issue form
+* The `Employee` for the Issue is assigned via the assigned Redmine User
+  - This is set via a drop down in the user admistration page.
+* IF an `Issue` has been assined a `Customer` when an Issue is closed the following will happen:
+  - A new `Time Activity` will be created for the `Customer` assinged to the issue for each Redmine Time Entery.
+    + Time Entries will be totalled up by Activity name. This will allow billing for diffrent activities without having to create seperate Issues.
+    + The Time Activity names are used to lookup 'Items' in Quickbooks.
+    + IF there isn'tany Items that match the Activity name it will be skipped, and will not be billed to the customer 
+  - Labor Rates are set by the `Item` in Quickbooks
+* `Issues` with the Tracker `Quote` will generate an estimate based on the estimated hours and `Item` rates.
+  - Needs to have a `Customer` Assiged
+* 'Payments' Can be created via the Redmine application menu
+* 'Customers' Can be created via the Redmine application menu
+* 'Customers' can be searched
+* Basic information for the 'Customer' can be viewed via the customer page
+* 'Custmoer' information can be update
+* Webhook Support
+  - 'Invoices' are automaticly attached to an Issue if a line item has a hashtag number in a `Line Item`
+  - 'Customers' are automaticly updated in local database
 
 ##Prerequisites
 
@@ -45,7 +56,7 @@ The goal of this project is to allow redmine to connect with Quickbooks Online t
   
 ## Usage
 
-  To enable automatic `QBO Time Activity` entries for an `Issue` , you need only to assign a `QBO Customer` and `QBO Item` to an `Issue` via drop downs in the creation/update form.
+  To enable automatic `Time Activity` entries for an Issue , you need only to assign a `Customer` to an Issue via drop downs in the issue creation/update form.
   
   ![Alt plugin_issue-edit](/Screenshots/plugin_issue_edit.png)
 
@@ -53,10 +64,17 @@ Note: After the inital synchronization, this plugin will recieve push notificati
 
 ## TODO
   * Abiltiy to add line items to a ticket in a dynamic table so they can be added to the invoice upon closing of the issue
-  * Customer ~~Creation~~, ~~Update~~, Deletion
+  * Customer Deletion
   * Email Customer updates, provding a link that would: bypass the login page, go directly to the issue directing them to, and allow them to view only that issue. 
   * Add a rake file to create required Trackers or statuses required
   * Add Setting for Sandbox Mode
+  * Refactor Models prefixed with Qbo...
+  * Allow multiple Invoices to be attached to an Issue
+  * Seperate Vehicles into a seperate plugin
+  * Make HTML Pretty 
+  * Intergrate Customer Search into Redmine Search
+  * Fix Issue sort by Customer
+  * MORE Stuff...
 
 ##License
 
