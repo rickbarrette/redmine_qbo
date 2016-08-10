@@ -75,11 +75,10 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
       item_service = Qbo.get_base(:item).service
       time_entry = Quickbooks::Model::TimeActivity.new
 
-      h = Hash.new
-      
+      h = Hash.new(0)
       spent_time.each do |entry|
-        h[entry.activity.name] = h[entry.activity.name] + entry.hours
-        
+        # Lets tottal up each activity
+        h[entry.activity.name] += entry.hours
         # update time entries billed status
         entry.qbo_billed = true
         entry.save
