@@ -44,10 +44,6 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
 
           # Add the line items to the estimate
           estimate.line_items << line_item
-
-          # Save the etimate to the issue
-          #issue.qbo_estimate_id = estimate_base.service.create(estimate).id
-          #issue.save!
         end
       end
   end
@@ -78,32 +74,41 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
       time_service = Qbo.get_base(:time_activity).service
       item_service = Qbo.get_base(:item).service
       time_entry = Quickbooks::Model::TimeActivity.new
-    
-      # Convert float spent time to hours and minutes
-      hours  = spent_hours.to_i
-      minutesDecimal = (( spent_hours - hours) * 60)
-      minutes = minutesDecimal.to_i
+
+      h = Hash.new
       
-      # update time entries billed status
       spent_time.each do |entry|
+        h[entry.activity.name] = h[entry.activity.name] + entry.hours
+        
+        # update time entries billed status
         entry.qbo_billed = true
         entry.save
       end
-    
-      item = item_service.fetch_by_id issue.qbo_item_id
-      time_entry.description = "#{issue.tracker} ##{issue.id}: #{issue.subject}"
-      time_entry.employee_id = employee_id
-      time_entry.customer_id = issue.customer_id
-      time_entry.billable_status = "Billable"
-      time_entry.hours = hours
-      time_entry.minutes = minutes
-      time_entry.name_of = "Employee"
-      time_entry.txn_date = Date.today
-      time_entry.hourly_rate = item.unit_price
-      time_entry.item_id = issue.qbo_item_id 
-      time_entry.start_time = issue.start_date
-      time_entry.end_time = Time.now
-      time_service.create(time_entry)
+      
+      h.each do |key, val|
+        item_id = Qbo.get_base(:item).service.query("SELECT Id FROM Item WHERE Name = '#{key}' ")
+        
+        # Convert float spent time to hours and minutes
+        hours = val.to_i
+        minutesDecimal = (( spent_hours - hours) * 60)
+        minutes = minutesDecimal.to_i
+        
+        item = item_service.fetch_by_id issue.qbo_item_id
+        time_entry.description = "#{issue.tracker} ##{issue.id}: #{issue.subject}"
+        # TODO entry.user.qbo_employee.id
+        time_entry.employee_id = employee_id 
+        time_entry.customer_id = issue.customer_id
+        time_entry.billable_status = "Billable"
+        time_entry.hours = hours
+        time_entry.minutes = minutes
+        time_entry.name_of = "Employee"
+        time_entry.txn_date = Date.today
+        time_entry.hourly_rate = item.unit_price
+        time_entry.item_id = item_id #issue.qbo_item_id 
+        time_entry.start_time = issue.start_date
+        time_entry.end_time = Time.now
+        time_service.create(time_entry)
+      end
     end
   end
 end
