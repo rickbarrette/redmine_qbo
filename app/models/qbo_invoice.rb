@@ -62,13 +62,14 @@ class QboInvoice < ActiveRecord::Base
           i.save!
           
           # Update QBO with Milage & VIN
-          invoice.custom_fields.each |cf|
-            i.custom_field_values.each do |value|
+          invoice.custom_fields.each { |cf|
+            i.custom_field_values.each { |value|
               if cf.name.eql? CustomField.find_by_id(value.custom_field_id).name
                 cf.string_value = value.value.to_s
                 break
               end
-          end
+            }
+          }
           Qbo.get_base(:invoice).service.update(invoice)
         }
       end
