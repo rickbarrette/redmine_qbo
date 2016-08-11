@@ -23,7 +23,6 @@ module IssuePatch
     base.class_eval do
       unloadable # Send unloadable so it will not be unloaded in development
       belongs_to :customer, primary_key: :id
-      belongs_to :qbo_item, primary_key: :id
       belongs_to :qbo_estimate, primary_key: :id
       belongs_to :qbo_invoice, primary_key: :id
       belongs_to :vehicle, primary_key: :id
