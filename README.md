@@ -25,6 +25,7 @@ The goal of this project is to allow Redmine to connect with Quickbooks Online t
 * `Custmoer` information can be update
 * Webhook Support
   - `Invoices` are automaticly attached to an Issue if a line item has a hashtag number in a `Line Item`
+    + `Invoice` Custom Fields are matched Issue Custom Fileds and are automaticly updated in Quickbooks. For example, this is usefull for extracting the Mileage In / Out from the Issue and updating the Invoice with the information.
   - `Customers` are automaticly updated in local database
 
 ##Prerequisites
