@@ -26,6 +26,8 @@ module IssuePatch
       belongs_to :qbo_estimate, primary_key: :id
       belongs_to :qbo_invoice, primary_key: :id
       belongs_to :vehicle, primary_key: :id
+      
+      autocomplete :customer, :name, :full => true
     end
     
   end
