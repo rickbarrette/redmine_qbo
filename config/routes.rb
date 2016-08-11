@@ -33,6 +33,7 @@ get "update_vehicles" => 'vehicles#update_vehicles', as: 'update_vehicles'
 
 # Nest Vehicles under customers
 resources :customers do
+  get :autocomplete_customer_name, :on => :collection
   resources :vehicles
 end
 
