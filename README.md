@@ -13,19 +13,19 @@ The goal of this project is to allow Redmine to connect with Quickbooks Online t
 * IF an `Issue` has been assined a `Customer` when an Issue is closed the following will happen:
   - A new `Time Activity` will be created for the `Customer` assinged to the issue for each Redmine Time Entery.
     + Time Entries will be totalled up by Activity name. This will allow billing for diffrent activities without having to create seperate Issues.
-    + The Time Activity names are used to lookup 'Items' in Quickbooks.
-    + IF there isn'tany Items that match the Activity name it will be skipped, and will not be billed to the customer 
+    + The Time Activity names are used to lookup `Items` in Quickbooks.
+    + IF there isn'tany Items that match the Activity name it will be skipped, and will not be billed to the `Customer` 
   - Labor Rates are set by the `Item` in Quickbooks
 * `Issues` with the Tracker `Quote` will generate an estimate based on the estimated hours and `Item` rates.
   - Needs to have a `Customer` Assiged
-* 'Payments' Can be created via the Redmine application menu
-* 'Customers' Can be created via the Redmine application menu
-* 'Customers' can be searched
-* Basic information for the 'Customer' can be viewed via the customer page
-* 'Custmoer' information can be update
+* `Payments` Can be created via the Redmine application menu
+* `Customers` Can be created via the Redmine application menu
+* `Customers` can be searched
+* Basic information for the `Customer` can be viewed via the customer page
+* `Custmoer` information can be update
 * Webhook Support
-  - 'Invoices' are automaticly attached to an Issue if a line item has a hashtag number in a `Line Item`
-  - 'Customers' are automaticly updated in local database
+  - `Invoices` are automaticly attached to an Issue if a line item has a hashtag number in a `Line Item`
+  - `Customers` are automaticly updated in local database
 
 ##Prerequisites
 
