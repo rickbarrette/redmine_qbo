@@ -15,7 +15,7 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
     issue = context[:issue]
 
     # Check to see if we have registered with QBO
-    if Qbo.first && issue.customer && issue.qbo_item
+    if Qbo.first && issue.customer && issue. qbo_item_id
       
       # if this is a quote, lets create a new estimate based off estimated hours
         if issue.tracker.name = "Quote" && issue.status.name = "New" && issue.qbo_estimate
