@@ -20,8 +20,6 @@ class Customer < ActiveRecord::Base
   
   self.primary_key = :id
   
-   acts_as_searchable :columns => [ "#{table_name}.nname"]
-  
   # returns a human readable string
   def to_s
     return name
