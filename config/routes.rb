@@ -36,9 +36,5 @@ resources :customers do
   resources :vehicles
 end
 
-resources :issues do
-  get :autocomplete_customer_name, :on => :collection
-end
-
 #allow for just vehicles too
 resources :vehicles
