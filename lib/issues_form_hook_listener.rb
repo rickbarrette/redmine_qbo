@@ -30,7 +30,9 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     # Load customer information without callbacks
     customer = Customer.find_by_id(selected_customer) if selected_customer
     #select_customer = f.select :customer_id, Customer.all.pluck(:name, :id).sort, :selected => selected_customer, include_blank: true
-    select_customer = f.autocomplete_field :customer, autocomplete_name_customers_path, :display_value => :name, :id_element => '#id'
+    #select_customer = f.autocomplete_field :customer, autocomplete_name_customers_path, :display_value => :name, :id_element => '#id'
+    select_customer = f.input :customer_id, :url => autocomplete_name_customers_path, :as => :autocomplete
+    
     
     # Generate the drop down list of quickbooks invoices
     #select_invoice = f.select :qbo_invoice_id, QboInvoice.all.pluck(:doc_number, :id).sort! {|x, y| y <=> x}, :selected => selected_invoice, include_blank: true
