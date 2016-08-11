@@ -47,7 +47,7 @@ class QboInvoice < ActiveRecord::Base
   
   def self.sync_by_id(id)
     #update the information in the database
-    invoice = get_base.service.fetch_by_id(id) 
+    invoice = Qbo.get_base(:invoice).service.fetch_by_id(id) 
     qbo_invoice = find_or_create_by(id: invoice.id) 
     qbo_invoice.doc_number = invoice.doc_number 
     qbo_invoice.id = invoice.id
@@ -62,14 +62,17 @@ class QboInvoice < ActiveRecord::Base
           i.save!
           
           # Update QBO with Milage & VIN
-          invoice.custom_fields.each |cf|
+          custom_fields = invoice.custom_fields
+          custom_fields.each |cf|
             i.custom_field_values.each do |value|
               if cf.name.eql? CustomField.find_by_id(value.custom_field_id).name
-                cf.string_value = value.value
+                cf.string_value = value.value.to_s
                 break
               end
           end
-          get_base.service.update(invoice)
+          invoice = Qbo.get_base(:invoice).service.fetch_by_id(id) 
+          invoice.custom_fields = custom_fields
+          Qbo.get_base(:invoice).service.update(invoice)
         }
       end
     }
