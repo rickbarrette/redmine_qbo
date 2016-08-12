@@ -77,9 +77,9 @@ class QboInvoice < ActiveRecord::Base
               end
             }
           }
-          # Push updates
-          Qbo.get_base(:invoice).service.update(invoice)
         }
+        # Push updates
+        Qbo.get_base(:invoice).service.update(invoice)
       end
     }
   end
