@@ -61,6 +61,8 @@ class QboInvoice < ActiveRecord::Base
           i.qbo_invoice = QboInvoice.find_by_id(invoice.id.to_i)
           i.save!
           
+          is_changed = false
+          
           # Update QBO with Milage & VIN
           invoice.custom_fields.each { |cf|
             # VIN
@@ -72,14 +74,17 @@ class QboInvoice < ActiveRecord::Base
             # Update Matching Fields
             i.custom_field_values.each { |value|
               if cf.name.eql? CustomField.find_by_id(value.custom_field_id).name
-                cf.string_value = value.value.to_s
+                if not cf.string_value.to_s.eql? value.value.to_s
+                  cf.string_value = value.value.to_s
+                  is_changed = true
+                end
                 break
               end
             }
           }
         }
         # Push updates
-        Qbo.get_base(:invoice).service.update(invoice)
+        Qbo.get_base(:invoice).service.update(invoice) if is_changed
       end
     }
   end
