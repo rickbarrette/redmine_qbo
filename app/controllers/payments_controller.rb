@@ -17,11 +17,11 @@ class PaymentsController < ApplicationController
   def new
     @payment = Payment.new
     
-    @customers = Customer.all
+    @customers = Customer.all.sort
     
-    @accounts = Qbo.get_base(:account).service.query("SELECT Id, Name FROM Account WHERE AccountType = 'Bank' ")
+    @accounts = Qbo.get_base(:account).service.query("SELECT Id, Name FROM Account WHERE AccountType = 'Bank' ").sort
     
-    @payment_methods = Qbo.get_base(:payment_method).service.all
+    @payment_methods = Qbo.get_base(:payment_method).service.all.sort
   end
   
   def create
