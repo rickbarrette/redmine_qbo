@@ -17,7 +17,7 @@ class PaymentsController < ApplicationController
   def new
     @payment = Payment.new
     
-    @customers = Customer.all.sort
+    @customers = Customer.all.sort :name
     
     @accounts = Qbo.get_base(:account).service.query("SELECT Id, Name FROM Account WHERE AccountType = 'Bank' Order By Name")
     
