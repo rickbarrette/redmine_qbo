@@ -53,6 +53,8 @@ class QboInvoice < ActiveRecord::Base
     qbo_invoice.id = invoice.id
     qbo_invoice.save! 
     
+    is_changed = false
+    
     # Scan the line items for hashtags and attach to the applicable issues
     invoice.line_items.each { |line|
       if line.description
@@ -60,36 +62,34 @@ class QboInvoice < ActiveRecord::Base
           i = Issue.find_by_id(issue.to_i)
           i.qbo_invoice = QboInvoice.find_by_id(invoice.id.to_i)
           i.save!
+          
+          # update the invoive custom fields with infomation from the work ticket if available
+          invoice.custom_fields.each { |cf|
+            # VIN
+            if cf.name.eql? "VIN"
+              vin = Vehicle.find(i.vehicles_id).vin
+              cf.string_value = vin if i.vehicles_id if not cf.string_value.to_s.eql? vin
+              break
+            end
+            
+            # Custom Values
+            begin
+              value = i.custom_values.find_by(custom_field_id: CustomField.find_by_name(cf.name).id)
+              if value
+                if not cf.string_value.to_s.eql? value.value.to_s
+                  cf.string_value = value.value.to_s
+                  is_changed = true
+                end
+              end
+            rescue
+              # Nothing to do here, there is no match
+            end
+          }
+          # Push updates
+          Qbo.get_base(:invoice).service.update(invoice) if is_changed
         }
       end
     }
-    
-    is_changed = false
-          
-    # update the invoive custom fields with infomation from the work ticket if available
-    invoice.custom_fields.each { |cf|
-      # VIN
-      if cf.name.eql? "VIN"
-        vin = Vehicle.find(i.vehicles_id).vin
-        cf.string_value = vin if i.vehicles_id if not cf.string_value.to_s.eql? vin
-        break
-      end
-      
-      # Custom Values
-      begin
-        value = i.custom_values.find_by(custom_field_id: CustomField.find_by_name(cf.name).id)
-        if value
-          if not cf.string_value.to_s.eql? value.value.to_s
-            cf.string_value = value.value.to_s
-            is_changed = true
-          end
-        end
-      rescue
-        # Nothing to do here, there is no match
-      end
-    }
-    # Push updates
-    Qbo.get_base(:invoice).service.update(invoice) if is_changed
   end
   
   def self.update(id)
