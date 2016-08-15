@@ -87,9 +87,9 @@ class QboInvoice < ActiveRecord::Base
       rescue
         # Nothing to do here, there is no match
       end
-      
-      # Push updates
-      Qbo.get_base(:invoice).service.update(invoice) if is_changed
+    }
+    # Push updates
+    Qbo.get_base(:invoice).service.update(invoice) if is_changed
   end
   
   def self.update(id)
