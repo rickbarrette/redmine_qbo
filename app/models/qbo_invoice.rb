@@ -60,40 +60,43 @@ class QboInvoice < ActiveRecord::Base
           i = Issue.find_by_id(issue.to_i)
           i.qbo_invoice = QboInvoice.find_by_id(invoice.id.to_i)
           i.save!
-          
-          is_changed = false
-          
-          # Update QBO with Milage & VIN
-          invoice.custom_fields.each { |cf|
-            # VIN
-            if cf.name.eql? "VIN"
-              cf.string_value = Vehicle.find(i.vehicles_id).vin if i.vehicles_id
-              break
-            end
-            
-            # Update Matching Fields
-            i.custom_field_values.each { |value|
-              if cf.name.eql? CustomField.find_by_id(value.custom_field_id).name
-                if not cf.string_value.to_s.eql? value.value.to_s
-                  cf.string_value = value.value.to_s
-                  is_changed = true
-                end
-                break
-              end
-            }
-          }
         }
-        # Push updates
-        Qbo.get_base(:invoice).service.update(invoice) if is_changed
       end
     }
+    
+    is_changed = false
+          
+    # update the invoive custom fields with infomation from the work ticket if available
+    invoice.custom_fields.each { |cf|
+      # VIN
+      if cf.name.eql? "VIN"
+        vin = Vehicle.find(i.vehicles_id).vin
+        cf.string_value = vin if i.vehicles_id if not cf.string_value.to_s.eql? vin
+        break
+      end
+      
+      # Custom Values
+      begin
+        value = i.custom_values.find_by(custom_field_id: CustomField.find_by_name(cf.name).id)
+        if value
+          if not cf.string_value.to_s.eql? value.value.to_s
+            cf.string_value = value.value.to_s
+            is_changed = true
+          end
+        end
+      rescue
+        # Nothing to do here, there is no match
+      end
+      
+      # Push updates
+      Qbo.get_base(:invoice).service.update(invoice) if is_changed
   end
   
   def self.update(id)
     # Update the item table
     invoice = get_base.service.fetch_by_id(id)
-      qbo_invoice = find_or_create_by(id: id)
-      qbo_invoice.doc_number = invoice.doc_number
-      qbo_invoice.save!
+    qbo_invoice = find_or_create_by(id: id)
+    qbo_invoice.doc_number = invoice.doc_number
+    qbo_invoice.save!
   end
 end
