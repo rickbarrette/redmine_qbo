@@ -10,13 +10,13 @@
 
 class AddQboInvoicesIssues < ActiveRecord::Migration
   def self.up
-    create_table :qbo_invoices_issues, :id => false do |t|
+    create_table :issues_qbo_invoices, :id => false do |t|
       t.integer :qbo_invoice_id
       t.integer :issue_id
     end
   end
 
   def self.down
-    drop_table :qbo_invoices_issues
+    drop_table :issues_qbo_invoices
   end
 end
