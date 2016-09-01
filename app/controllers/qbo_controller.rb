@@ -63,6 +63,15 @@ class QboController < ApplicationController
     end
   end
   
+  # Manual Billing
+  def bill
+    if session[:issue_id]
+      i = Issue.find session[:issue_id]
+      i.bill_time if i
+      redirect_to i, :flash => { :notice => "Successfully Billed #{i.customer.name}" }
+    end
+  end
+  
   # Quickbooks Webhook Callback
   def qbo_webhook
     
