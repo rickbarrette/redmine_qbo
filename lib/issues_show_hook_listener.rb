@@ -88,9 +88,4 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     </div>    "
   end
   
-  def view_issues_show_description_bottom (context={})
-    issue = context[:issue]
-    return "#{button_to "Bill Time", "#{Redmine::Utils::relative_url_root}/qbo/bill/#{issue.id}", method: :get}"
-  end
-  
 end
