@@ -22,6 +22,9 @@ get 'qbo/sync', :to => 'qbo#sync'
 get 'qbo/estimate/:id', :to => 'estimate#show', as: :estimate
 get 'qbo/invoice/:id', :to => 'invoice#show', as: :invoice
 
+#manual billing
+get 'qbo/bill/:id', :to => 'qbo#bill', as: :issue
+
 #payments
 resources :payments
 
