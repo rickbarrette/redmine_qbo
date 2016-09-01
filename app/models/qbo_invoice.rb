@@ -64,8 +64,12 @@ class QboInvoice < ActiveRecord::Base
       if line.description
         line.description.scan(/#(\w+)/).flatten.each { |issue|
           i = Issue.find_by_id(issue.to_i)
-          i.qbo_invoices << QboInvoice.find_by_id(invoice.id.to_i) if not i.qbo_invoice_ids.include?(invoice.id)
-          i.save!
+          begin
+            i.qbo_invoices << QboInvoice.find_by_id(invoice.id.to_i)
+            i.save!
+          rescue
+            # do nothing, the reccord exists
+          end
           
           # update the invoive custom fields with infomation from the work ticket if available
           invoice.custom_fields.each { |cf|
