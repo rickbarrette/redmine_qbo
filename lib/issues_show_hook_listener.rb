@@ -89,7 +89,7 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
   end
   
   def view_issues_show_description_bottom(context={})
-    return "<br/> #{button_to "Bill Time", "#{Redmine::Utils::relative_url_root}/qbo/bill/#{context[:issue].id}", method: :get}"
+    return "<br/> #{button_to "Bill Time", "#{Redmine::Utils::relative_url_root}/qbo/bill/#{context[:issue].id}", method: :get}" if User.current.admin?
   end
   
 end
