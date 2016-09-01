@@ -10,7 +10,7 @@
 
 class QboInvoice < ActiveRecord::Base
   unloadable
-  has_many :issues
+  has_and_belongs_to_many :issues
   attr_accessible :doc_number
   validates_presence_of :id, :doc_number
   
