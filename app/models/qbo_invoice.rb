@@ -15,7 +15,7 @@ class QboInvoice < ActiveRecord::Base
   attr_accessible :doc_number
   validates_presence_of :id, :doc_number
   
-  self.primary_key = :id
+  #self.primary_key = :id
   
   def self.get_base
     Qbo.get_base(:invoice)
