@@ -14,6 +14,10 @@ class AddQboInvoicesIssues < ActiveRecord::Migration
       t.integer :qbo_invoice_id
       t.integer :issue_id
     end
+    
+    # Now populate it with a SQL one-liner!
+    execute "insert into issues_qbo_invoices(qbo_invoice_id,issue_id) select qbo_invoice_id,issue_id from issues"
+
   end
 
   def self.down
