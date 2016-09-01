@@ -8,16 +8,15 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class AddQboInvoicesIssues < ActiveRecord::Migration
+class AddIssuesQboInvoices < ActiveRecord::Migration
   def self.up
     create_table :issues_qbo_invoices, :id => false do |t|
-      t.integer :qbo_invoice_id
-      t.integer :issue_id
+      t.integer :issue_id, index: true
+      t.integer :qbo_invoice_id, index: true
     end
     
     # Now populate it with a SQL one-liner!
-    execute "insert into issues_qbo_invoices(qbo_invoice_id,issue_id) select qbo_invoice_id,id from issues"
-
+    execute "insert into issues_qbo_invoices(issue_id, qbo_invoice_id) select id, qbo_invoice_id from issues"
   end
 
   def self.down
