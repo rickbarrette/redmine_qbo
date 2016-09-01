@@ -68,7 +68,7 @@ class QboInvoice < ActiveRecord::Base
           # update the invoive custom fields with infomation from the work ticket if available
           invoice.custom_fields.each { |cf|
             # VIN
-            if cf.name.eql? "VIN"
+            if cf.name.eql? "VIN" and i.vehicles_id
               vin = Vehicle.find(i.vehicles_id).vin
               cf.string_value = vin if i.vehicles_id if not cf.string_value.to_s.eql? vin
               break
@@ -78,7 +78,7 @@ class QboInvoice < ActiveRecord::Base
             begin
               value = i.custom_values.find_by(custom_field_id: CustomField.find_by_name(cf.name).id)
               if value
-                if not cf.string_value.to_s.eql? value.value.to_s
+                if not cf.string_value.to_s.eql? value.value.to_s and not value.value.to_s.blank?
                   cf.string_value = value.value.to_s
                   is_changed = true
                 end
