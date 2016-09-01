@@ -69,7 +69,7 @@ module IssuePatch
           item = item_service.query("SELECT * FROM Item WHERE Name = '#{key}' ").first
           next if item.nil?
           
-          time_entry.description = "#{tracker} ##{id}: #{subject}"
+          time_entry.description = "#{tracker} ##{id}: #{subject} #{"(Partial)" if not closed?}"
           # TODO entry.user.qbo_employee.id
           time_entry.employee_id = assigned_to.qbo_employee_id 
           time_entry.customer_id = customer_id
