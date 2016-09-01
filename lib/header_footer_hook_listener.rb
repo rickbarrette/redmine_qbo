@@ -14,6 +14,6 @@ class HeaderFooterHookListener < Redmine::Hook::ViewListener
   end
 
   def view_layouts_base_body_bottom(context = {})
-    return "<b>Last Sync: </b> #{Qbo.last_sync}"
+    return "<div class="bgl"><div class="bgr"><b>Last Sync: </b> #{Qbo.last_sync}</div></div>"
   end
 end
