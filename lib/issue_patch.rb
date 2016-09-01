@@ -24,7 +24,7 @@ module IssuePatch
       unloadable # Send unloadable so it will not be unloaded in development
       belongs_to :customer, primary_key: :id
       belongs_to :qbo_estimate, primary_key: :id
-      belongs_to :qbo_invoice, primary_key: :id
+      has_many :qbo_invoice, primary_key: :id
       belongs_to :vehicle, primary_key: :id
     end
     
@@ -35,7 +35,57 @@ module IssuePatch
   end
   
   module InstanceMethods
+    
+    # Create billable time entries
+    def bill_time
+      
+      # Get unbilled time entries
+      spent_time = time_entries.where(qbo_billed: [false, nil])
+      spent_hours ||= spent_time.sum(:hours) || 0
+      
+      if spent_hours > 0 then
+      
+        # Prepare to create a new Time Activity
+        time_service = Qbo.get_base(:time_activity).service
+        item_service = Qbo.get_base(:item).service
+        time_entry = Quickbooks::Model::TimeActivity.new
   
+        h = Hash.new(0)
+        spent_time.each do |entry|
+          # Lets tottal up each activity
+          h[entry.activity.name] += entry.hours
+          # update time entries billed status
+          entry.qbo_billed = true
+          entry.save
+        end
+        
+        h.each do |key, val|
+          
+          # Convert float spent time to hours and minutes
+          hours = val.to_i
+          minutesDecimal = (( val - hours) * 60)
+          minutes = minutesDecimal.to_i
+          
+          item = item_service.query("SELECT * FROM Item WHERE Name = '#{key}' ").first
+          next if item.nil?
+          
+          time_entry.description = "#{tracker} ##{id}: #{subject}"
+          # TODO entry.user.qbo_employee.id
+          time_entry.employee_id = assigned_to.qbo_employee_id 
+          time_entry.customer_id = customer_id
+          time_entry.billable_status = "Billable"
+          time_entry.hours = hours
+          time_entry.minutes = minutes
+          time_entry.name_of = "Employee"
+          time_entry.txn_date = Date.today
+          time_entry.hourly_rate = item.unit_price
+          time_entry.item_id = item.id 
+          time_entry.start_time = start_date
+          time_entry.end_time = Time.now
+          time_service.create(time_entry)
+        end
+      end
+    end
   end
   
 end    
