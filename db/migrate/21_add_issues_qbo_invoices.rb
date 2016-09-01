@@ -11,9 +11,11 @@
 class AddIssuesQboInvoices < ActiveRecord::Migration
   def self.up
     create_table :issues_qbo_invoices, :id => false do |t|
-      t.integer :issue_id, index: true
-      t.integer :qbo_invoice_id, index: true
+      t.references :issue
+      t.references :qbo_invoice
     end
+    
+    add_index :issues_qbo_invoices, [:issue_id, :qbo_invoice_id], :unique => true
     
     # Now populate it with a SQL one-liner!
     execute "insert into issues_qbo_invoices(issue_id, qbo_invoice_id) select id, qbo_invoice_id from issues"
