@@ -15,6 +15,7 @@ Redmine::Plugin.register :redmine_qbo do
    require_dependency 'issues_save_hook_listener'
    require_dependency 'issues_show_hook_listener'
    require_dependency 'users_show_hook_listener'
+   require_dependency 'header_footer_hook_listener.rb'
    
    # Patches to the Redmine core.  Will not work in development mode
     require_dependency 'issue_patch'
