@@ -65,7 +65,7 @@ class QboController < ApplicationController
   
   # Manual Billing
   def bill
-    i = Issue.find_by_id session[:id]
+    i = Issue.find_by_id params[:id]
     i.bill_time
     redirect_to i, :flash => { :notice => "Successfully Billed #{i.customer.name}" }
   end
