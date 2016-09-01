@@ -51,64 +51,6 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
    # Called After Issue Saved
   def controller_issues_edit_after_save(context={})
     issue = context[:issue]
-    
-    if issue.assigned_to
-      employee_id = issue.assigned_to.qbo_employee_id
-
-      # Check to see if we have registered with QBO and if the issue is closed.
-      # If so then we need to create a new billable time activity for the customer
-      bill_time(issue, employee_id) if Qbo.first && issue.customer && employee_id && issue.status.is_closed?
-    end
-  end
-    
-  # Create billable time entries
-  def bill_time(issue, employee_id)
-  
-    # Get unbilled time entries
-    spent_time = issue.time_entries.where(qbo_billed: [false, nil])
-    spent_hours ||= spent_time.sum(:hours) || 0
-    
-    if spent_hours > 0 then
-    
-      # Prepare to create a new Time Activity
-      time_service = Qbo.get_base(:time_activity).service
-      item_service = Qbo.get_base(:item).service
-      time_entry = Quickbooks::Model::TimeActivity.new
-
-      h = Hash.new(0)
-      spent_time.each do |entry|
-        # Lets tottal up each activity
-        h[entry.activity.name] += entry.hours
-        # update time entries billed status
-        entry.qbo_billed = true
-        entry.save
-      end
-      
-      h.each do |key, val|
-        
-        # Convert float spent time to hours and minutes
-        hours = val.to_i
-        minutesDecimal = (( val - hours) * 60)
-        minutes = minutesDecimal.to_i
-        
-        item = item_service.query("SELECT * FROM Item WHERE Name = '#{key}' ").first
-        next if item.nil?
-        
-        time_entry.description = "#{issue.tracker} ##{issue.id}: #{issue.subject}"
-        # TODO entry.user.qbo_employee.id
-        time_entry.employee_id = employee_id 
-        time_entry.customer_id = issue.customer_id
-        time_entry.billable_status = "Billable"
-        time_entry.hours = hours
-        time_entry.minutes = minutes
-        time_entry.name_of = "Employee"
-        time_entry.txn_date = Date.today
-        time_entry.hourly_rate = item.unit_price
-        time_entry.item_id = item.id 
-        time_entry.start_time = issue.start_date
-        time_entry.end_time = Time.now
-        time_service.create(time_entry)
-      end
-    end
+    issue.bill_time if Qbo.first && issue.customer && issue.status.is_closed?
   end
 end
