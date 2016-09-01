@@ -32,6 +32,10 @@ module IssuePatch
     
   module ClassMethods
     
+  end
+  
+  module InstanceMethods
+    
     # Create billable time entries
     def bill_time
       
@@ -82,11 +86,6 @@ module IssuePatch
         end
       end
     end
-    
-  end
-  
-  module InstanceMethods
-    
   end
   
 end    
