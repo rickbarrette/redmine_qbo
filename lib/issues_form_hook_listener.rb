@@ -41,6 +41,6 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     
     vehicle = f.select :vehicles_id, vehicles, :selected => selected_vehicle, include_blank: true
     
-    return "<p>#{select_customer}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p> <br/> #{button_to "Bill Time", "#{Redmine::Utils::relative_url_root}/qbo/bill/#{issue.id}", method: :get}"
+    return "<p>#{select_customer}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p> <br/> #{button_to "Bill Time", "#{Redmine::Utils::relative_url_root}/qbo/bill/#{context[:issue].id}", method: :get}"
   end
 end
