@@ -12,8 +12,6 @@ class QboInvoice < ActiveRecord::Base
   unloadable
   
   has_and_belongs_to_many :issues
-    #, :association_foreign_key => 'qbo_invoice_id', :class_name => 'QboInvoice', :join_table => 'issues_qbo_invoices'
-    
   attr_accessible :doc_number
   validates_presence_of :doc_number
   self.primary_key = :id
@@ -23,9 +21,6 @@ class QboInvoice < ActiveRecord::Base
   end
   
   def self.sync
-    #Pull the invoices from the quickbooks server
-    #invoices = get_base.service.all
-    
     last = Qbo.first.last_sync
     
     query = "SELECT Id, DocNumber FROM Invoice"
@@ -39,14 +34,8 @@ class QboInvoice < ActiveRecord::Base
     
     # Update the invoice table 
     invoices.each { | invoice | 
-      qbo_invoice = find_or_create_by(id: invoice.id) 
-      qbo_invoice.doc_number = invoice.doc_number 
-      qbo_invoice.id = invoice.id
-      qbo_invoice.save! 
+      sync_by_id invoice.id
     }
-    
-    #remove deleted invoices 
-    #where.not(invoices.map(&:id)).destroy_all
   end
   
   def self.sync_by_id(id)
@@ -74,17 +63,22 @@ class QboInvoice < ActiveRecord::Base
           # update the invoive custom fields with infomation from the work ticket if available
           invoice.custom_fields.each { |cf|
             # VIN
-            if cf.name.eql? "VIN"
-              vin = Vehicle.find(i.vehicles_id).vin
-              cf.string_value = vin if i.vehicles_id if not cf.string_value.to_s.eql? vin
-              break
+            begin
+              if cf.name.eql? "VIN"
+                vin = Vehicle.find(i.vehicles_id).vin
+                break if vin.blank?
+                cf.string_value = vin if not cf.string_value.to_s.eql? vin
+                break
+              end
+            rescue
+              #do nothing
             end
             
             # Custom Values
             begin
               value = i.custom_values.find_by(custom_field_id: CustomField.find_by_name(cf.name).id)
-              if value
-                if not cf.string_value.to_s.eql? value.value.to_s and not value.value.to_s.blank?
+              if not value.value.to_s.blank?
+                if not cf.string_value.to_s.eql? value.value.to_s
                   cf.string_value = value.value.to_s
                   is_changed = true
                 end
@@ -101,7 +95,6 @@ class QboInvoice < ActiveRecord::Base
   end
   
   def self.update(id)
-    # Update the item table
     invoice = get_base.service.fetch_by_id(id)
     qbo_invoice = find_or_create_by(id: id)
     qbo_invoice.doc_number = invoice.doc_number
