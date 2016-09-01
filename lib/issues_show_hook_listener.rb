@@ -85,7 +85,10 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
         <div class=\"label\"><span>Notes</span>:</div>
         <div class=\"value\">#{notes}</div>
       </div>
-    </div>"
+    </div>
+    
+    #{button_to "Bill Time", "#{Redmine::Utils::relative_url_root}/qbo/#{issue.id}", method: :get}
+    "
   end
   
 end
