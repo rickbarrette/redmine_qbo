@@ -32,6 +32,7 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     end
     
     # Invoice Number
+    invoice_link = ""
     if issue.qbo_invoice_ids
       issue.qbo_invoice_ids.each do |i|
         invoice = QboInvoice.find i
