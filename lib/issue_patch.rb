@@ -24,7 +24,7 @@ module IssuePatch
       unloadable # Send unloadable so it will not be unloaded in development
       belongs_to :customer, primary_key: :id
       belongs_to :qbo_estimate, primary_key: :id
-      belongs_to_many :qbo_invoice, primary_key: :id
+      has_and_belongs_to_many :qbo_invoice, primary_key: :id
       belongs_to :vehicle, primary_key: :id
     end
     
