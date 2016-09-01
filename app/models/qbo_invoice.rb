@@ -11,7 +11,7 @@
 class QboInvoice < ActiveRecord::Base
   unloadable
   
-  has_and_belongs_to_many :issues, association_foreign_key: :qbo_invoice_id, :class_name => 'QboInvoice', join_table :issues_qbo_invoices
+  has_and_belongs_to_many :issues, :association_foreign_key => 'qbo_invoice_id', :class_name => 'QboInvoice', :join_table => 'issues_qbo_invoices'
     
   attr_accessible :doc_number
   validates_presence_of :doc_number
