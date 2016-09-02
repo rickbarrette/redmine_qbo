@@ -1,5 +1,7 @@
 <h2><%= issue_heading(@issue) %></h2>
 
+<div class="<%= @issue.css_classes %> details"
+
 <%= avatar(@issue.author, :size => "50") %>
 
 <div class="subject">
