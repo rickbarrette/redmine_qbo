@@ -13,6 +13,18 @@ class CustomersController < ApplicationController
   unloadable
   
   include AuthHelper
+  helper :journals
+  helper :projects
+  helper :custom_fields
+  helper :issue_relations
+  helper :watchers
+  helper :attachments
+  helper :queries
+  include QueriesHelper
+  helper :repositories
+  helper :sort
+  include SortHelper
+  helper :timelog
   
   before_filter :require_user, :except => :view
   skip_before_filter :verify_authenticity_token, :check_if_login_required, :only => [:view]
