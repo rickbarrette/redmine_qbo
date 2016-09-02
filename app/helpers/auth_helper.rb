@@ -16,7 +16,8 @@ module AuthHelper
       if token.nil?
         redirect_to :back, :flash => {:error => "Bad link"} 
       else
-        render :partial => 'issues/show', locals: {issue: Issue.find token.issue_id}
+        #render :partial => 'issues/show', locals: {issue: Issue.find token.issue_id}
+        :flash => {:notice => token.issue_id}
       end
     else
       if !User.current.logged?
