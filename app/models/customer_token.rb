@@ -15,7 +15,7 @@ class CustomerToken < ActiveRecord::Base
 
   OAUTH_CONSUMER_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
   
-  def generate_token(issue)
-    self.token = SecureRandom.base64(issue.id + issue.customer_id).tr('+/=lIO0', OAUTH_CONSUMER_SECRET)
+  def generate_token
+    self.token = SecureRandom.base64(15).tr('+/=lIO0', OAUTH_CONSUMER_SECRET)
   end
 end
