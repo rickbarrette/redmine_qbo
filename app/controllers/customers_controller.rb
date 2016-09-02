@@ -94,7 +94,7 @@ class CustomersController < ApplicationController
   def view
     token = CustomerToken.where("token = ? and expires_at > ?", params[:token], Time.now)
     if token
-      @issue = Issue.find token.issue_id
+      @issue = Issue.find token.first.issue_id
     else
       render :file => "public/401.html.erb", :status => :unauthorized, :layout =>true
     end
