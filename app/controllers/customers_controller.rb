@@ -95,7 +95,24 @@ class CustomersController < ApplicationController
     token = CustomerToken.where("token = ? and expires_at > ?", params[:token], Time.now)
     if token
       @issue = Issue.find token.first.issue_id
-      render :template => 'issues/show'
+      @journals = @issue.journals.
+                  preload(:details).
+                  preload(:user => :email_address).
+                  reorder(:created_on, :id).to_a
+      @journals.each_with_index {|j,i| j.indice = i+1}
+      @journals.reject!(&:private_notes?) unless User.current.allowed_to?(:view_private_notes, @issue.project)
+      Journal.preload_journals_details_custom_fields(@journals)
+      @journals.select! {|journal| journal.notes? || journal.visible_details.any?}
+      @journals.reverse! if User.current.wants_comments_in_reverse_order?
+  
+      @changesets = @issue.changesets.visible.preload(:repository, :user).to_a
+      @changesets.reverse! if User.current.wants_comments_in_reverse_order?
+  
+      @relations = @issue.relations.select {|r| r.other_issue(@issue) && r.other_issue(@issue).visible? }
+      @allowed_statuses = @issue.new_statuses_allowed_to(User.current)
+      @priorities = IssuePriority.active
+      @time_entry = TimeEntry.new(:issue => @issue, :project => @issue.project)
+      @relation = IssueRelation.new
     else
       render :file => "public/401.html.erb", :status => :unauthorized, :layout =>true
     end
