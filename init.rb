@@ -49,7 +49,7 @@ Redmine::Plugin.register :redmine_qbo do
     
     config.gem "active_url", :source => "http://gemcutter.org"
     OAUTH_CONSUMER_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
-    ActiveUrl::Config.secret = OAUTH_CONSUMER_SECRET
+    #ActiveUrl::Config.secret = OAUTH_CONSUMER_SECRET
     
     # set per_page globally
     WillPaginate.per_page = 10
