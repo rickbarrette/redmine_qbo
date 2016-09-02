@@ -94,7 +94,7 @@ class CustomersController < ApplicationController
   def view
     token = CustomerToken.where("token = ? and expires_at > ?", params[:token], Time.now)
     if token
-      render :partial => 'issues/show', locals: {issue: Issue.find token.issue_id}, :flash => {:notice => token.issue_id}
+      render :partial => "issues/show", locals: {issue: Issue.find token.issue_id}#, :flash => {:notice => token.issue_id}
     else
       render :file => "public/401.html.erb", :status => :unauthorized, :layout =>true
     end
