@@ -14,7 +14,8 @@ class CustomersController < ApplicationController
   
   include AuthHelper
   
-  before_filter :require_user
+  before_filter :require_user, :except => :view
+  skip_before_filter :verify_authenticity_token, :check_if_login_required, :only => [:view]
   
   default_search_scope :names
   
@@ -86,6 +87,16 @@ class CustomersController < ApplicationController
       redirect_to action: :index
     rescue ActiveRecord::RecordNotFound
       render_404
+    end
+  end
+  
+  # Customer view for an issue
+  def view
+    token = CustomerToken.where("token = ? and expires_at > ?", params[:token], Time.now)
+    if token
+      render :partial => 'issues/show', locals: {issue: Issue.find token.issue_id}, :flash => {:notice => token.issue_id}
+    else
+      render :file => "public/401.html.erb", :status => :unauthorized, :layout =>true
     end
   end
   
