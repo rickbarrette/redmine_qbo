@@ -10,6 +10,7 @@
 
 class CustomerToken < ActiveRecord::Base
   unloadable
+  has_many :issues
   attr_accessible :token, :expires_at, :issue_id
   validates_presence_of :expires_at, :issue_id
   before_create :generate_token
