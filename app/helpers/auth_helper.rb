@@ -11,13 +11,8 @@
 module AuthHelper
 
   def require_user
-    token = CustomerToken.where("token = ? and expires_at > ?", params[:token], Time.now)
-    if token
-        #render :partial => 'issues/show', locals: {issue: Issue.find token.issue_id}, :flash => {:notice => token.issue_id}
-    else
-      if !User.current.logged?
-        render :file => "public/401.html.erb", :status => :unauthorized, :layout =>true
-      end
+    if !User.current.logged?
+      render :file => "public/401.html.erb", :status => :unauthorized, :layout =>true
     end
   end
 end
