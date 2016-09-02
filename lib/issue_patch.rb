@@ -23,6 +23,7 @@ module IssuePatch
     base.class_eval do
       unloadable # Send unloadable so it will not be unloaded in development
       belongs_to :customer, primary_key: :id
+      belongs_to :customer_token, primary_key: :id
       belongs_to :qbo_estimate, primary_key: :id
       has_and_belongs_to_many :qbo_invoices
         #, :association_foreign_key => 'issue_id', :class_name => 'Issue', :join_table => 'issues_qbo_invoices'
