@@ -47,6 +47,7 @@ Redmine::Plugin.register :redmine_qbo do
     # We are playing in the sandbox 
     #Quickbooks.sandbox_mode = true
     
+    config.gem "active_url", :source => "http://gemcutter.org"
     OAUTH_CONSUMER_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
     ActiveUrl::Config.secret = OAUTH_CONSUMER_SECRET
     
