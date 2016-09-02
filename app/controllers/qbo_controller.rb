@@ -16,7 +16,7 @@ class QboController < ApplicationController
   include AuthHelper
   
   before_filter :require_user, :except => :qbo_webhook
-  skip_before_filter :verify_authenticity_token, :check_if_login_required
+  skip_before_filter :verify_authenticity_token, :check_if_login_required, :only => [:qbo_webhook]
 
   #
   # Called when the QBO Top Menu us shown
