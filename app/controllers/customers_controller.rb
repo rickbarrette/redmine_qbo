@@ -13,6 +13,7 @@ class CustomersController < ApplicationController
   unloadable
   
   include AuthHelper
+  helper :issues
   helper :journals
   helper :projects
   helper :custom_fields
