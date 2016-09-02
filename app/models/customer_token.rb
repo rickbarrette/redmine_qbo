@@ -10,7 +10,8 @@
 
 class CustomerToken < ActiveRecord::Base
   unloadable
-  attr_accessible :token, :expires_at, :issue
+  attr_accessible :token, :expires_at, :issue_id
+  validates_presence_of :token, :expires_at, :issue_id
   before_create :generate_token
 
   OAUTH_CONSUMER_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
