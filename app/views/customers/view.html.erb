@@ -22,7 +22,7 @@
   <%= avatar(@issue.author, :size => "50") %>
 
 <div class="subject">
-<%= render_issue_subject_with_tree(@issue) %>
+<%= @issue.subject %>
 </div>
         <p class="author">
         <%= authoring @issue.created_on, @issue.author %>.
