@@ -25,6 +25,9 @@ get 'qbo/invoice/:id', :to => 'invoice#show', as: :invoice
 #manual billing
 get 'qbo/bill/:id', :to => 'qbo#bill', as: :bill
 
+#customer issue view
+get 'customers/view/:token', :to => 'customer#view', as: :view
+
 #payments
 resources :payments
 
