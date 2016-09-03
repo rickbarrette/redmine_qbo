@@ -32,7 +32,7 @@ module TimeEntryQueryPatch
   
   module InstanceMethods
   
-    def available_columns_with_qbo
+    def available_columns_with_qbo_billed
       unless @available_columns
         @available_columns = available_columns_without_qbo
         @available_columns << QueryColumn.new(:qbo_billed, :sortable => "#{TimeEntry.table_name}.name", :groupable => true, :caption => :field_qbo_billed)
@@ -40,7 +40,7 @@ module TimeEntryQueryPatch
       @available_columns
     end
     
-    def available_filters_with_qbo
+    def available_filters_with_qbo_billed
       unless @available_filters
         @available_filters = available_filters_without_qbo 
         
