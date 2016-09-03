@@ -91,6 +91,12 @@ module IssuePatch
     end
   end
   
+  # Create a shareable link for a customer
+  def share_link
+    token = DownloadToken.create(:expires_at => Time.now + 24.hours, :issue_id => id)
+    link_to "#{tracker} ##{id}: #{subject}", view_path token.token 
+  end
+  
 end    
 
 # Add module to Issue
