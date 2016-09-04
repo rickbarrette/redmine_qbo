@@ -6,23 +6,22 @@ The goal of this project is to allow Redmine to connect with Quickbooks Online t
 
 `Note: Although the core functionality is complete, this project is still under heavy development. I am still working on refining everthing and adding other features. Tags should be stable`
 
+`Note: I am currently using this in a live production enviroment with no issues`
+
 ####Features
 * Issues can be assigned to a `Customer` via drop down in the edit Issue form
 * The `Employee` for the Issue is assigned via the assigned Redmine User
   - This is set via a drop down in the user admistration page.
 * IF an `Issue` has been assined a `Customer` when an Issue is closed the following will happen:
-  - A new `Time Activity` will be created for the `Customer` assinged to the issue for each Redmine Time Entery.
+  - A new `Time Activity` will be billed agaist the `Customer` assinged to the issue for each Redmine Time Entery. 
     + Time Entries will be totalled up by Activity name. This will allow billing for diffrent activities without having to create seperate Issues.
     + The Time Activity names are used to lookup `Items` in Quickbooks.
     + IF there isn'tany Items that match the Activity name it will be skipped, and will not be billed to the `Customer` 
   - Labor Rates are set by the `Item` in Quickbooks
-* `Issues` with the Tracker `Quote` will generate an estimate based on the estimated hours and `Item` rates.
-  - Needs to have a `Customer` Assiged
 * `Payments` Can be created via the Redmine application menu
 * `Customers` Can be created via the Redmine application menu
-* `Customers` can be searched
-* Basic information for the `Customer` can be viewed via the customer page
-* `Custmoer` information can be update
+  - `Customers` can be searched
+  - Basic information for the `Customer` can be viewed/edit via the Customer page
 * Webhook Support
   - `Invoices` are automaticly attached to an Issue if a line item has a hashtag number in a `Line Item`
     + `Invoice` Custom Fields are matched Issue Custom Fileds and are automaticly updated in Quickbooks. For example, this is usefull for extracting the Mileage In / Out from the Issue and updating the Invoice with the information.
@@ -47,19 +46,13 @@ The goal of this project is to allow Redmine to connect with Quickbooks Online t
   
 3. Navigate to the plugin configuration page and suppy your own OAuth key & secret. 
 
-  ![Alt plugin_config](/Screenshots/plugin_config.png)
-
 4. After saving your key & secret, you need to click on the Authenticate link on the plugin configuration page to authenticate with QBO.
 
 5. Assign an Employee to each of your users via the User Administration Page
 
-  ![Alt plugin_user_edit](/Screenshots/plugin_user_edit.png)
-  
 ## Usage
 
   To enable automatic `Time Activity` entries for an Issue , you need only to assign a `Customer` to an Issue via drop downs in the issue creation/update form.
-  
-  ![Alt plugin_issue-edit](/Screenshots/plugin_issue_edit.png)
 
 Note: After the inital synchronization, this plugin will recieve push notifications via Intuit's webhook service.
 
@@ -67,10 +60,8 @@ Note: After the inital synchronization, this plugin will recieve push notificati
   * Abiltiy to add line items to a ticket in a dynamic table so they can be added to the invoice upon closing of the issue
   * Customer Deletion
   * Email Customer updates, provding a link that would: bypass the login page, go directly to the issue directing them to, and allow them to view only that issue. 
-  * Add a rake file to create required Trackers or statuses required
   * Add Setting for Sandbox Mode
   * Refactor Models prefixed with Qbo...
-  * Allow multiple Invoices to be attached to an Issue
   * Seperate Vehicles into a seperate plugin
   * Make HTML Pretty 
   * Intergrate Customer Search into Redmine Search
