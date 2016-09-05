@@ -128,7 +128,7 @@ class CustomersController < ApplicationController
       @time_entry = TimeEntry.new(:issue => @issue, :project => @issue.project)
       @relation = IssueRelation.new
     else
-      render_403 , :status => :unauthorized, :layout =>true
+      render_403
     end
   end
   
