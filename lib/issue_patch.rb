@@ -92,9 +92,8 @@ module IssuePatch
   end
   
   # Create a shareable link for a customer
-  def share_link
-    token = CustomerToken.create(:expires_at => Time.now + 24.hours, :issue_id => id)
-    return "#{Redmine::Utils::relative_url_root}/customers/view/#{token.token }"
+  def share_token
+    CustomerToken.create(:expires_at => Time.now + 24.hours, :issue_id => id)
   end
   
 end    
