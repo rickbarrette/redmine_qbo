@@ -90,7 +90,7 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
   
   def view_issues_show_description_bottom(context={})
     bill_button = button_to "Bill Time", "#{Redmine::Utils::relative_url_root}/qbo/bill/#{context[:issue].id}", method: :get if User.current.admin?
-    share_button = button_to "Share", context[:issue].share_link
+    share_button = button_to "Share", "#{Redmine::Utils::relative_url_root}/customers/view/#{context[:issue].share_token.token}", method: :get if User.current.logged_in?
     return "<br/> #{bill_button} #{share_button}"
   end
   
