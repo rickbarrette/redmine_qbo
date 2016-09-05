@@ -94,7 +94,7 @@ module IssuePatch
   # Create a shareable link for a customer
   def share_link
     token = CustomerToken.create(:expires_at => Time.now + 24.hours, :issue_id => id)
-    link_to "#{tracker} ##{id}: #{subject}", view_path + token.token 
+    return "#{Redmine::Utils::relative_url_root}/customers/view/#{token.token }"
   end
   
 end    
