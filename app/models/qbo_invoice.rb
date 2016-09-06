@@ -49,7 +49,7 @@ class QboInvoice < ActiveRecord::Base
   end
   
   # processes the invoice into the system
-  def process_invoice(invoice)
+  def self.process_invoice(invoice)
     
     is_changed = false
     
