@@ -17,9 +17,10 @@ class QboInvoice < ActiveRecord::Base
   self.primary_key = :id
   
   def self.get_base
-    Qbo.get_base(:invoice)
+    Qbo.get_base(:invoice).service
   end
   
+  # sync ALL the invoices
   def self.sync
     last = Qbo.first.last_sync
     
@@ -27,9 +28,9 @@ class QboInvoice < ActiveRecord::Base
     query << " WHERE  Metadata.LastUpdatedTime >= '#{last.iso8601}' " if last
   
     if count == 0
-      invoices = get_base.service.all 
+      invoices = get_base.all 
     else
-      invoices = get_base.service.query()
+      invoices = get_base.query()
     end
     
     # Update the invoice table 
@@ -38,13 +39,10 @@ class QboInvoice < ActiveRecord::Base
     }
   end
   
+  #sync by invoice ID
   def self.sync_by_id(id)
     #update the information in the database
-    invoice = Qbo.get_base(:invoice).service.fetch_by_id(id) 
-    #qbo_invoice = find_or_create_by(id: invoice.id) 
-    #qbo_invoice.doc_number = invoice.doc_number 
-    #qbo_invoice.id = invoice.id
-    #qbo_invoice.save!
+    invoice = get_base.fetch_by_id(id) 
     process_invoice invoice
   end
   
@@ -60,7 +58,7 @@ class QboInvoice < ActiveRecord::Base
           i = Issue.find_by_id(issue.to_i)
           begin
             i.qbo_invoices << QboInvoice.find_by_id(invoice.id.to_i)
-            i.save!
+            i.qbo_invoices.save!
           rescue
             # do nothing, the reccord exists
           end
@@ -93,16 +91,10 @@ class QboInvoice < ActiveRecord::Base
             end
           }
           # Push updates
-          Qbo.get_base(:invoice).service.update(invoice) if is_changed
+          get_base.update(invoice) if is_changed
         }
       end
     }
   end
   
-  def self.update(id)
-    invoice = get_base.service.fetch_by_id(id)
-    qbo_invoice = find_or_create_by(id: id)
-    qbo_invoice.doc_number = invoice.doc_number
-    qbo_invoice.save!
-  end
 end
