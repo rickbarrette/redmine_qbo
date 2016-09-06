@@ -87,8 +87,8 @@ class Vehicle < ActiveRecord::Base
     if self.vin?
       begin
         @details = JSON.parse get_decoder.full(self.vin)
-        raise @details['message'] if @details['status'] == "NOT_FOUND" 
-        raise @details['message'] if @details['status'] == "BAD_REQUEST"
+        raise @details['message'] if @details['status'].to_s.eql? "NOT_FOUND" 
+        raise @details['message'] if @details['status'].to_s.eql? "BAD_REQUEST"
       rescue Exception => e
         errors.add(:vin, e.message)
       end
