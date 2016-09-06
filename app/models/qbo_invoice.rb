@@ -34,17 +34,22 @@ class QboInvoice < ActiveRecord::Base
     
     # Update the invoice table 
     invoices.each { | invoice | 
-      sync_by_id invoice.id
+      process_invoice invoice
     }
   end
   
   def self.sync_by_id(id)
     #update the information in the database
     invoice = Qbo.get_base(:invoice).service.fetch_by_id(id) 
-    qbo_invoice = find_or_create_by(id: invoice.id) 
-    qbo_invoice.doc_number = invoice.doc_number 
-    qbo_invoice.id = invoice.id
-    qbo_invoice.save! 
+    #qbo_invoice = find_or_create_by(id: invoice.id) 
+    #qbo_invoice.doc_number = invoice.doc_number 
+    #qbo_invoice.id = invoice.id
+    #qbo_invoice.save!
+    process_invoice invoice
+  end
+  
+  # processes the invoice into the system
+  def process_invoice(invoice)
     
     is_changed = false
     
