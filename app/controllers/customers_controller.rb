@@ -108,6 +108,7 @@ class CustomersController < ApplicationController
     token = CustomerToken.where("token = ? and expires_at > ?", params[:token], Time.now)
     if token.first
       User.current = User.find_by lastname: 'Anonymous'
+      User.current.logged = true
       @issue = Issue.find token.first.issue_id
       @journals = @issue.journals.
                   preload(:details).
