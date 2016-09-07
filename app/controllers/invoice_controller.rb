@@ -18,7 +18,7 @@ class InvoiceController < ApplicationController
   # Downloads and forwards the invoice pdf
   #
   def show
-    base = QboInvoice.get_base.service
+    base = QboInvoice.get_base
     invoice = base.fetch_by_id(params[:id])
     @pdf = base.pdf(invoice)
     send_data @pdf, filename: "invoice #{invoice.doc_number}.pdf", :disposition => 'inline', :type => "application/pdf"
