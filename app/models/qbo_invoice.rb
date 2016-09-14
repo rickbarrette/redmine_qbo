@@ -61,16 +61,16 @@ class QboInvoice < ActiveRecord::Base
           begin
             # Load the invoice into the database
             qbo_invoice = QboInvoice.find_or_create_by(id: invoice.id)
-            if qbo_invoice.new?
+            #if qbo_invoice.new?
               qbo_invoice.doc_number = invoice.doc_number 
               qbo_invoice.id = invoice.id
               qbo_invoice.save!
-            end
+            #end
 
             # Attach the invoice to the issue
             unless i.qbo_invoices.include?(qbo_invoice)
               i.qbo_invoices << qbo_invoice
-              i.save
+              i.save!
             end
           rescue
             puts "Something when wrong..."
