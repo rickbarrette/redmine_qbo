@@ -98,7 +98,7 @@ class QboInvoice < ActiveRecord::Base
                   
                   # Use the lowest Milage
                   if cf.name.eql? "Mileage In"
-                    if cf.string_value.to_i > value.value.to_i
+                    if cf.string_value.to_i > value.value.to_i or cf.string_value.blank?
                       cf.string_value = value.value.to_s
                       is_changed = true
                     end
@@ -107,7 +107,7 @@ class QboInvoice < ActiveRecord::Base
                     
                   # Use the max milage
                   if cf.name.eql? "Mileage Out"
-                    if cf.string_value.to_i < value.value.to_i
+                    if cf.string_value.to_i < value.value.to_i or cf.string_value.blank?
                       cf.string_value = value.value.to_s
                       is_changed = true
                     end
