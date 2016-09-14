@@ -58,7 +58,7 @@ class QboInvoice < ActiveRecord::Base
           i = Issue.find_by_id(issue.to_i)
           begin
             i.qbo_invoices << QboInvoice.find_by_id(invoice.id.to_i)
-            i.qbo_invoices.save!
+            i.save!
           rescue
             # do nothing, the reccord exists
           end
