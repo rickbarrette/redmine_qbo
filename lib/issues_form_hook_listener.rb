@@ -33,7 +33,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
                         Customer.all.pluck(:name, :id).sort, 
                         :selected => selected_customer, 
                         include_blank: true, 
-                        { onchange: "$customerSelected;" }
+                        onchange: "$customerSelected;"
     
     # Generate the drop down list of quickbooks extimates
     select_estimate = f.select :qbo_estimate_id, QboEstimate.all.pluck(:doc_number, :id).sort! {|x, y| y <=> x}, :selected => selected_estimate, include_blank: true
