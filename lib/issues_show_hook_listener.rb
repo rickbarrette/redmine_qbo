@@ -20,15 +20,9 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
   def view_issues_show_details_bottom(context={})
     issue = context[:issue]
     
-    issue_fields_rows do |rows|
-
-      # Check to see if there is a quickbooks user attached to the issue
-      if issue.customer
-        customer =  link_to issue.customer.name, "#{Redmine::Utils::relative_url_root}/customers/#{issue.customer.id}"
-        
-        customer = rows.left l(:field_customer), customer, :class => 'customer'
-      end
-    
+    # Check to see if there is a quickbooks user attached to the issue
+    if issue.customer
+      customer =  link_to issue.customer.name, "#{Redmine::Utils::relative_url_root}/customers/#{issue.customer.id}"
     end
     
     # Estimate Number
