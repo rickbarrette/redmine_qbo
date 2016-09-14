@@ -29,7 +29,11 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     
     # Load customer information without callbacks
     customer = Customer.find_by_id(selected_customer) if selected_customer
-    select_customer = f.select :customer_id, Customer.all.pluck(:name, :id).sort, :selected => selected_customer, include_blank: true
+    select_customer = f.select :customer_id, 
+                        Customer.all.pluck(:name, :id).sort, 
+                        :selected => selected_customer, 
+                        include_blank: true, 
+                        { onchange: "$customerSelected;" }
     
     # Generate the drop down list of quickbooks extimates
     select_estimate = f.select :qbo_estimate_id, QboEstimate.all.pluck(:doc_number, :id).sort! {|x, y| y <=> x}, :selected => selected_estimate, include_blank: true
