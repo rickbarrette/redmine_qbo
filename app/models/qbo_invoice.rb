@@ -70,7 +70,7 @@ class QboInvoice < ActiveRecord::Base
             # Attach the invoice to the issue
             unless i.qbo_invoices.include?(qbo_invoice)
               i.qbo_invoices << qbo_invoice
-              i.save!
+              i.qbo_invoices.save!
             end
           rescue
             puts "Something when wrong..."
