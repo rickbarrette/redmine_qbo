@@ -57,9 +57,10 @@ class QboInvoice < ActiveRecord::Base
         line.description.scan(/#(\w+)/).flatten.each { |issue|
           i = Issue.find_by_id(issue.to_i)
           begin
-            i.qbo_invoices << QboInvoice.find_by_id(invoice.id.to_i)
-            i.save!
+            i.qbo_invoices << QboInvoice.find_by_id(invoice.id)
+            i.save
           rescue
+            puts "Something when wrong..."
             # do nothing, the reccord exists
           end
           
@@ -70,8 +71,11 @@ class QboInvoice < ActiveRecord::Base
               if cf.name.eql? "VIN"
                 vin = Vehicle.find(i.vehicles_id).vin
                 break if vin.blank?
-                cf.string_value = vin if not cf.string_value.to_s.eql? vin
-                break
+                if not cf.string_value.to_s.eql? vin
+                  cf.string_value = vin
+                  is_changed = true
+                  break
+                end
               end
             rescue
               #do nothing
@@ -90,11 +94,13 @@ class QboInvoice < ActiveRecord::Base
               # Nothing to do here, there is no match
             end
           }
-          # Push updates
-          get_base.update(invoice) if is_changed
+          
         }
       end
     }
+    
+    # Push updates
+    get_base.update(invoice) if is_changed
   end
   
 end
