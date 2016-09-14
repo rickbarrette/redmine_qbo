@@ -53,39 +53,43 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     
     return "
     <div class=\"attributes\">
+      <div class="splitcontent">
+      
+        <div class="splitcontentleft">
+          <div class=\"customer_id attribute\">
+            <div class=\"label\"><span>Customer</span>:</div>
+            <div class=\"value\">#{customer}</div>
+          </div>
     
-      <div class=\"customer_id attribute\">
-        <div class=\"label\"><span>Customer</span>:</div>
-        <div class=\"value\">#{customer}</div>
-      </div>
-
-      <div class=\"qbo_estimate_id attribute\">
-        <div class=\"label\"><span>Estimate</span>:</div>
-        <div class=\"value\">#{estimate_link}</div>
-      </div>
+          <div class=\"qbo_estimate_id attribute\">
+            <div class=\"label\"><span>Estimate</span>:</div>
+            <div class=\"value\">#{estimate_link}</div>
+          </div>
+            
+          <div class=\"qbo_invoice_id attribute\">
+            <div class=\"label\"><span>Invoice</span>:</div>
+            <div class=\"value\">#{invoice_link}</div>
+          </div>
+        </div>
         
-      <div class=\"qbo_invoice_id attribute\">
-        <div class=\"label\"><span>Invoice</span>:</div>
-        <div class=\"value\">#{invoice_link}</div>
+        <div class="splitcontentleft">
+          <div class=\"vehicle attribute\">
+            <div class=\"label\"><span>Vehicle</span>:</div>
+            <div class=\"value\">#{vehicle}</div>
+          </div>
+            
+          <div class=\"vehicle_vin attribute\">
+            <div class=\"label\"><span>VIN</span>:</div>
+            <div class=\"value\">#{split_vin[0] if split_vin}<b>#{split_vin[1] if split_vin}</b></div>
+          </div>
+          
+          <div class=\"vehicle_notes attribute\">
+            <div class=\"label\"><span>Notes</span>:</div>
+            <div class=\"value\">#{notes}</div>
+          </div>
+        </div>
       </div>
-      
-      <br/>
-
-      <div class=\"vehicle attribute\">
-        <div class=\"label\"><span>Vehicle</span>:</div>
-        <div class=\"value\">#{vehicle}</div>
-      </div>
-        
-      <div class=\"vehicle_vin attribute\">
-        <div class=\"label\"><span>VIN</span>:</div>
-        <div class=\"value\">#{split_vin[0] if split_vin}<b>#{split_vin[1] if split_vin}</b></div>
-      </div>
-      
-      <div class=\"vehicle_notes attribute\">
-        <div class=\"label\"><span>Notes</span>:</div>
-        <div class=\"value\">#{notes}</div>
-      </div>
-    </div>    "
+    </div>"
   end
   
   def view_issues_show_description_bottom(context={})
