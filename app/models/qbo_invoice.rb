@@ -11,9 +11,9 @@
 class QboInvoice < ActiveRecord::Base
   unloadable
   
-  has_and_belongs_to_many :issues
-  attr_accessible :doc_number
-  validates_presence_of :doc_number
+  belongs_to_many :issues
+  attr_accessible :doc_number, :id
+  validates_presence_of :doc_number, :id
   self.primary_key = :id
   
   def self.get_base
@@ -48,9 +48,7 @@ class QboInvoice < ActiveRecord::Base
   
   # processes the invoice into the system
   def self.process_invoice(invoice)
-    
-    
-    
+
     is_changed = false
     
     # Scan the line items for hashtags and attach to the applicable issues
@@ -58,23 +56,17 @@ class QboInvoice < ActiveRecord::Base
       if line.description
         line.description.scan(/#(\w+)/).flatten.each { |issue|
           i = Issue.find_by_id(issue.to_i)
-          begin
-            # Load the invoice into the database
-            qbo_invoice = QboInvoice.find_or_create_by(id: invoice.id)
-            #if qbo_invoice.new?
-              qbo_invoice.doc_number = invoice.doc_number 
-              qbo_invoice.id = invoice.id
-              qbo_invoice.save!
-            #end
 
-            # Attach the invoice to the issue
-            unless i.qbo_invoices.include?(qbo_invoice)
-              i.qbo_invoices << qbo_invoice.id
-              i.qbo_invoices.save!
-            end
-          rescue
-            puts "Something when wrong..."
-            # do nothing, the reccord exists
+          # Load the invoice into the database
+          qbo_invoice = QboInvoice.find_or_create_by(id: invoice.id)
+          qbo_invoice.doc_number = invoice.doc_number 
+          qbo_invoice.id = invoice.id
+          qbo_invoice.save!
+
+          # Attach the invoice to the issue
+          unless i.qbo_invoices.include?(qbo_invoice)
+            i.qbo_invoices << qbo_invoice
+            i.qbo_invoices.save!
           end
           
           # update the invoive custom fields with infomation from the work ticket if available
