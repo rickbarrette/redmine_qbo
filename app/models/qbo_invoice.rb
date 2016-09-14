@@ -71,7 +71,8 @@ class QboInvoice < ActiveRecord::Base
           
           # update the invoive custom fields with infomation from the work ticket if available
           invoice.custom_fields.each { |cf|
-            # VIN
+            
+            # VIN from the attached vehicle
             begin
               if cf.name.eql? "VIN"
                 vin = Vehicle.find(i.vehicles_id).vin
@@ -89,10 +90,31 @@ class QboInvoice < ActiveRecord::Base
             # Custom Values
             begin
               value = i.custom_values.find_by(custom_field_id: CustomField.find_by_name(cf.name).id)
+              
+              # Check to see if the value is blank...
               if not value.value.to_s.blank?
+                # Check to see if the value is diffrent
                 if not cf.string_value.to_s.eql? value.value.to_s
-                  cf.string_value = value.value.to_s
-                  is_changed = true
+                  
+                  # Use the lowest Milage
+                  if cf.name.eql? "Mileage In"
+                    if cf.string_value.to_i > value.value.to_i
+                      cf.string_value = value.value.to_s
+                      is_changed = true
+                    end
+                    
+                  # Use the max milage
+                  else if cf.name.eql? "Mileage Out"
+                    if cf.string_value.to_i < value.value.to_i
+                      cf.string_value = value.value.to_s
+                      is_changed = true
+                    end
+                    
+                  # Everything else
+                  else
+                    cf.string_value = value.value.to_s
+                    is_changed = true
+                  end
                 end
               end
             rescue
