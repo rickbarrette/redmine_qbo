@@ -76,9 +76,9 @@ class QboInvoice < ActiveRecord::Base
             begin
               if cf.name.eql? "VIN"
                 vin = Vehicle.find(i.vehicles_id).vin
-                break if vin.blank?
+                break if vin.nil?
                 if not cf.string_value.to_s.eql? vin
-                  cf.string_value = vin
+                  cf.string_value = vin.to_s
                   is_changed = true
                   break
                 end
