@@ -50,6 +50,11 @@ The goal of this project is to allow Redmine to connect with Quickbooks Online t
 
 5. Assign an Employee to each of your users via the User Administration Page
 
+## Automatic Deploy
+  
+  If you want the redmine server to be automaticly restarted after a git pull event add this hook to your git hook directory
+  https://gist.github.com/rickbarrette/3c999c7f37e321f9c60380de99e494f5
+
 ## Usage
 
   To enable automatic `Time Activity` entries for an Issue , you need only to assign a `Customer` to an Issue via drop downs in the issue creation/update form.
