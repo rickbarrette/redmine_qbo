@@ -49,6 +49,8 @@ class QboInvoice < ActiveRecord::Base
   # processes the invoice into the system
   def self.process_invoice(invoice)
     
+    
+    
     is_changed = false
     
     # Scan the line items for hashtags and attach to the applicable issues
@@ -57,8 +59,19 @@ class QboInvoice < ActiveRecord::Base
         line.description.scan(/#(\w+)/).flatten.each { |issue|
           i = Issue.find_by_id(issue.to_i)
           begin
-            i.qbo_invoices << QboInvoice.find_by_id(invoice.id)
-            i.save
+            # Load the invoice into the database
+            qbo_invoice = QboInvoice.find_or_create_by(id: invoice.id)
+            if qbo_invoice.new?
+              qbo_invoice.doc_number = invoice.doc_number 
+              qbo_invoice.id = invoice.id
+              qbo_invoice.save!
+            end
+
+            # Attach the invoice to the issue
+            unless i.qbo_invoices.include?(qbo_invoice)
+              i.qbo_invoices << qbo_invoice
+              i.save
+            end
           rescue
             puts "Something when wrong..."
             # do nothing, the reccord exists
