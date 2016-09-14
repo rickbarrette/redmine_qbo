@@ -53,9 +53,9 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     
     return "
     <div class=\"attributes\">
-      <div class="splitcontent">
+      <div class=\"splitcontent\">
       
-        <div class="splitcontentleft">
+        <div class=\"splitcontentleft\">
           <div class=\"customer_id attribute\">
             <div class=\"label\"><span>Customer</span>:</div>
             <div class=\"value\">#{customer}</div>
@@ -72,7 +72,7 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
           </div>
         </div>
         
-        <div class="splitcontentleft">
+        <div class=\"splitcontentleft\">
           <div class=\"vehicle attribute\">
             <div class=\"label\"><span>Vehicle</span>:</div>
             <div class=\"value\">#{vehicle}</div>
