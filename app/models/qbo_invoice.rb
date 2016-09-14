@@ -66,7 +66,7 @@ class QboInvoice < ActiveRecord::Base
           # Attach the invoice to the issue
           unless i.qbo_invoices.include?(qbo_invoice)
             i.qbo_invoices << qbo_invoice
-            i.qbo_invoices.save!
+            i.save!
           end
           
           # update the invoive custom fields with infomation from the work ticket if available
