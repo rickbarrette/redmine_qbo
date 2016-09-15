@@ -103,5 +103,5 @@ Note: You need to authenticate after saving your key and secret above
     <br/>
     
     <div>
-        <b>Last Sync: </b> <%= Qbo.last_sync %> <%= link_to " Sync Now", qbo_sync_path %>
+        <b>Last Sync: </b> <%= Qbo.last_sync if Qbo.exists? %> <%= link_to " Sync Now", qbo_sync_path %>
 </div>
