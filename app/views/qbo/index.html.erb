@@ -36,7 +36,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <br/>
     
     <div>
-        <b>Last Sync: </b> <%= Qbo.last_sync %>
+        <b>Last Sync: </b> <%= Qbo.last_sync if Qbo.exists? %>
     </div>
     
 </body>
