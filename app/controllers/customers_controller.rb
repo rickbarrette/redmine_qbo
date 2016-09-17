@@ -105,8 +105,8 @@ class CustomersController < ApplicationController
   
   # Customer view for an issue
   def view
-    token = CustomerToken.where("token = ? and expires_at > ?", params[:token], Time.now)
-    if token.first
+    @token = CustomerToken.where("token = ? and expires_at > ?", params[:token], Time.now)
+    if @token.first
       @issue = Issue.find token.first.issue_id
       @journals = @issue.journals.
                   preload(:details).
