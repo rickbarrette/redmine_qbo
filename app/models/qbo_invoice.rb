@@ -46,87 +46,100 @@ class QboInvoice < ActiveRecord::Base
     process_invoice invoice
   end
   
+  private
+  
+   # Attach the invoice to the issue
+  def self.attach_to_issue(issue, invoice)
+    # Load the invoice into the database
+    qbo_invoice = QboInvoice.find_or_create_by(id: invoice.id)
+    qbo_invoice.doc_number = invoice.doc_number 
+    qbo_invoice.id = invoice.id
+    qbo_invoice.save!
+    
+    unless issue.qbo_invoices.include?(qbo_invoice)
+      issue.qbo_invoices << qbo_invoice
+      issue.save!
+    end
+  end
+  
   # processes the invoice into the system
   def self.process_invoice(invoice)
 
     is_changed = false
     
+    # Check the private notes 
+    invoice.private_note.scan(/#(\w+)/).flatten.each { |issue|
+      attach_to_issue(Issue.find_by_id(issue.to_i), invoice)
+    }
+    
     # Scan the line items for hashtags and attach to the applicable issues
     invoice.line_items.each { |line|
       if line.description
         line.description.scan(/#(\w+)/).flatten.each { |issue|
-          i = Issue.find_by_id(issue.to_i)
-
-          # Load the invoice into the database
-          qbo_invoice = QboInvoice.find_or_create_by(id: invoice.id)
-          qbo_invoice.doc_number = invoice.doc_number 
-          qbo_invoice.id = invoice.id
-          qbo_invoice.save!
-
-          # Attach the invoice to the issue
-          unless i.qbo_invoices.include?(qbo_invoice)
-            i.qbo_invoices << qbo_invoice
-            i.save!
-          end
-          
-          # update the invoive custom fields with infomation from the work ticket if available
-          invoice.custom_fields.each { |cf|
-            
-            # VIN from the attached vehicle
-            begin
-              if cf.name.eql? "VIN"
-                vin = Vehicle.find(i.vehicles_id).vin
-                break if vin.nil?
-                if not cf.string_value.to_s.eql? vin
-                  cf.string_value = vin.to_s
-                  is_changed = true
-                  break
-                end
-              end
-            rescue
-              #do nothing
-            end
-            
-            # Custom Values
-            begin
-              value = i.custom_values.find_by(custom_field_id: CustomField.find_by_name(cf.name).id)
-              
-              # Check to see if the value is blank...
-              if not value.value.to_s.blank?
-                # Check to see if the value is diffrent
-                if not cf.string_value.to_s.eql? value.value.to_s
-                  
-                  # Use the lowest Milage
-                  if cf.name.eql? "Mileage In"
-                    if cf.string_value.to_i > value.value.to_i or cf.string_value.blank?
-                      cf.string_value = value.value.to_s
-                      is_changed = true
-                    end
-                    break
-                  end
-                    
-                  # Use the max milage
-                  if cf.name.eql? "Mileage Out"
-                    if cf.string_value.to_i < value.value.to_i or cf.string_value.blank?
-                      cf.string_value = value.value.to_s
-                      is_changed = true
-                    end
-                    break
-                  end
-                  
-                  # Everything else
-                  cf.string_value = value.value.to_s
-                  is_changed = true
-                end
-              end
-            rescue
-              # Nothing to do here, there is no match
-            end
-          }
+          attach_to_issue(Issue.find_by_id(issue.to_i), invoice)
         }
       end
     }
+          
+    # update the invoive custom fields with infomation from the work ticket if available
+    invoice.custom_fields.each { |cf|
     
+      # TODO Add some hooks here
+      
+      # VIN from the attached vehicle
+      begin
+        if cf.name.eql? "VIN"
+          vin = Vehicle.find(i.vehicles_id).vin
+          break if vin.nil?
+          if not cf.string_value.to_s.eql? vin
+            cf.string_value = vin.to_s
+            is_changed = true
+            break
+          end
+        end
+      rescue
+        #do nothing
+      end
+      
+      # Custom Values
+      begin
+        value = i.custom_values.find_by(custom_field_id: CustomField.find_by_name(cf.name).id)
+        
+        # Check to see if the value is blank...
+        if not value.value.to_s.blank?
+          # Check to see if the value is diffrent
+          if not cf.string_value.to_s.eql? value.value.to_s
+            
+            # Use the lowest Milage
+            if cf.name.eql? "Mileage In"
+              if cf.string_value.to_i > value.value.to_i or cf.string_value.blank?
+                cf.string_value = value.value.to_s
+                is_changed = true
+              end
+              break
+            end
+              
+            # Use the max milage
+            if cf.name.eql? "Mileage Out"
+              if cf.string_value.to_i < value.value.to_i or cf.string_value.blank?
+                cf.string_value = value.value.to_s
+                is_changed = true
+              end
+              break
+            end
+            
+            # Everything else
+            cf.string_value = value.value.to_s
+            is_changed = true
+          end
+        end
+      rescue
+        # Nothing to do here, there is no match
+      end
+    }
+    
+    # TODO Add some hooks here
+
     # Push updates
     get_base.update(invoice) if is_changed
   end
