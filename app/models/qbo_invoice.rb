@@ -50,6 +50,8 @@ class QboInvoice < ActiveRecord::Base
   
    # Attach the invoice to the issue
   def self.attach_to_issue(issue, invoice)
+    return if issue.nil?
+    
     # Load the invoice into the database
     qbo_invoice = QboInvoice.find_or_create_by(id: invoice.id)
     qbo_invoice.doc_number = invoice.doc_number 
