@@ -21,7 +21,7 @@ module AttachmentsControllerPatch
     base.class_eval do
       unloadable # Send unloadable so it will not be unloaded in development
       
-      skip_before_filter :check_if_login_required
+      skip_before_action :read_authorize
     end
   end
       
