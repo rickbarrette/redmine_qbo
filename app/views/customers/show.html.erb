@@ -1,20 +1,25 @@
-<h1>Customer #<%= @customer.id %></h1> 
-<br/> 
-
-<div class=\"splitcontent\">
-  <div class=\"splitcontentleft\">
-    <h2>Details:</h2>
-    <%= render :partial => 'customers/details', locals: {customer: @customer} %>
-  </div>
-  <div class=\"splitcontentleft\">
-    <h2>Vehicles:</h2>
-    <%= render :partial => 'vehicles/list' %>
-    <%= button_to "New Vehicle", new_customer_vehicle_path(@customer), method: :get %>
-  </div>
-</div>  
-
-<br/>
-<br/>
-<h2>Issues:</h2>
-<%= render :partial => 'issues/list_simple', locals: {issues: @issues} %>
+<div id="content">
   
+  <div class="attributes">
+  
+    <h1>Customer #<%= @customer.id %></h1> 
+    <br/> 
+    
+    <div class=\"splitcontent\">
+      <div class=\"splitcontentleft\">
+        <h2>Details:</h2>
+        <%= render :partial => 'customers/details', locals: {customer: @customer} %>
+      </div>
+      <div class=\"splitcontentleft\">
+        <h2>Vehicles:</h2>
+        <%= render :partial => 'vehicles/list' %>
+        <%= button_to "New Vehicle", new_customer_vehicle_path(@customer), method: :get %>
+      </div>
+    </div>  
+    
+    <br/>
+    <br/>
+    <h2>Issues:</h2>
+    <%= render :partial => 'issues/list_simple', locals: {issues: @issues} %>
+  </div>
+</div>
