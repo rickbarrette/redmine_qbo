@@ -68,7 +68,7 @@ class QboInvoice < ActiveRecord::Base
     is_changed = false
     
     # Check the private notes 
-    if notinvoice.private_note.nil?
+    if not invoice.private_note.nil?
       invoice.private_note.scan(/#(\w+)/).flatten.each { |issue|
         attach_to_issue(Issue.find_by_id(issue.to_i), invoice)
       }
