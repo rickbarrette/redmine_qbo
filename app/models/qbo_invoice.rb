@@ -68,9 +68,11 @@ class QboInvoice < ActiveRecord::Base
     is_changed = false
     
     # Check the private notes 
-    invoice.private_note.scan(/#(\w+)/).flatten.each { |issue|
-      attach_to_issue(Issue.find_by_id(issue.to_i), invoice)
-    }
+    if notinvoice.private_note.nil?
+      invoice.private_note.scan(/#(\w+)/).flatten.each { |issue|
+        attach_to_issue(Issue.find_by_id(issue.to_i), invoice)
+      }
+    end
     
     # Scan the line items for hashtags and attach to the applicable issues
     invoice.line_items.each { |line|
