@@ -105,6 +105,9 @@ class CustomersController < ApplicationController
   
   # Customer view for an issue
   def view
+    
+    User.current = User.find_by lastname: 'Anonymous'
+    
     @token = CustomerToken.where("token = ? and expires_at > ?", params[:token], Time.now)
     @token = @token.first
     if @token
