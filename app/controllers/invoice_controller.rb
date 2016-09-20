@@ -12,8 +12,8 @@ class InvoiceController < ApplicationController
   
   include AuthHelper
   
-  before_filter :require_user, :if => proc {|c| session[:token].nil? }
-  skip_before_filter :verify_authenticity_token, :check_if_login_required, :if => proc {|c| session[:token].nil? }
+  before_filter :require_user, :unless => proc {|c| session[:token].nil? }
+  skip_before_filter :verify_authenticity_token, :check_if_login_required, :unless => proc {|c| session[:token].nil? }
   
   #
   # Downloads and forwards the invoice pdf
