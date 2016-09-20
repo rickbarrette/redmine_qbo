@@ -15,7 +15,7 @@ class InvoiceController < ApplicationController
   before_filter :require_user
   skip_before_filter :verify_authenticity_token, :check_if_login_required, :only => [:show] if authorized
   
-  def authorized
+  def self.authorized
     session[:token].nil?
   end
   
