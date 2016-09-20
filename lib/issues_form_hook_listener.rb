@@ -50,10 +50,10 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
       <input autocomplete=\"off\" class=\"ui-autocomplete-input autocomplete\" size=\"10\" name=\"issue[customer_id]\" id=\"issue_customer_id\" type=\"text\">
       <script>
       //<![CDATA[
-      observeAutocompleteField('issue_customer_id', '/customers/auto_complete')
+      observeAutocompleteField('issue_customer_id', '/auto_complete/customer')
       //]]>
       </script>
     
-    <p>select_customer</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>"
+    <p>#{select_customer}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>"
   end
 end
