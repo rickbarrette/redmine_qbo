@@ -36,7 +36,7 @@ module QueryPatch
       unless @available_columns
         @available_columns = available_columns_without_qbo
         @available_columns << QueryColumn.new(:customer, :sortable => "#{Customer.table_name}.name", :groupable => true, :caption => :field_customer)
-        @available_columns << QueryColumn.new(:qbo_billed, :sortable => "#{TimeEntry.table_name}.name", :groupable => true, :caption => :field_qbo_billed)
+        @available_columns << QueryColumn.new(:qbo_billed, :sortable => "#{TimeEntry.table_name}.qbo_billed", :groupable => true, :caption => :field_qbo_billed)
       end
       @available_columns
     end
