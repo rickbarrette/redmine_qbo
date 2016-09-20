@@ -32,6 +32,19 @@ class CustomersController < ApplicationController
   
   default_search_scope :names
   
+  def auto_complete
+    @customers = []
+    q = (params[:q] || params[:term]).to_s.strip
+    if q.present?
+      if q.match(/\A#?(\d+)\z/)
+        @customers << Customer.find_by_id($1.to_i)
+      end
+      @customers += Customer.where("LOWER(#{Customer.table_name}.name) LIKE LOWER(?)", "%#{q}%").order("#{Customer.table_name}.id DESC").limit(10).to_a
+      @customers.compact!
+    end
+    render :layout => false
+  end
+  
   # display a list of all customers
   def index
     if params[:search]
