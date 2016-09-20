@@ -11,8 +11,6 @@
 module AuthHelper
 
   def require_user
-    return if session[:token]
-    
     if !User.current.logged?
       render :file => "public/401.html.erb", :status => :unauthorized, :layout =>true
     end
