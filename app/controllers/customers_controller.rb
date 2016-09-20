@@ -124,7 +124,7 @@ class CustomersController < ApplicationController
     @token = CustomerToken.where("token = ? and expires_at > ?", params[:token], Time.now)
     @token = @token.first
     if @token
-      session[:token] = @token
+      session[:token] = @token.token
       @issue = Issue.find @token.issue_id
       @journals = @issue.journals.
                   preload(:details).
