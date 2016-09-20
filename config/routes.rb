@@ -46,4 +46,4 @@ end
 resources :vehicles
 
 # autocomplete
-get '/customers/auto_complete', :to => 'customers#auto_complete', :via => :get, :as => 'customers_auto_complete'
+get '/auto_complete/customer', :to => 'customers#auto_complete', :via => :get, :as => 'customers_auto_complete'
