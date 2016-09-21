@@ -52,6 +52,9 @@ class QboInvoice < ActiveRecord::Base
   def self.attach_to_issue(issue, invoice)
     return if issue.nil?
     
+    # skip this issue if the issue customer is not the same as the invoice customer
+    return if issue.customer_id != invoice.customer_ref.id
+    
     # Load the invoice into the database
     qbo_invoice = QboInvoice.find_or_create_by(id: invoice.id)
     qbo_invoice.doc_number = invoice.doc_number 
