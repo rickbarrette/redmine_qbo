@@ -53,7 +53,7 @@ class QboInvoice < ActiveRecord::Base
     return if issue.nil?
     
     # skip this issue if the issue customer is not the same as the invoice customer
-    return if issue.customer_id != invoice.customer_id
+    return if issue.customer_id != invoice.customer_ref.value
     
     # Load the invoice into the database
     qbo_invoice = QboInvoice.find_or_create_by(id: invoice.id)
