@@ -99,7 +99,7 @@ class QboInvoice < ActiveRecord::Base
       # VIN from the attached vehicle
       begin
         if cf.name.eql? "VIN"
-          vin = Vehicle.find(i.vehicles_id).vin
+          vin = Vehicle.find(issue.vehicles_id).vin
           break if vin.nil?
           if not cf.string_value.to_s.eql? vin
             cf.string_value = vin.to_s
@@ -113,7 +113,7 @@ class QboInvoice < ActiveRecord::Base
       
       # Custom Values
       begin
-        value = i.custom_values.find_by(custom_field_id: CustomField.find_by_name(cf.name).id)
+        value = issue.custom_values.find_by(custom_field_id: CustomField.find_by_name(cf.name).id)
         
         # Check to see if the value is blank...
         if not value.value.to_s.blank?
