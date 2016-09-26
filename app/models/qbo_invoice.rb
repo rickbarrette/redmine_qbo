@@ -65,6 +65,8 @@ class QboInvoice < ActiveRecord::Base
       issue.qbo_invoices << qbo_invoice
       issue.save!
     end
+    
+    compare_custom_fields(issue, invoice)
   end
   
   # processes the invoice into the system
@@ -87,7 +89,9 @@ class QboInvoice < ActiveRecord::Base
         }
       end
     }
-          
+  end
+  
+  def self.compare_custom_fields(issue, invoice)
     # update the invoive custom fields with infomation from the work ticket if available
     invoice.custom_fields.each { |cf|
     
@@ -150,5 +154,5 @@ class QboInvoice < ActiveRecord::Base
     # Push updates
     get_base.update(invoice) if is_changed
   end
-  
+    
 end
