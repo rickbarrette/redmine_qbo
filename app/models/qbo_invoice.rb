@@ -104,7 +104,6 @@ class QboInvoice < ActiveRecord::Base
           if not cf.string_value.to_s.eql? vin
             cf.string_value = vin.to_s
             is_changed = true
-            break
           end
         end
       rescue
@@ -126,7 +125,6 @@ class QboInvoice < ActiveRecord::Base
                 cf.string_value = value.value.to_s
                 is_changed = true
               end
-              break
             end
               
             # Use the max milage
@@ -135,7 +133,6 @@ class QboInvoice < ActiveRecord::Base
                 cf.string_value = value.value.to_s
                 is_changed = true
               end
-              break
             end
             
             # Everything else
