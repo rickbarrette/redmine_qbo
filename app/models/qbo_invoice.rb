@@ -71,9 +71,6 @@ class QboInvoice < ActiveRecord::Base
   
   # processes the invoice into the system
   def self.process_invoice(invoice)
-
-    is_changed = false
-    
     # Check the private notes 
     if not invoice.private_note.nil?
       invoice.private_note.scan(/#(\w+)/).flatten.each { |issue|
@@ -92,6 +89,8 @@ class QboInvoice < ActiveRecord::Base
   end
   
   def self.compare_custom_fields(issue, invoice)
+    is_changed = false
+    
     # update the invoive custom fields with infomation from the work ticket if available
     invoice.custom_fields.each { |cf|
     
