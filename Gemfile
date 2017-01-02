@@ -6,7 +6,7 @@ gem 'oauth-plugin'
 gem 'oauth'
 gem 'roxml'
 gem 'edmunds_vin'
-gem 'will_paginate', '~> 3.1.0'
+gem 'will_paginate'
 
 group :assets do
   gem 'coffee-rails'
