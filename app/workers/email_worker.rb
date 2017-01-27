@@ -15,8 +15,8 @@ class EmailWorker
   def perform(email, count)
     # email something
   end
+end
   
-  every :sunday do # Many shortcuts available: :hour, :day, :month, :year, :reboot
-    runner "EmailWorker.perform_async"
-  end
+every :sunday do # Many shortcuts available: :hour, :day, :month, :year, :reboot
+  runner "EmailWorker.perform_async"
 end
