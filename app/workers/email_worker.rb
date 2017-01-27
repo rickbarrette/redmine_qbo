@@ -11,7 +11,12 @@
 # This sidekiq worker class will handle emailing weekly time reports
 class EmailWorker
   include Sidekiq::Worker
-  def perform(name, count)
-    # do something
+  
+  def perform(email, count)
+    # email something
+  end
+  
+  every :sunday do # Many shortcuts available: :hour, :day, :month, :year, :reboot
+    runner "EmailWorker.perform_async"
   end
 end
