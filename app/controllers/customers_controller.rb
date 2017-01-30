@@ -28,7 +28,7 @@ class CustomersController < ApplicationController
   helper :timelog
   
   before_filter :require_user, :except => :view
-  skip_before_filter :verify_authenticity_token, :check_if_login_required, :only => [:view]
+  skip_before_filter :verify_authenticity_token, :check_if_login_required, :only => [:view], :column_name => 'name'
   
   default_search_scope :names
   
