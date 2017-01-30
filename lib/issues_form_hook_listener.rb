@@ -45,6 +45,13 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     
     vehicle = f.select :vehicles_id, vehicles, :selected => selected_vehicle, include_blank: true
     
-    return "<p><label for=\"issue_customer\">Customer</label>#{search_customer} #{customer_id}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>"
+    return "<p><label for=\"issue_customer\">Customer</label>#{search_customer} #{customer_id}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>
+      <script>
+        $('#issue_customer_id').bind('railsAutocomplete.select', function(event, data){
+          /* Do something here */
+          alert(data.item.id);
+        });
+      </script>
+    "
   end
 end
