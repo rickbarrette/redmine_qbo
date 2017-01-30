@@ -51,7 +51,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     
     vehicle = f.select :vehicles_id, vehicles, :selected => selected_vehicle, include_blank: true
     
-    return "<label for=\"issue_customer\">Customer</label><p>#{search_customer} #{customer_id}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>
+    return "<p><label for=\"issue_customer\">Customer</label>#{search_customer} #{customer_id}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>
 
       <script type=\"text/javascript\">
         $( function() {
