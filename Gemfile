@@ -8,7 +8,7 @@ gem 'roxml'
 gem 'edmunds_vin'
 gem 'will_paginate', '~> 3.1.0'
 gem 'rails-jquery-autocomplete'
-gem 'jquery-rails'
+gem 'jquery-rails', '~> 3.1.4'
 
 group :assets do
   gem 'coffee-rails'
