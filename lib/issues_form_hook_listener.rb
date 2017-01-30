@@ -34,7 +34,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
                         include_blank: true, 
                         onchange: "$customerSelected;"
     
-    search_customer = f.autocomplete_field :customer, autocomplete_customer_name_customers_path, :id_element => '#issue_customer_id', :selected => selected_customer, :update_elements => {:id => '#issue_customer_id', :value => '#issue_customer'}
+    search_customer = f.autocomplete_field :customer, autocomplete_customer_name_customers_path, :selected => selected_customer, :update_elements => {:id => '#issue_customer_id', :value => '#issue_customer'}
     customer_id = f.hidden_field :customer_id, :id => "issue_customer_id"
     
     # Generate the drop down list of quickbooks extimates
