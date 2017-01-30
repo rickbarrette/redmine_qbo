@@ -41,6 +41,7 @@ get "update_vehicles" => 'vehicles#update_vehicles', as: 'update_vehicles'
 resources :customers do
   resources :vehicles
   get :autocomplete_customer_name, :on => :collection
+  get :autocomplete_customer_vehicles, :on => :collection
 end
 
 #allow for just vehicles too
