@@ -37,7 +37,7 @@ class CustomersController < ApplicationController
   def autocomplete_customer_vehicles
     customer = Customer.find_by_id(params[:term])
     items = customer.vehicles if customer 
-    render :json => json_for_autocomplete(items) 
+    render :json => items.to_json if items
   end
   
   # display a list of all customers
