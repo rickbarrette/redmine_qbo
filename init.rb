@@ -36,6 +36,10 @@ Redmine::Plugin.register :redmine_qbo do
     url 'https://github.com/rickbarrette/redmine_qbo'
     author_url 'http://rickbarrette.org'
     settings :default => {'empty' => true}, :partial => 'qbo/settings'
+  
+    every :sunday do # Many shortcuts available: :hour, :day, :month, :year, :reboot
+      runner "EmailWorker.perform_async"
+    end
 
     # Add safe attributes
     Issue.safe_attributes 'customer_id'
