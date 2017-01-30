@@ -34,6 +34,12 @@ class CustomersController < ApplicationController
   
   autocomplete :customer, :name, :full => false, :extra_data => [:id]
   
+  def autocomplete_customer_vehicles
+    customer = Customer.find_by_id(params[:term])
+    items = customer.vehicles if customer 
+    render :json => json_for_autocomplete(items, options[:display_value] ||= method, options[:extra_data]) 
+  end
+  
   # display a list of all customers
   def index
     if params[:search]
