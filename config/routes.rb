@@ -40,10 +40,8 @@ get "update_vehicles" => 'vehicles#update_vehicles', as: 'update_vehicles'
 # Nest Vehicles under customers
 resources :customers do
   resources :vehicles
+  get :autocomplete_customer_name, :on => :collection
 end
 
 #allow for just vehicles too
 resources :vehicles
-
-# autocomplete
-get '/auto_complete/customer', :to => 'customers#auto_complete', :via => :get, :as => 'customers_auto_complete'
