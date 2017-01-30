@@ -1,4 +1,4 @@
 //= require jquery
-//= require jquery_ujs
-//= require jquery-ui/autocomplete
+//= require jquery-ui-1.12.1
+//= require jquery-ui-1.12.1/autocomplete
 //= require autocomplete-rails
