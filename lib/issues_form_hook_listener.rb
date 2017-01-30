@@ -48,11 +48,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     return "<p><label for=\"issue_customer\">Customer</label>#{search_customer} #{customer_id}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>
       <script type=\"text/javascript\">
         $('#issue_customer_id').bind('railsAutocomplete.select', function(event, data){
-
-          $( \"#issue_vehicles_id\" ).autocomplete({
-            source: #{autocomplete_customer_vehicles_customers_path}
-          });
-          alert(data.item.id);
+          console.log( data.item.id);
         });
       </script>
     "
