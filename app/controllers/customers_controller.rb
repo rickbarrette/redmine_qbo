@@ -32,7 +32,7 @@ class CustomersController < ApplicationController
   
   default_search_scope :names
   
-  autocomplete :customer, :name
+  autocomplete :customer, :name, :full => false, :extra_data => [:id]
   
   # display a list of all customers
   def index
