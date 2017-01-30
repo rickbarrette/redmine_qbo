@@ -12,11 +12,7 @@
 class EmailWorker
   include Sidekiq::Worker
   
-  def perform(email, count)
+  def perform()
     # email something
   end
-end
-  
-every :sunday do # Many shortcuts available: :hour, :day, :month, :year, :reboot
-  runner "EmailWorker.perform_async"
 end
