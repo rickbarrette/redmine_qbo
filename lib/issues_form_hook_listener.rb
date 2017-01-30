@@ -29,14 +29,8 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     selected_estimate =  context[:issue].qbo_estimate ? context[:issue].qbo_estimate.id  : nil
     selected_vehicle = context[:issue].vehicles_id ? context[:issue].vehicles_id : nil
     
-    # Load customer information without callbacks
-    customer = Customer.find_by_id(selected_customer) if selected_customer
-    select_customer = f.select :customer_id, 
-                        Customer.all.pluck(:name, :id).sort, 
-                        :selected => selected_customer, 
-                        include_blank: true, 
-                        onchange: "$customerSelected;"
-    
+    # Load customer information
+    customer = Customer.find_by_id(selected_customer) if selected_customer   
     search_customer = f.autocomplete_field :customer, autocomplete_customer_name_customers_path, :selected => selected_customer, :update_elements => {:id => '#issue_customer_id', :value => '#issue_customer'}
     customer_id = f.hidden_field :customer_id, :id => "issue_customer_id"
     
