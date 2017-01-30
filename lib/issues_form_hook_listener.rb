@@ -34,6 +34,8 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
                         include_blank: true, 
                         onchange: "$customerSelected;"
     
+    search_customer = f.autocomplete_field :customer_id, autocomplete_customer_name_customers_path
+    
     # Generate the drop down list of quickbooks extimates
     select_estimate = f.select :qbo_estimate_id, QboEstimate.all.pluck(:doc_number, :id).sort! {|x, y| y <=> x}, :selected => selected_estimate, include_blank: true
     
@@ -45,14 +47,6 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     
     vehicle = f.select :vehicles_id, vehicles, :selected => selected_vehicle, include_blank: true
     
-    return "
-      <input autocomplete=\"on\" class=\"ui-autocomplete-input autocomplete\" size=\"10\" name=\"issue[customer_id]\" id=\"issue_customer_id\" type=\"text\">
-      <script>
-      //<![CDATA[
-      observeAutocompleteField('issue_customer_id', '/auto_complete/customer')
-      //]]>
-      </script>
-    
-    <p>#{select_customer}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>"
+    return "<p>#{search_customer}</p> <p>#{select_customer}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>"
   end
 end
