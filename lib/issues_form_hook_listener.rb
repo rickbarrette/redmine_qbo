@@ -12,10 +12,10 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
   
   # Load the javascript
   def view_layouts_base_html_head(context = {})
-    js = javascript_include_tag 'application', :plugin => 'redmine_qbo'
-    js += javascript_include_tag 'jquery/jquery-3.1.1.min', :plugin => 'redmine_qbo'
-    js += javascript_include_tag 'jquery-ui-1.12.1/jquery-ui', :plugin => 'redmine_qbo'
-    js += javascript_include_tag 'autocomplete-rails', :plugin => 'redmine_qbo'
+    #js = javascript_include_tag 'application', :plugin => 'redmine_qbo'
+    #js += javascript_include_tag 'jquery/jquery-3.1.1.min', :plugin => 'redmine_qbo'
+    #js += javascript_include_tag 'jquery-ui-1.12.1/jquery-ui', :plugin => 'redmine_qbo'
+    js = javascript_include_tag 'autocomplete-rails', :plugin => 'redmine_qbo'
     return js
   end
   
