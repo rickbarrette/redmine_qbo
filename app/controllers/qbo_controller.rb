@@ -66,8 +66,12 @@ class QboController < ApplicationController
   # Manual Billing
   def bill
     i = Issue.find_by_id params[:id]
-    i.bill_time
-    redirect_to i, :flash => { :notice => "Successfully Billed #{i.customer.name}" }
+    if i.customer
+      i.bill_time
+      redirect_to i, :flash => { :notice => "Successfully Billed #{i.customer.name}" }
+    else
+      redirect_to i, :flash => { :error => "Cannot bill without a customer assigned" }
+    end
   end
   
   # Quickbooks Webhook Callback
