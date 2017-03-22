@@ -35,7 +35,7 @@ resources :payments
 post 'qbo/webhook', :to => 'qbo#qbo_webhook'
 
 #ajax
-get "update_vehicles" => 'vehicles#update_vehicles', as: 'update_vehicles'
+get 'filter_vehicles_by_customer' => 'customers#filter_units_by_customer'
 
 # Nest Vehicles under customers
 resources :customers do
