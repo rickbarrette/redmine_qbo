@@ -5,7 +5,7 @@ $(function() {
         url:  "/filter_vehicles_by_customer", 
         type: "GET", 
         data: { 
-          selected_customer: $("input#issue_customer").val() 
+          selected_customer: $("input#issue_customer").val();
         } 
       });
     });
