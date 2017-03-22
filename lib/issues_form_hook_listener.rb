@@ -37,8 +37,6 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     
     if context[:issue].customer
       vehicles = customer.vehicles.pluck(:name, :id).sort! 
-    else
-      vehicles = Vehicle.all.order(:name).pluck(:name, :id)
     end
     
     vehicle = f.select :vehicles_id, vehicles, :selected => selected_vehicle, include_blank: true
