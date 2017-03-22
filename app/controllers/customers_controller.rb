@@ -144,6 +144,10 @@ class CustomersController < ApplicationController
     end
   end
   
+  def filter_vehicles_by_customer
+    @filtered_vehicles = Customer.find(customer_id: params[:selected_customer]).vehicles
+  end
+  
   private
   
   def only_one_non_zero?( array )
