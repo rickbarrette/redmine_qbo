@@ -6,6 +6,6 @@ $(function() {
         type: "GET", 
         data: { selected_customer: $("input#issue_customer").val() } 
       });
-    });
+    }
   });
 });
