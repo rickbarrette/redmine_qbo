@@ -47,7 +47,12 @@ Redmine::Plugin.register :redmine_qbo do
 
     # set per_page globally
     WillPaginate.per_page = 10
-
+  
+    permission :view_customers, :customers => :index
+    permission :add_customers, :customers => :new
+    permission :view_payments, :payments => :index
+    permission :add_payments, :payments => :new
+  
     # Register QBO top menu item
     #menu :top_menu, :qbo, { :controller => :qbo, :action => :index }, :caption => 'Quickbooks', :if => Proc.new { User.current.admin? }
     menu :top_menu, :customers, { :controller => :customers, :action => :index }, :caption => 'Customers', :if => Proc.new { User.current.logged? }
