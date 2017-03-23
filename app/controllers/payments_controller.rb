@@ -12,7 +12,7 @@ class PaymentsController < ApplicationController
   
   include AuthHelper
   
-  before_filter :permission_checker([:add_payments])
+  before_filter :permission_checker [:add_payments]
   
   def new
     @payment = Payment.new
