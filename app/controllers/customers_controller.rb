@@ -146,11 +146,11 @@ class CustomersController < ApplicationController
   private
   
   def add_customer
-    global_check_permission(:add_customer)
+    global_check_permission(:add_customers)
   end
   
   def view_customer
-    global_check_permission(:view_customer)
+    global_check_permission(:view_customers)
   end
   
   def only_one_non_zero?( array )
