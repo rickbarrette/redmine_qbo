@@ -34,10 +34,8 @@ class CustomersController < ApplicationController
   
   autocomplete :customer, :name, :full => false, :extra_data => [:id]
   
-  def autocomplete_customer_vehicles
-    customer = Customer.find_by_id(params[:term])
-    items = customer.vehicles if customer 
-    render :json => items.to_json if items
+  def filter_vehicles_by_customer
+    @filtered_vehicles = Vehicle.all.where(customer_id: params[:selected_customer])
   end
   
   # display a list of all customers
@@ -142,10 +140,6 @@ class CustomersController < ApplicationController
     else
       render_403
     end
-  end
-  
-  def filter_vehicles_by_customer
-    @filtered_vehicles = Customer.find(customer_id: params[:selected_customer]).vehicles
   end
   
   private
