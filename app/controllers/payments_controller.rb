@@ -12,8 +12,8 @@ class PaymentsController < ApplicationController
   
   include AuthHelper
   
-  before_filter :find_project, User.current.allowed_to?(:add_paypments, @project)
-
+  before_filter :check_permissions
+  
   def new
     @payment = Payment.new
     
@@ -32,14 +32,13 @@ class PaymentsController < ApplicationController
     else
       flash[:error] = @payment.errors.full_messages.to_sentence 
       redirect_to new_customer_path
-end
+    end
   end
   
   private
 
-  def find_project
-    # @project variable must be set before calling the authorize filter
-    @project = Project.find(params[:project_id])
+  def check_permissions
+    return User.current.allowed_to?(:add_paypments, Project.find(params[:project_id]))
   end
   
   def only_one_non_zero?( array )
