@@ -48,22 +48,19 @@ Redmine::Plugin.register :redmine_qbo do
     # set per_page globally
     WillPaginate.per_page = 10
   
-    permission :view_customers, :customers => :index
-    permission :add_customers, :customers => :new
-    permission :view_payments, :payments => :index
-    permission :add_payments, :payments => :new
+    permission :view_customers, :customers => :index, :public => false
+    permission :add_customers, :customers => :new, :public => false
+    permission :view_payments, :payments => :index, :public => false
+    permission :add_payments, :payments => :new, :public => false
   
     # Register QBO top menu item
     #menu :top_menu, :qbo, { :controller => :qbo, :action => :index }, :caption => 'Quickbooks', :if => Proc.new { User.current.admin? }
-    menu :top_menu, :customers, { :controller => :customers, :action => :index }, :caption => 'Customers', :if => Proc.new { User.current.logged? }
-    menu :top_menu, :vehicles, { :controller => :vehicles, :action => :index }, :caption => 'Vehicles', :if => Proc.new { User.current.logged? }
+    menu :top_menu, :customers, { :controller => :customers, :action => :index }, :caption => 'Customers', :if => Proc.new { User.current.authorized? }
+    menu :top_menu, :vehicles, { :controller => :vehicles, :action => :index }, :caption => 'Vehicles', :if => Proc.new { User.current.authorized? }
     
-    menu :application_menu, :new_customer, { :controller => :customers, :action => :new }, :caption => 'New Customer', :if => Proc.new { User.current.logged? }
-    menu :application_menu, :new_payment, { :controller => :payments, :action => :new }, :caption => 'New Payment', :if => Proc.new { User.current.logged? }
+    menu :application_menu, :new_customer, { :controller => :customers, :action => :new }, :caption => 'New Customer', :if => Proc.new { User.current.authorized? }
+    menu :application_menu, :new_payment, { :controller => :payments, :action => :new }, :caption => 'New Payment', :if => Proc.new { User.current.authorized? }
     
-    permission :customers, { :customers => [:index, :new] }, :public => false
     menu :project_menu, :customers, { :controller => 'customers', :action => 'new' }, :caption => 'New Customer', :after => :new_issue, :param => :project_id
-    
-    permission :payments, { :payments => [:index, :new] }, :public => false
     menu :project_menu, :payments, { :controller => 'payments', :action => 'new' }, :caption => 'New Payment', :after => :customers, :param => :project_id
 end
