@@ -16,4 +16,14 @@ module AuthHelper
       render :file => "public/401.html.erb", :status => :unauthorized, :layout =>true
     end
   end
+  
+  def permission_checker(permission_list)
+    proc {
+      flag = false
+      permission_list.each { |permission|
+        flag ||= User.current.allowed_to_globally?(permission, {})
+      }
+      flag
+    }
+  end
 end
