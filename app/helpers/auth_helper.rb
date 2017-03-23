@@ -25,6 +25,12 @@ module AuthHelper
     false
   end
   
+  def check_permission(permission)
+    if !allowed_to?(permission)
+      render :file => "public/401.html.erb", :status => :unauthorized, :layout =>true 
+    end
+  end
+  
   def global_allowed_to?( action)
     return false if User.current.nil?
 
