@@ -17,13 +17,16 @@ module AuthHelper
     end
   end
   
-  def permission_checker(permission_list)
-    proc {
-      flag = false
-      permission_list.each { |permission|
-        flag ||= User.current.allowed_to_globally?(permission, {})
-      }
-      flag
+  def global_allowed_to?(user, action)
+    return false if user.nil?
+
+    projects = Project.all
+    projects.each { |p|
+      if user.allowed_to?(action, p)
+        return true
+      end
     }
+
+    false
   end
 end
