@@ -27,8 +27,7 @@ class CustomersController < ApplicationController
   include SortHelper
   helper :timelog
   
-  before_filter :add_customer, :only => :new
-  before_filter :view_customer, :except => :new
+  before_filter :require_user
   skip_before_filter :verify_authenticity_token, :check_if_login_required, :only => [:view]
   
   default_search_scope :names
