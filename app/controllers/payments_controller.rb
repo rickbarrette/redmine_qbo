@@ -12,7 +12,7 @@ class PaymentsController < ApplicationController
   
   include AuthHelper
   
-  before_filter :add_payments, :authorize
+  before_filter :find_project, :authorize
 
   def new
     @payment = Payment.new
@@ -36,6 +36,11 @@ end
   end
   
   private
+
+  def find_project
+    # @project variable must be set before calling the authorize filter
+    @project = Project.find(params[:project_id])
+  end
   
   def only_one_non_zero?( array )
     found_non_zero = false
