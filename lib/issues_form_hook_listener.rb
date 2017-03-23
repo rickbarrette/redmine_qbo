@@ -12,10 +12,8 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
   
   # Load the javascript
   def view_layouts_base_html_head(context = {})
-    #js = javascript_include_tag 'application', :plugin => 'redmine_qbo'
-    #js += javascript_include_tag 'jquery/jquery-3.1.1.min', :plugin => 'redmine_qbo'
-    #js += javascript_include_tag 'jquery-ui-1.12.1/jquery-ui', :plugin => 'redmine_qbo'
-    js = javascript_include_tag 'autocomplete-rails', :plugin => 'redmine_qbo'
+    js = javascript_include_tag 'application', :plugin => 'redmine_qbo'
+    js += javascript_include_tag 'autocomplete-rails', :plugin => 'redmine_qbo'
     return js
   end
   
@@ -38,9 +36,9 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     select_estimate = f.select :qbo_estimate_id, QboEstimate.all.pluck(:doc_number, :id).sort! {|x, y| y <=> x}, :selected => selected_estimate, include_blank: true
     
     if context[:issue].customer
-      vehicles = customer.vehicles.pluck(:name, :id).sort! 
+      vehicles = customer.vehicles.pluck(:name, :id).sort!
     else
-      vehicles = Vehicle.all.order(:name).pluck(:name, :id)
+      vehicles = [nil].compact
     end
     
     vehicle = f.select :vehicles_id, vehicles, :selected => selected_vehicle, include_blank: true
