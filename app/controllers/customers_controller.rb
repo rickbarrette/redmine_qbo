@@ -150,7 +150,7 @@ class CustomersController < ApplicationController
   end
   
   def view_customer
-    chech_permission(:view_customer)
+    check_permission(:view_customer)
   end
   
   def only_one_non_zero?( array )
