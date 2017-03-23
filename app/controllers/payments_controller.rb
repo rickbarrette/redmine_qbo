@@ -38,7 +38,9 @@ class PaymentsController < ApplicationController
   private
 
   def check_permissions
-    render :file => "public/401.html.erb", :status => :unauthorized, :layout =>true if! allowed_to?(:add_paypments)
+    if !allowed_to?(:add_paypments)
+      render :file => "public/401.html.erb", :status => :unauthorized, :layout =>true 
+    end
   end
   
   def only_one_non_zero?( array )
