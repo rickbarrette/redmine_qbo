@@ -12,8 +12,8 @@ class PaymentsController < ApplicationController
   
   include AuthHelper
   
-  before_filter :require_user
-
+  before_filter :check_permissions
+  
   def new
     @payment = Payment.new
     
@@ -32,10 +32,16 @@ class PaymentsController < ApplicationController
     else
       flash[:error] = @payment.errors.full_messages.to_sentence 
       redirect_to new_customer_path
-end
+    end
   end
   
   private
+
+  def check_permissions
+    if !allowed_to?(:add_payments)
+      render :file => "public/401.html.erb", :status => :unauthorized, :layout =>true 
+    end
+  end
   
   def only_one_non_zero?( array )
     found_non_zero = false
