@@ -12,7 +12,7 @@ class PaymentsController < ApplicationController
   
   include AuthHelper
   
-  before_filter :permission_checker [:add_payments]
+  before_filter :check_permissions
   
   def new
     @payment = Payment.new
@@ -38,7 +38,7 @@ class PaymentsController < ApplicationController
   private
 
   def check_permissions
-    return User.current.allowed_to?(:add_paypments, Project.find(params[:project_id]))
+    allowed_to?(:add_paypments)
   end
   
   def only_one_non_zero?( array )
