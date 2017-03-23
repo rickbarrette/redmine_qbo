@@ -17,6 +17,14 @@ module AuthHelper
     end
   end
   
+  def allowed_to?(user, action)
+    return false if user.nil?
+    project = Project.find(params[:project_id])
+    return false if project.nil?
+    return true if user.allowed_to?(action, project)
+    false
+  end
+  
   def global_allowed_to?(user, action)
     return false if user.nil?
 
@@ -26,7 +34,7 @@ module AuthHelper
         return true
       end
     }
-
     false
   end
+    
 end
