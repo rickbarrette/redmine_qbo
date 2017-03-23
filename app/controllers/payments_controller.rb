@@ -12,7 +12,7 @@ class PaymentsController < ApplicationController
   
   include AuthHelper
   
-  before_filter :require_user
+  before_filter :add_payments, :authorize
 
   def new
     @payment = Payment.new
