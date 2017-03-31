@@ -102,15 +102,6 @@ class VehiclesController < ApplicationController
     end
   end
   
-  # returns a dynamic list of vehicles owned by a customer
-  def update_vehicles
-    @vehicles = Customer.find_by(customer_id: params[:customer_id].to_i).vehicles
-    respond_to do |format|
-      format.html { render(:text => "not implemented") }
-      format.js
-    end
-  end
-  
   private
   
   def only_one_non_zero?( array )
