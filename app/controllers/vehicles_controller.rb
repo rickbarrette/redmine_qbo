@@ -57,6 +57,7 @@ class VehiclesController < ApplicationController
   def show
     begin
       @vehicle = Vehicle.find_by_id(params[:id])
+      @vin = @vehicle.vin.scan(/.{1,9}/) if @vehicle.vin
     rescue ActiveRecord::RecordNotFound
       render_404
     end
