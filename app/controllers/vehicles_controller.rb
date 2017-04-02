@@ -57,6 +57,7 @@ class VehiclesController < ApplicationController
   def show
     begin
       @vehicle = Vehicle.find_by_id(params[:id])
+      @vin = @vehicle.vin.scan(/.{1,9}/) if @vehicle.vin
     rescue ActiveRecord::RecordNotFound
       render_404
     end
@@ -98,15 +99,6 @@ class VehiclesController < ApplicationController
       redirect_to action: :index
     rescue ActiveRecord::RecordNotFound
       render_404
-    end
-  end
-  
-  # returns a dynamic list of vehicles owned by a customer
-  def update_vehicles
-    @vehicles = Customer.find_by(customer_id: params[:customer_id].to_i).vehicles
-    respond_to do |format|
-      format.html { render(:text => "not implemented") }
-      format.js
     end
   end
   

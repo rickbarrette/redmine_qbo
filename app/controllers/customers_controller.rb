@@ -27,7 +27,8 @@ class CustomersController < ApplicationController
   include SortHelper
   helper :timelog
   
-  before_filter :require_user, :except => :view
+  before_filter :add_customer, :only => :new
+  before_filter :view_customer, :except => :new
   skip_before_filter :verify_authenticity_token, :check_if_login_required, :only => [:view]
   
   default_search_scope :names
@@ -143,6 +144,14 @@ class CustomersController < ApplicationController
   end
   
   private
+  
+  def add_customer
+    global_check_permission(:add_customers)
+  end
+  
+  def view_customer
+    global_check_permission(:view_customers)
+  end
   
   def only_one_non_zero?( array )
     found_non_zero = false

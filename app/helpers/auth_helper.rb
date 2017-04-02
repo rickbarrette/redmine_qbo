@@ -16,4 +16,38 @@ module AuthHelper
       render :file => "public/401.html.erb", :status => :unauthorized, :layout =>true
     end
   end
+  
+  def allowed_to?(action)
+    return false if User.current.nil?
+    project = Project.find(params[:project_id])
+    return false if project.nil?
+    return true if User.current.allowed_to?(action, project)
+    false
+  end
+  
+  def check_permission(permission)
+    if !allowed_to?(permission)
+      render :file => "public/401.html.erb", :status => :unauthorized, :layout =>true 
+    end
+  end
+  
+  
+  def global_check_permission(permission)
+    if !globaly_allowed_to?(permission)
+      render :file => "public/401.html.erb", :status => :unauthorized, :layout =>true 
+    end
+  end
+  
+  def globaly_allowed_to?( action)
+    return false if User.current.nil?
+
+    projects = Project.all
+    projects.each { |p|
+      if User.current.allowed_to?(action, p)
+        return true
+      end
+    }
+    false
+  end
+    
 end
