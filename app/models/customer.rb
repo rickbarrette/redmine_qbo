@@ -13,6 +13,8 @@ class Customer < ActiveRecord::Base
   
   has_many :issues
   has_many :qbo_purchases
+  has_many :qbo_invoices
+  has_many :qbo_estimates
   has_many :vehicles
   
   attr_accessible :name, :notes, :email, :primary_phone, :mobile_phone
