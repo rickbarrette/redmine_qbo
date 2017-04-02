@@ -27,7 +27,7 @@ class QboEstimate < ActiveRecord::Base
         estimates.each { |estimate|
           qbo_estimate = QboEstimate.find_or_create_by(id: estimate.id)
           qbo_estimate.doc_number = estimate.doc_number
-          qbo_estimate.customer_id = estimate.customer_ref
+          qbo_estimate.customer_id = estimate.customer_ref.value
           qbo_estimate.id = estimate.id
           qbo_estimate.save!
         }
@@ -41,7 +41,7 @@ class QboEstimate < ActiveRecord::Base
     estimate = get_base.service.fetch_by_id(id)
     qbo_estimate = QboEstimate.find_or_create_by(id: estimate.id)
     qbo_estimate.doc_number = estimate.doc_number
-    qbo_estimate.customer_id = estimate.customer_ref
+    qbo_estimate.customer_id = estimate.customer_ref.value
     qbo_estimate.id = estimate.id
     qbo_estimate.save!
   end
