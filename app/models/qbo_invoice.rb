@@ -150,7 +150,7 @@ class QboInvoice < ActiveRecord::Base
     # TODO Add some hooks here
 
     # Push updates
-    invoice.sync_token += 1 if is_changed
+    #invoice.sync_token += 1 if is_changed
     get_base.update(invoice) if is_changed
   end
     
