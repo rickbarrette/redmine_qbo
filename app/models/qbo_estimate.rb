@@ -13,7 +13,7 @@ class QboEstimate < ActiveRecord::Base
   has_many :issues
   belongs_to :customer 
   attr_accessible :doc_number
-  validates_presence_of :id, :doc_number
+  validates_presence_of :id, :doc_number, :customer_id
   
   def self.get_base
     Qbo.get_base(:estimate)
