@@ -133,10 +133,10 @@ class QboController < ApplicationController
     Thread.new do
       if Qbo.exists?
         Customer.sync
+        QboInvoice.sync
         QboItem.sync
         QboEmployee.sync
         QboEstimate.sync
-        QboInvoice.sync
         
         # Record the last sync time
         Qbo.update_time_stamp
