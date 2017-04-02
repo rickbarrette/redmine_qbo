@@ -12,6 +12,7 @@ class QboInvoice < ActiveRecord::Base
   unloadable
   
   has_and_belongs_to_many :issues
+  belongs_to :customer 
   attr_accessible :doc_number, :id
   validates_presence_of :doc_number, :id
   self.primary_key = :id
@@ -59,6 +60,7 @@ class QboInvoice < ActiveRecord::Base
     qbo_invoice = QboInvoice.find_or_create_by(id: invoice.id)
     qbo_invoice.doc_number = invoice.doc_number 
     qbo_invoice.id = invoice.id
+    qbo_invoice.customer_id = invoice.customer_ref
     qbo_invoice.save!
     
     unless issue.qbo_invoices.include?(qbo_invoice)
