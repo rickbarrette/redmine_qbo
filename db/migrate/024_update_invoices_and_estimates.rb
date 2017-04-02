@@ -10,7 +10,7 @@
 
 class UpdateInvoicesAndEstimates < ActiveRecord::Migration
   def change
-    add_reference :invoices, :customer, index: true
-    add_reference :estimates, :customer, index: true
+    add_reference :qbo_invoices, :customer, index: true
+    add_reference :qbo_estimates, :customer, index: true
   end
 end
