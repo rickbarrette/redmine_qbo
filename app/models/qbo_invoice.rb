@@ -127,19 +127,17 @@ class QboInvoice < ActiveRecord::Base
                 cf.string_value = value.value.to_s
                 is_changed = true
               end
-            end
-              
             # Use the max milage
-            if cf.name.eql? "Mileage Out"
+            elsif  cf.name.eql? "Mileage Out"
               if cf.string_value.to_i < value.value.to_i or cf.string_value.blank?
                 cf.string_value = value.value.to_s
                 is_changed = true
               end
+            else
+              # Everything else
+              cf.string_value = value.value.to_s
+              is_changed = true
             end
-            
-            # Everything else
-            cf.string_value = value.value.to_s
-            is_changed = true
           end
         end
       rescue
