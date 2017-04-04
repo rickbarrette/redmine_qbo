@@ -1,1 +1,1 @@
-$('select#issue_qbo_estimate_id').html('<%= j options_from_collection_for_select(@filtered_estimates, :id, :doc_number) %>');
+$('select#issue_qbo_estimate_id').html('<%= j content_tag(:option,'',:value=>"")+options_from_collection_for_select(@filtered_estimates, :id, :doc_number) %>');
