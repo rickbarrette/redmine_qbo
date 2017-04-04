@@ -34,14 +34,15 @@ resources :payments
 #webhook
 post 'qbo/webhook', :to => 'qbo#qbo_webhook'
 
-#ajax
+#java script routes
 get 'filter_vehicles_by_customer' => 'customers#filter_vehicles_by_customer'
+get 'filter_estimates_by_customer' => 'customers#filter_estimates_by_customer'
+get 'filter_invoices_by_customer' => 'customers#filter_invoices_by_customer'
 
 # Nest Vehicles under customers
 resources :customers do
   resources :vehicles
   get :autocomplete_customer_name, :on => :collection
-  get :autocomplete_customer_vehicles, :on => :collection
 end
 
 #allow for just vehicles too
