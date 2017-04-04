@@ -1,4 +1,4 @@
-#Redmine Quickbooks Online
+# Redmine Quickbooks Online
 
 A plugin for Redmine to connect to Quickbooks Online
 
@@ -8,7 +8,7 @@ The goal of this project is to allow Redmine to connect with Quickbooks Online t
 
 `Note: I am currently using this in a live production enviroment with no issues`
 
-####Features
+#### Features
 * Issues can be assigned to a `Customer` via drop down in the edit Issue form
 * The `Employee` for the Issue is assigned via the assigned Redmine User
   - This is set via a drop down in the user admistration page.
@@ -27,14 +27,14 @@ The goal of this project is to allow Redmine to connect with Quickbooks Online t
     + `Invoice` Custom Fields are matched Issue Custom Fileds and are automaticly updated in Quickbooks. For example, this is usefull for extracting the Mileage In / Out from the Issue and updating the Invoice with the information.
   - `Customers` are automaticly updated in local database
 
-##Prerequisites
+## Prerequisites
 
 * Sign up to become a developer for Intuit https://developer.intuit.com/
 * Create your own aplication to obtain your API keys
 * Set up webhook service to https://redmine.yourdomain.com/qbo/webhook
   - See https://developer.intuit.com/docs/0100_accounting/0300_developer_guides/webhooks
 
-##The Install
+## The Install
 
 1. To install, clone this repo into your plugin folder
 
@@ -73,11 +73,11 @@ Note: After the inital synchronization, this plugin will recieve push notificati
   * Fix Issue sort by Customer
   * MORE Stuff...
 
-##License
+## License
 
 The MIT License (MIT)
 
-Copyright (c) 2016 rick barrette
+Copyright (c) 2017 rick barrette
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
