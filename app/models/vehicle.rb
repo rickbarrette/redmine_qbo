@@ -12,8 +12,6 @@ class Vehicle < ActiveRecord::Base
   
   unloadable
   
-  API_KEY = Setting.plugin_redmine_qbo['settingsEdmundsAPIKey']
-  
   belongs_to :customer
   has_many :issues, :foreign_key => 'vehicles_id'
   
@@ -21,8 +19,6 @@ class Vehicle < ActiveRecord::Base
   
   validates_presence_of :customer
   validates :vin, uniqueness: true
-  #validates :year, numericality: { only_integer: true }
-  
   before_save :decode_vin
   after_initialize :get_details
   
@@ -30,7 +26,10 @@ class Vehicle < ActiveRecord::Base
   
   # returns a human readable string
   def to_s
-    return "#{year} #{make} #{model}"
+    if year.nil? or make.nil? or model.nil?
+      return "#{year} #{make} #{model}"
+    else
+      return "#{vin}"
   end
   
   # returns the raw JSON details from EMUNDS
@@ -97,8 +96,7 @@ class Vehicle < ActiveRecord::Base
   
   # returns the Edmunds decoder service
   def get_decoder
-    #TODO API Code via Settings
-    return decoder = Edmunds::Vin.new(API_KEY)
+    return decoder = Edmunds::Vin.new(Setting.plugin_redmine_qbo['settingsEdmundsAPIKey'])
   end
   
   # decodes a vin and updates self
