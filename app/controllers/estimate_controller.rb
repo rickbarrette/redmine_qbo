@@ -18,7 +18,7 @@ class EstimateController < ApplicationController
   # Downloads and forwards the estimate pdf
   #
   def show
-    base = QboEstimate.get_base.service
+    base = QboEstimate.get_base
     estimate = base.fetch_by_id(params[:id])
     @pdf = base.pdf(estimate)
     send_data @pdf, filename: "estimate #{estimate.doc_number}.pdf", :disposition => 'inline', :type => "application/pdf"
