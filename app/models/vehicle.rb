@@ -26,7 +26,7 @@ class Vehicle < ActiveRecord::Base
   
   # returns a human readable string
   def to_s
-    if year.nil? or manke.nil? or model.nil?
+    if year.nil? or make.nil? or model.nil?
       return "#{vin}"
     else
       return "#{year} #{make} #{model}"
