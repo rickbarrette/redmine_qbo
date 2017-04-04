@@ -30,6 +30,7 @@ class Vehicle < ActiveRecord::Base
       return "#{year} #{make} #{model}"
     else
       return "#{vin}"
+    end
   end
   
   # returns the raw JSON details from EMUNDS
