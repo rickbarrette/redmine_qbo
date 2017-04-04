@@ -48,7 +48,7 @@ class QboEstimate < ActiveRecord::Base
   end
   
   # process an estimate into the database
-  def process_estimate(estimate)
+  def self.process_estimate(estimate)
     qbo_estimate = find_or_create_by(id: estimate.id)
     qbo_estimate.doc_number = estimate.doc_number
     qbo_estimate.customer_id = estimate.customer_ref.value
