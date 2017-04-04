@@ -32,14 +32,16 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     search_customer = f.autocomplete_field :customer, autocomplete_customer_name_customers_path, :selected => selected_customer, :update_elements => {:id => '#issue_customer_id', :value => '#issue_customer'}
     customer_id = f.hidden_field :customer_id, :id => "issue_customer_id"
     
-    # Generate the drop down list of quickbooks extimates
-    select_estimate = f.select :qbo_estimate_id, QboEstimate.all.pluck(:doc_number, :id).sort! {|x, y| y <=> x}, :selected => selected_estimate, include_blank: true
-    
     if context[:issue].customer
       vehicles = customer.vehicles.pluck(:name, :id).sort!
+      estimates = customer.qbo_estimates.pluck(:doc_number, :id).sort! {|x, y| y <=> x}
     else
       vehicles = [nil].compact
+      estimates = [nil].compact
     end
+    
+     # Generate the drop down list of quickbooks extimates
+    select_estimate = f.select :qbo_estimate_id, estimates, :selected => selected_estimate, include_blank: true
     
     vehicle = f.select :vehicles_id, vehicles, :selected => selected_vehicle, include_blank: true
     
