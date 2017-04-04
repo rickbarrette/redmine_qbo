@@ -39,6 +39,14 @@ class CustomersController < ApplicationController
     @filtered_vehicles = Vehicle.all.where(customer_id: params[:selected_customer])
   end
   
+  def filter_invoices_by_customer
+    @filtered_invoices = QboInvoice.all.where(customer_id: params[:selected_customer])
+  end
+  
+  def filter_estimates_by_customer
+    @filtered_estimates = QboEstimate.all.where(customer_id: params[:selected_customer])
+  end
+  
   # display a list of all customers
   def index
     if params[:search]
