@@ -3,6 +3,7 @@
 <%= form_tag(customers_path, :method => "get", id: "search-form") do %>
 <%= text_field_tag :search, params[:search], placeholder: "Search Customers" %>
 <%= submit_tag "Search" %>
+<%= button_to "New Customer", new_customer_path, method: :get%> 
 <% end %>
 <br/>
 <% if @customers.present? %>
