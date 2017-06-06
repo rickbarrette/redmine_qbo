@@ -72,7 +72,7 @@ class Vehicle < ActiveRecord::Base
   # Force Upper Case for VIN numbers
   def vin=(val)
     # The to_s is in case you get nil/non-string
-    write_attribute(:vin, val.to_s.gsub(/[^ABCDEFGHJKLMNPRSTUVWXYZabcdefghjklmnprstuvwxyz0123456789]/, '').join.upcase)
+    write_attribute(:vin, val.to_s.gsub!(/[^ABCDEFGHJKLMNPRSTUVWXYZabcdefghjklmnprstuvwxyz0123456789]/, '').join.upcase)
   end
   
   # search for a vin
