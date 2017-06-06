@@ -33,7 +33,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     customer_id = f.hidden_field :customer_id, :id => "issue_customer_id"
     
     if context[:issue].customer
-      vehicles = customer.vehicles.pluck(:name, :id).sort! if customer.vehicles
+      vehicles = customer.vehicles.pluck(:name, :id)
       estimates = customer.qbo_estimates.pluck(:doc_number, :id).sort! {|x, y| y <=> x}
     else
       vehicles = [nil].compact
