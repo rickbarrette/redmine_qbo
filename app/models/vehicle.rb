@@ -75,7 +75,7 @@ class Vehicle < ActiveRecord::Base
     val = val.to_s.gsub!(/[^[A-HJ-NPR-Za-hj-npr-z\d]{8}]/,'')
     
     # The to_s is in case you get nil/non-string
-    write_attribute(:vin, val.upcase)
+    write_attribute(:vin, val.to_s.upcase)
   end
   
   # search for a vin
