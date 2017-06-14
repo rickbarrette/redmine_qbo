@@ -71,7 +71,6 @@ class Vehicle < ActiveRecord::Base
   
   # Force Upper Case for VIN numbers
   def vin=(val)
-    return if val.nil?
     #strip VIN of all illegal chars (for barcode scanner)
     val.to_s.upcase.gsub(/[^A-HJ-NPR-Za-hj-npr-z\d]+/,"")
     write_attribute(:vin, val)
