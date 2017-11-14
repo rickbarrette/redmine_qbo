@@ -57,6 +57,7 @@ module QueryPatch
             :id => :customer_id,
             :type => :list_optional, 
             :order => @available_filters.size + 1,
+            :remote => true
             #:values => Customer.find(:all).collect { |c| [c.name, c.id.to_s]}
           }
         }
