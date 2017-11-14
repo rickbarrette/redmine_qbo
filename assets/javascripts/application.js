@@ -16,7 +16,7 @@ $(function() {
     $.ajax({
       url:  "/filter_vehicles_by_customer",
       type: "GET",
-      data: { selected_customer: $("input#projects_customers_id").val() }
+      data: { selected_customer: $("input#project_customers_id").val() }
     });
   });
 });
