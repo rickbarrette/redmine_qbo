@@ -29,7 +29,7 @@ class Vehicle < ActiveRecord::Base
     if year.nil? or make.nil? or model.nil?
       return "#{vin}"
     else
-      return "##{id} #{year} #{make} #{model}"
+      return "#{year} #{make} #{model}"
     end
   end
   
