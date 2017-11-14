@@ -52,14 +52,14 @@ module QueryPatch
         #    :order => @available_filters.size + 1},
         #}
         
-        qbo_filters = { 
-          "customer_id" => {
-            :id => :customer_id,
-            :type => :list_optional
+        #qbo_filters = { 
+        #  "customer_id" => {
+        #    :id => :customer_id,
+        #    :type => :list_optional
             #:order => @available_filters.size + 1,
             #:values => Customer.find(:all).collect { |c| [c.name, c.id.to_s]}
-          }
-        }
+        #  }
+        #}
         
         @available_filters.merge!(qbo_filters)
       end
