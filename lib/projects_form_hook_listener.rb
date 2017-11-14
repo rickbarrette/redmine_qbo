@@ -31,7 +31,7 @@ class ProjectsFormHookListener < Redmine::Hook::ViewListener
     search_customer = f.autocomplete_field :customers_id, autocomplete_customer_name_customers_path, :selected => selected_customer, :update_elements => {:id => '#project_customer_id', :value => '#project_customer'}
     customer_id = f.hidden_field :customers_id, :id => "project_customer_id"
     
-    if context[:project].customer
+    if context[:project].customers_id
       vehicles = customer.vehicles.pluck(:name, :id).sort!
     else
       vehicles = [nil].compact
