@@ -55,9 +55,8 @@ module QueryPatch
         qbo_filters = { 
           "customer_id" => {
             :id => :customer_id,
-            :type => :list_optional, 
-            :order => @available_filters.size + 1,
-            :remote => false
+            :type => :list_optional
+            #:order => @available_filters.size + 1,
             #:values => Customer.find(:all).collect { |c| [c.name, c.id.to_s]}
           }
         }
