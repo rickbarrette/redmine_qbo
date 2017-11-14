@@ -61,7 +61,7 @@ module QueryPatch
         #  }
         #}
         
-        @available_filters.merge!(qbo_filters)
+        #@available_filters.merge!(qbo_filters)
       end
       @available_filters
     end
