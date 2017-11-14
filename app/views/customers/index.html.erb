@@ -4,6 +4,8 @@
 <%= text_field_tag :search, params[:search], placeholder: "Search Customers" %>
 <%= submit_tag "Search" %>
 <% end %>
+<%= button_to "New Customer", new_customer_path, method: :get%>
+<%= button_to "Sync", qbo_sync_path, method: :get%>
 <br/>
 <% if @customers.present? %>
   <br/>
