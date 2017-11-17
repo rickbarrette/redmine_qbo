@@ -10,15 +10,7 @@
 
 class ProjectsFormHookListener < Redmine::Hook::ViewListener
   
-  # Load the javascript
-  def view_layouts_base_html_head(context = {})
-    js = javascript_include_tag 'application', :plugin => 'redmine_qbo'
-    js += javascript_include_tag 'autocomplete-rails', :plugin => 'redmine_qbo'
-    return js
-  end
-  
-  # Edit Issue Form
-  # Show a dropdown for quickbooks contacts
+  # Edit Project Form
   def view_projects_form(context={})
     f = context[:form]
  

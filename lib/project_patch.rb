@@ -24,7 +24,8 @@ module ProjectPatch
     unloadable # Send unloadable so it will not be unloaded in development
     belongs_to :customer, primary_key: :id
     belongs_to :vehicle, primary_key: :id
-   end
+  end
+  end
 end
     
 module ClassMethods
@@ -35,5 +36,5 @@ module InstanceMethods
  
 end
   
-# Add module to Issue
+# Add module to Project
 Project.send(:include, ProjectPatch)

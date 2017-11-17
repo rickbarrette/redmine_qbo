@@ -20,6 +20,7 @@ Redmine::Plugin.register :redmine_qbo do
    
    # Patches to the Redmine core.  Will not work in development mode
     require_dependency 'issue_patch'
+    require_dependency 'project_patch'
     require_dependency 'user_patch'
     require_dependency 'query_patch'
     require_dependency 'time_entry_query_patch'
@@ -29,7 +30,7 @@ Redmine::Plugin.register :redmine_qbo do
     name 'Redmine Quickbooks Online plugin'
     author 'Rick Barrette'
     description 'This is a plugin for Redmine to intergrate with Quickbooks Online to allow for seamless intergration CRM and invoicing of completed issues'
-    version '0.5.0'
+    version '0.6.0'
     url 'https://github.com/rickbarrette/redmine_qbo'
     author_url 'http://rickbarrette.org'
     settings :default => {'empty' => true}, :partial => 'qbo/settings'

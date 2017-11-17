@@ -10,7 +10,7 @@
 
 class UpdateProjects < ActiveRecord::Migration
   def change
-    add_reference :projects, :customers, index: true
-    add_reference :projects, :vehicles, index: true
+    add_reference :projects, :customer, index: true
+    add_reference :projects, :vehicle, index: true
   end
 end
