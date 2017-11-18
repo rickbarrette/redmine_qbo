@@ -43,7 +43,9 @@ Redmine::Plugin.register :redmine_qbo do
     Issue.safe_attributes 'vehicles_id'
     User.safe_attributes 'qbo_employee_id'
     TimeEntry.safe_attributes 'qbo_billed'
-    
+    Project.safe_attributes 'customer_id'
+    Project.safe_attributes 'vehicle_id'
+
     # We are playing in the sandbox 
     #Quickbooks.sandbox_mode = true
 
