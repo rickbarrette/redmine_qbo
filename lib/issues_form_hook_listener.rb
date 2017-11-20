@@ -21,17 +21,15 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
   # Show a dropdown for quickbooks contacts
   def view_issues_form_details_bottom(context={})
     f = context[:form]
+    
+    #check project level customer/vehicle ownership first
+    selected_customer = context[:project].customer ? context[:project].customer.id : nil
+    selected_vehicle = context[:project].vehicle ? context[:project].vehicle.id : nil
  
     # Check to see if there is a quickbooks user attached to the issue
     selected_customer =  context[:issue].customer ? context[:issue].customer.id  : nil
     selected_estimate =  context[:issue].qbo_estimate ? context[:issue].qbo_estimate.id  : nil
     selected_vehicle = context[:issue].vehicles_id ? context[:issue].vehicles_id : nil
-
-    #check project level customer ownership
-    selected_customer =  context[:project].customer.id ? selected_customer.nil?  : nil
-    
-    #check project level vehicle ownership
-    selected_vehicle = context[:project].vehicle.id ? selected_vehicle.nil? : nil
     
     # Load customer information
     customer = Customer.find_by_id(selected_customer) if selected_customer   
