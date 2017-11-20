@@ -28,14 +28,10 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     selected_vehicle = context[:issue].vehicles_id ? context[:issue].vehicles_id : nil
 
     #check project level customer ownership
-    if context[:issue].project.customer
-      selected_customer =  context[:issue].project.customer.id ? selected_customer.nil?  : nil
-    end
+    selected_customer =  context[:project].customer.id ? selected_customer.nil?  : nil
     
     #check project level vehicle ownership
-    if context[:issue].project.vehicle
-      selected_vehicle = context[:issue].project.vehicle.id ? selected_vehicle.nil? : nil
-    end
+    selected_vehicle = context[:project].vehicle.id ? selected_vehicle.nil? : nil
     
     # Load customer information
     customer = Customer.find_by_id(selected_customer) if selected_customer   
