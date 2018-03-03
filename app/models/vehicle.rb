@@ -83,15 +83,15 @@ class Vehicle < ActiveRecord::Base
     where("vin LIKE ?", "%#{search}%")
   end
   
-  private
+private
   
   # init method to pull JSON details from Edmunds
   def get_details
     if self.vin?
       begin
         query = NhtsaVin.get(self.vin)
-        raise error if not @details.valid?
-        @details = query.response = NhtsaVin.get(self.vin)
+        raise RuntimeError, query.error  unless query.valid?
+        @details = query.response
       rescue Exception => e
         errors.add(:vin, e.message)
       end
@@ -103,9 +103,9 @@ class Vehicle < ActiveRecord::Base
     get_details
     if @details
       begin
-        self.year = @details.year
-        self.make = @details.make
-        self.model = @details.model
+        self.year = @details.year unless @details.year.nil?
+	self.make = @details.make unless @details.make.nil?
+	self.model = @details.model unless @details.model.nil?
       rescue Exception => e
         errors.add(:vin, e.message)
       end
