@@ -49,7 +49,9 @@ class Vehicle < ActiveRecord::Base
   
   # returns the drive of the vehicle i.e. 2 wheel, 4 wheel, ect.
   def drive
-    return @details.drive_type if @details
+    #todo fix this
+    #return @details.drive_type if @details
+    return nil
   end
   
   # returns the number of doors of the vehicle
