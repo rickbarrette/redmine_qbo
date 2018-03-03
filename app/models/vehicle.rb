@@ -41,7 +41,7 @@ class Vehicle < ActiveRecord::Base
   # returns the style of the vehicle
   def style
     begin
-      return @details['years'][0]['styles'][0]['name'] if @details
+      return @details.trim if @details
     rescue
       return nil
     end
@@ -49,12 +49,14 @@ class Vehicle < ActiveRecord::Base
   
   # returns the drive of the vehicle i.e. 2 wheel, 4 wheel, ect.
   def drive
-    return @details['drivenWheels'].to_s.upcase if @details
+    #todo fix this
+    #return @details.drive_type if @details
+    return nil
   end
   
   # returns the number of doors of the vehicle
   def doors
-    return @details['numOfDoors'] if @details
+    return @details.doors if @details
   end
   
   # Force Upper Case for VIN numbers
@@ -87,18 +89,13 @@ class Vehicle < ActiveRecord::Base
   def get_details
     if self.vin?
       begin
-        @details = JSON.parse get_decoder.full(self.vin)
-        raise @details['message'] if @details['status'].to_s.eql? "NOT_FOUND" 
-        raise @details['message'] if @details['status'].to_s.eql? "BAD_REQUEST"
+        query = NhtsaVin.get(self.vin)
+        raise error if not @details.valid?
+        @details = query.response = NhtsaVin.get(self.vin)
       rescue Exception => e
         errors.add(:vin, e.message)
       end
     end
-  end
-  
-  # returns the Edmunds decoder service
-  def get_decoder
-    return decoder = Edmunds::Vin.new(Setting.plugin_redmine_qbo['settingsEdmundsAPIKey'])
   end
   
   # decodes a vin and updates self
@@ -106,9 +103,9 @@ class Vehicle < ActiveRecord::Base
     get_details
     if @details
       begin
-        self.year = @details['years'][0]['year']
-        self.make = @details['make']['name']
-        self.model = @details['model']['name']
+        self.year = @details.year
+        self.make = @details.make
+        self.model = @details.model
       rescue Exception => e
         errors.add(:vin, e.message)
       end
