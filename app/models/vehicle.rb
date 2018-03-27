@@ -29,7 +29,8 @@ class Vehicle < ActiveRecord::Base
     if year.nil? or make.nil? or model.nil?
       return "#{vin}"
     else
-      return "#{year} #{make} #{model}"
+      split_vin = vin.scan(/.{1,9}/)
+      return "#{year} #{make} #{model} - #{split_vin[1]}"
     end
   end
   
@@ -111,17 +112,6 @@ private
       end
     end
     self.name = to_s
-  end
-  
-  # makes a squishvin
-  # https://api.edmunds.com/api/vehicle/v2/squishvins/#{vin}/?fmt=json&api_key=#{ENV['edmunds_key']}
-  def vin_squish
-    if not self.vin? or self.vin.size < 11
-      # this is to go ahead and query the API, letting them handle the error. :P
-      return '1000000000A'
-    end
-    v = self.vin[0,11]
-    return v.slice(0,8) + v.slice(9,11)
   end
   
 end
