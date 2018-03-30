@@ -29,7 +29,8 @@ class Vehicle < ActiveRecord::Base
     if year.nil? or make.nil? or model.nil?
       return "#{vin}"
     else
-      return "#{year} #{make} #{model}"
+      split_vin = vin.scan(/.{1,9}/)
+      return "#{year} #{make} #{model} - #{split_vin[1]}"
     end
   end
   
@@ -83,15 +84,15 @@ class Vehicle < ActiveRecord::Base
     where("vin LIKE ?", "%#{search}%")
   end
   
-  private
+private
   
   # init method to pull JSON details from Edmunds
   def get_details
     if self.vin?
       begin
         query = NhtsaVin.get(self.vin)
-        raise error if not @details.valid?
-        @details = query.response = NhtsaVin.get(self.vin)
+        raise RuntimeError, query.error  unless query.valid?
+        @details = query.response
       rescue Exception => e
         errors.add(:vin, e.message)
       end
@@ -103,25 +104,14 @@ class Vehicle < ActiveRecord::Base
     get_details
     if @details
       begin
-        self.year = @details.year
-        self.make = @details.make
-        self.model = @details.model
+        self.year = @details.year unless @details.year.nil?
+	self.make = @details.make unless @details.make.nil?
+	self.model = @details.model unless @details.model.nil?
       rescue Exception => e
         errors.add(:vin, e.message)
       end
     end
     self.name = to_s
-  end
-  
-  # makes a squishvin
-  # https://api.edmunds.com/api/vehicle/v2/squishvins/#{vin}/?fmt=json&api_key=#{ENV['edmunds_key']}
-  def vin_squish
-    if not self.vin? or self.vin.size < 11
-      # this is to go ahead and query the API, letting them handle the error. :P
-      return '1000000000A'
-    end
-    v = self.vin[0,11]
-    return v.slice(0,8) + v.slice(9,11)
   end
   
 end

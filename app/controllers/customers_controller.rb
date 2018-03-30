@@ -33,7 +33,7 @@ class CustomersController < ApplicationController
   
   default_search_scope :names
   
-  autocomplete :customer, :name, :full => false, :extra_data => [:id]
+  autocomplete :customer, :name, :full => true, :extra_data => [:id]
   
   def filter_vehicles_by_customer
     @filtered_vehicles = Vehicle.all.where(customer_id: params[:selected_customer])

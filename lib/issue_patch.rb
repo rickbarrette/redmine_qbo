@@ -41,7 +41,9 @@ module IssuePatch
     
     # Create billable time entries
     def bill_time
-      
+     
+      return if assigned_to.nil?
+
       # Get unbilled time entries
       spent_time = time_entries.where(qbo_billed: [false, nil])
       spent_hours ||= spent_time.sum(:hours) || 0
