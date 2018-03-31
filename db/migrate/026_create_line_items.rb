@@ -17,7 +17,8 @@ class CreateLineItems < ActiveRecord::Migration
       t.float    :amount
       t.string   :description 
       t.float    :unit_price 
-      t.float    :quantity 
+      t.float    :quantity
+      t.boolean  :billed
     end
     
     add_reference :line_items, :issues, index: true
