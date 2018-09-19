@@ -66,6 +66,6 @@ Redmine::Plugin.register :redmine_qbo do
     #menu :application_menu, :new_customer, { :controller => :customers, :action => :new }, :caption => 'New Customer', :if => Proc.new { User.current.allowed_to?(:add_customers, @project) }
     #menu :application_menu, :new_payment, { :controller => :payments, :action => :new }, :caption => 'New Payment', :if => Proc.new { User.current.allowed_to?(:add_payments, @project)}
     
-    menu :project_menu, :customers, { :controller => 'customers', :action => 'new' }, :caption => 'New Customer', :after => :new_issue, :param => :project_id
-    menu :project_menu, :payments, { :controller => 'payments', :action => 'new' }, :caption => 'New Payment', :after => :customers, :param => :project_id
+    #menu :project_menu, :customers, { :controller => 'customers', :action => 'new' }, :caption => 'New Customer', :after => :new_issue, :param => :project_id
+    #menu :project_menu, :payments, { :controller => 'payments', :action => 'new' }, :caption => 'New Payment', :after => :customers, :param => :project_id
 end
