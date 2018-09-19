@@ -21,6 +21,8 @@
     <%= will_paginate @vehicles %>
   </div>
 
+<p>Matching <%= @vehicles.count %> Vehicles </p>
+
 <% else %>
   <p>There are no vehicles containing the term(s) <%= params[:search] %>.</p>
 <% end %>
