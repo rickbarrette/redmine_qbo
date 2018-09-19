@@ -1,16 +1,15 @@
 <div id="content">
-  <h2>Customer #<%= @customer.id %></h2> 
+	<h2>Customer #<%= @customer.id %> - <%= @customer.name %> <span style="float:right"> <%= render :partial => 'customers/search' %> </span> </h2> 
   <br/> 
   
   <div class="subject">
-    <div><h3><%= @customer.name %></h3></div>
+    <div><h3>Details:</h3></div>
   </div>
   
   <div class="attributes">
   
     <div class="splitcontent">
       <div class="splitcontentleft">
-        <h4>Details:</h4>
         <%= render :partial => 'customers/details', locals: {customer: @customer} %>
       </div>
       <div class="splitcontentleft">

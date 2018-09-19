@@ -1,12 +1,4 @@
-<h1>Customers</h1> 
-<br/> 
-<%= form_tag(customers_path, :method => "get", id: "search-form") do %>
-<%= text_field_tag :search, params[:search], placeholder: "Search Customers" %>
-<%= submit_tag "Search" %>
-<% end %>
-<%= button_to "New Customer", new_customer_path, method: :get%>
-<%= button_to "Sync", qbo_sync_path, method: :get%>
-<br/>
+<h2>Customers <span style="float:right"> <%= render :partial => 'customers/search' %> </span> </h2>
 <% if @customers.present? %>
   <br/>
   <% @customers.each do |c| %>
