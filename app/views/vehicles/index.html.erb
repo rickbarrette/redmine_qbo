@@ -1,9 +1,4 @@
-<h1>Customer Vehicles</h1> 
+<h2>Customer Vehicles <span style="float:right"> <%= render :partial => 'vehicles/search' %> </span> </h2> 
 <br/> 
-
-<%= form_tag(vehicles_path, :method => "get", id: "search-form") do %>
-  <%= text_field_tag :search, params[:search], placeholder: "Search Vehicles by VIN" %>
-  <%= submit_tag "Search" %>
-<% end %>
 
 <%= render :partial => 'vehicles/list' %>
