@@ -5,8 +5,9 @@
       <%= form_for @vehicle do |f| %> 
         <div class="clearfix">
           Customer: 
-          <div class="input">
-            <%= f.collection_select :customer_id, @customers, :id, :name, include_blank: true, :selected => @customer, :required => true%>
+	  <div class="input">
+		  <%= f.autocomplete_field :customer, autocomplete_customer_name_customers_path, :selected => @customer, :update_elements => {:id => '#customer_id', :value => '#issue_customer'}, :required => true %>
+		  <%= f.hidden_field :customer_id, :id => "customer_id" %>
             </div>
         </div>
         
