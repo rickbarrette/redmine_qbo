@@ -20,5 +20,5 @@
 <% end %>
 
 <div>
-  <%= Customer.count %> Customers - <b>Last Sync: </b> <%= Qbo.last_sync if Qbo.exists? %>
+  <%= render :partial => 'qbo/stats' %>
 </div>
