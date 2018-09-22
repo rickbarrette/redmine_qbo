@@ -37,8 +37,7 @@ class VehiclesController < ApplicationController
   # return an HTML form for creating a new vehicle
   def new
     @vehicle = Vehicle.new
-    @customers = Customer.all.order(:name)
-    @customer = params[:customer_id] if params[:customer_id]
+    @customer = Customer.find_by_id(params[:customer_id]) if params[:customer_id]
   end
 
   # create a new vehicle
@@ -67,8 +66,7 @@ class VehiclesController < ApplicationController
   def edit
     begin
       @vehicle = Vehicle.find_by_id(params[:id])
-      @customer = @vehicle.customer.id
-      @customers = Customer.all.order(:name)
+      @customer = @vehicle.customer
     rescue ActiveRecord::RecordNotFound
       render_404
     end
