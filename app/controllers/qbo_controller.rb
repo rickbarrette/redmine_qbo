@@ -144,6 +144,6 @@ class QboController < ApplicationController
       ActiveRecord::Base.connection.close
     end
 
-    redirect_to qbo_path(:redmine_qbo), :flash => { :notice => "Successfully synced to Quickbooks" }
+    redirect_to :back, :flash => { :notice => "Successfully synced to Quickbooks" }
   end
 end
