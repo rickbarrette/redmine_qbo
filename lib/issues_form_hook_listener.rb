@@ -23,8 +23,10 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     f = context[:form]
     
     #check project level customer/vehicle ownership first
-    selected_customer = context[:project].customer ? context[:project].customer.id : nil
-    selected_vehicle = context[:project].vehicle ? context[:project].vehicle.id : nil
+    if context[:project]
+      selected_customer = context[:project].customer ? context[:project].customer.id : nil
+      selected_vehicle = context[:project].vehicle ? context[:project].vehicle.id : nil
+    end
  
     # Check to see if there is a quickbooks user attached to the issue
     selected_customer =  context[:issue].customer ? context[:issue].customer.id  : nil
