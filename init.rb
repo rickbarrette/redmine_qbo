@@ -17,7 +17,8 @@ Redmine::Plugin.register :redmine_qbo do
    require_dependency 'users_show_hook_listener'
    require_dependency 'header_footer_hook_listener'
    require_dependency 'projects_form_hook_listener'
-   
+   require_dependency 'view_hook_listener'
+
    # Patches to the Redmine core.  Will not work in development mode
     require_dependency 'issue_patch'
     require_dependency 'project_patch'
@@ -30,7 +31,7 @@ Redmine::Plugin.register :redmine_qbo do
     name 'Redmine Quickbooks Online plugin'
     author 'Rick Barrette'
     description 'This is a plugin for Redmine to intergrate with Quickbooks Online to allow for seamless intergration CRM and invoicing of completed issues'
-    version '0.6.0'
+    version '0.7.0'
     url 'https://github.com/rickbarrette/redmine_qbo'
     author_url 'http://rickbarrette.org'
     settings :default => {'empty' => true}, :partial => 'qbo/settings'
@@ -50,7 +51,7 @@ Redmine::Plugin.register :redmine_qbo do
     #Quickbooks.sandbox_mode = true
 
     # set per_page globally
-    WillPaginate.per_page = 10
+    WillPaginate.per_page = 20
   
     permission :view_customers, :customers => :index, :public => false
     permission :add_customers, :customers => :new, :public => false
@@ -59,13 +60,7 @@ Redmine::Plugin.register :redmine_qbo do
     permission :view_vehicles, :payments => :new, :public => false
   
     # Register QBO top menu item
-    #menu :top_menu, :qbo, { :controller => :qbo, :action => :index }, :caption => 'Quickbooks', :if => Proc.new { User.current.admin? }
     menu :top_menu, :customers, { :controller => :customers, :action => :index }, :caption => 'Customers', :if => Proc.new {User.current.logged?}
     menu :top_menu, :vehicles, { :controller => :vehicles, :action => :index }, :caption => 'Vehicles', :if => Proc.new { User.current.logged? }
     
-    #menu :application_menu, :new_customer, { :controller => :customers, :action => :new }, :caption => 'New Customer', :if => Proc.new { User.current.allowed_to?(:add_customers, @project) }
-    #menu :application_menu, :new_payment, { :controller => :payments, :action => :new }, :caption => 'New Payment', :if => Proc.new { User.current.allowed_to?(:add_payments, @project)}
-    
-    #menu :project_menu, :customers, { :controller => 'customers', :action => 'new' }, :caption => 'New Customer', :after => :new_issue, :param => :project_id
-    #menu :project_menu, :payments, { :controller => 'payments', :action => 'new' }, :caption => 'New Payment', :after => :customers, :param => :project_id
 end
