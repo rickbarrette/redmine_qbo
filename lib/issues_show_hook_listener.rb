@@ -10,11 +10,6 @@
 
 class IssuesShowHookListener < Redmine::Hook::ViewListener
 
-  # Additional context fields
-  #   :issue  => the issue this is edited
-  #   :f      => the form object to create additional fields
-  #render_on :view_issues_show_details_bottom, :partial => 'hooks/redmine_qbo/_view_issues_show_details_bottom.html.erb'
-
   # View Issue
   # Display the quickbooks contact in the issue
   def view_issues_show_details_bottom(context={})
@@ -50,46 +45,20 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     end
     
     split_vin = vin.scan(/.{1,9}/) if vin
-    
-    return "
-    <div class=\"splitcontent\">
-    
-      <div class=\"splitcontentleft\">
-        <div class=\"customer_id attribute\">
-          <div class=\"label\"><span>Customer</span>:</div>
-          <div class=\"value\">#{customer}</div>
-        </div>
-  
-        <div class=\"qbo_estimate_id attribute\">
-          <div class=\"label\"><span>Estimate</span>:</div>
-          <div class=\"value\">#{estimate_link}</div>
-        </div>
-          
-        <div class=\"qbo_invoice_id attribute\">
-          <div class=\"label\"><span>Invoice</span>:</div>
-          <div class=\"value\">#{invoice_link}</div>
-        </div>
-      </div>
-      
-      <div class=\"splitcontentleft\">
-        <div class=\"vehicle attribute\">
-          <div class=\"label\"><span>Vehicle</span>:</div>
-          <div class=\"value\">#{vehicle}</div>
-        </div>
-          
-        <div class=\"vehicle_vin attribute\">
-          <div class=\"label\"><span>VIN</span>:</div>
-          <div class=\"value\">#{split_vin[0] if split_vin}<b>#{split_vin[1] if split_vin}</b></div>
-        </div>
-        
-        <div class=\"vehicle_notes attribute\">
-          <div class=\"label\"><span>Notes</span>:</div>
-          <div class=\"value\">#{notes}</div>
-        </div>
-      </div>
-    </div>"
+
+    context[:controller].send(:render_to_string, {
+      :partial => 'qbo/issues_show_details',
+        locals: {
+          customer: customer, 
+	  estimate_link: estimate_link, 
+	  invoice_link: invoice_link, 
+	  vehicle: vehicle, 
+	  split_vin: split_vin,
+	  notes: notes
+        } 
+      })
   end
-  
+
   def view_issues_show_description_bottom(context={})
     bill_button = button_to "Bill Time", "#{Redmine::Utils::relative_url_root}/qbo/bill/#{context[:issue].id}", method: :get if User.current.admin?
     share_button = button_to "Share", "#{Redmine::Utils::relative_url_root}/customers/view/#{context[:issue].share_token.token}", method: :get if User.current.logged?
