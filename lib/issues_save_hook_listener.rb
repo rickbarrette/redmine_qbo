@@ -10,47 +10,10 @@
 
 class IssuesSaveHookListener < Redmine::Hook::ViewListener
 
-  #Before Issue Saved
-  def controller_issues_edit_before_save(context={})
-    issue = context[:issue]
-
-    # Check to see if we have registered with QBO
-    if Qbo.first && issue.customer && issue. qbo_item_id
-      
-      # if this is a quote, lets create a new estimate based off estimated hours
-        if issue.tracker.name = "Quote" && issue.status.name = "New" && issue.qbo_estimate
-        
-          # Get QBO Services
-          item_service = QboItem.get_base.service
-          estimate_base = QboEstimate.get_base
-          
-          # Create the estimate
-          estimate  = estimate_base.qr_model(:estimate)
-          estimate.customer_id = issue.customer_id
-          estimate.txn_date = Date.today
-
-          # Create the line item for labor
-          item = item_service.fetch_by_id(issue.qbo_item_id)
-          
-          line_item = Quickbooks::Model::InvoiceLineItem.new
-          line_item.amount = item.unit_price * issue.estimated_hours
-          line_item.description = issue.subject
-         
-         line_item.sales_item! do |detail|
-            detail.unit_price = item.unit_price
-            detail.quantity = issue.estimated_hours
-            detail.item_id =  issue.qbo_item_id
-          end
-
-          # Add the line items to the estimate
-          estimate.line_items << line_item
-        end
-      end
-  end
-
-   # Called After Issue Saved
+  # Called After Issue Saved
   def controller_issues_edit_after_save(context={})
     issue = context[:issue]
     issue.bill_time 
   end
+
 end
