@@ -13,7 +13,7 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
   # Called After Issue Saved
   def controller_issues_edit_after_save(context={})
     issue = context[:issue]
-    issue.bill_time 
+    issue.bill_time if issue.status.is_closed?
   end
 
 end

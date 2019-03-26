@@ -43,7 +43,7 @@ module IssuePatch
     def bill_time
      
       # Check to see if we have everything we need to bill the customer
-      return unless status.is_closed?
+      #return unless status.is_closed?
       return if assigned_to.nil?
       return unless Qbo.first 
       return unless customer 
