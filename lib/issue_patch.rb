@@ -42,7 +42,11 @@ module IssuePatch
     # Create billable time entries
     def bill_time
      
+      # Check to see if we have everything we need to bill the customer
+      return unless status.is_closed?
       return if assigned_to.nil?
+      return unless Qbo.first 
+      return unless customer 
 
       # Get unbilled time entries
       spent_time = time_entries.where(qbo_billed: [false, nil])
@@ -55,25 +59,29 @@ module IssuePatch
         item_service = Qbo.get_base(:item).service
         time_entry = Quickbooks::Model::TimeActivity.new
   
+        # Lets total up each activity before billing.
+        # This will simpify the invoicing with a single billable time entry per time activity
         h = Hash.new(0)
         spent_time.each do |entry|
-          # Lets tottal up each activity
           h[entry.activity.name] += entry.hours
           # update time entries billed status
           entry.qbo_billed = true
           entry.save
         end
         
+        # Now letes upload our totals for each activity as their own billable time entry
         h.each do |key, val|
           
           # Convert float spent time to hours and minutes
           hours = val.to_i
           minutesDecimal = (( val - hours) * 60)
           minutes = minutesDecimal.to_i
-          
+
+          # Lets match the activity to an qbo item
           item = item_service.query("SELECT * FROM Item WHERE Name = '#{key}' ").first
           next if item.nil?
           
+          # Create the new billable time entry and upload it
           time_entry.description = "#{tracker} ##{id}: #{subject} #{"(Partial @ #{done_ratio}%)" if not closed?}"
           # TODO entry.user.qbo_employee.id
           time_entry.employee_id = assigned_to.qbo_employee_id 

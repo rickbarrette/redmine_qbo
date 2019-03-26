@@ -51,6 +51,6 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
    # Called After Issue Saved
   def controller_issues_edit_after_save(context={})
     issue = context[:issue]
-    issue.bill_time if Qbo.first && issue.customer && issue.status.is_closed?
+    issue.bill_time 
   end
 end

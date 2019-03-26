@@ -8,7 +8,6 @@ gem 'roxml'
 gem 'nhtsa_vin'
 gem 'will_paginate'
 gem 'rails-jquery-autocomplete'
-gem 'jquery-rails', '~> 3.1.4'
 gem 'jquery-ui-rails'
 
 group :assets do
