@@ -153,19 +153,9 @@ class Customer < ActiveRecord::Base
     end
   end
   
-  # Searchs the database for a customer by name
+  # Searchs the database for a customer by name or phone number with out special chars
   def self.search(search)
-    customers = where("name LIKE ?", "%#{search}%")
-    
-    #if customers.empty?
-    #  service = Qbo.get_base(:customer).service
-    #  results = service.query("Select Id From Customer Where PrimaryPhone LIKE '%#{search}%' AND Mobile LIKE '%#{search}%'")
-      
-    #  results.each do |customer| 
-    #    customers << Customer.find_by_id(customer.id)
-    #  end
-    #end
-    
+    customers = where("name LIKE ? OR phone_number LIKE ?", "%#{search}%", "%#{search}%")
     return customers.order(:name)
   end
   
