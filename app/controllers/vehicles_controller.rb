@@ -48,7 +48,7 @@ class VehiclesController < ApplicationController
       redirect_to @vehicle
     else
       flash[:error] = @vehicle.errors.full_messages.to_sentence 
-      redirect_to new_vehicle_path
+      redirect_to :back
     end
   end
   
