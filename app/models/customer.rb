@@ -17,7 +17,7 @@ class Customer < ActiveRecord::Base
   has_many :qbo_estimates
   has_many :vehicles
   
-  attr_accessible :name, :notes, :email, :primary_phone, :mobile_phone
+  attr_accessible :name, :notes, :email, :primary_phone, :mobile_phone, :phone_number
   validates_presence_of :id, :name
   
   self.primary_key = :id
@@ -63,6 +63,8 @@ class Customer < ActiveRecord::Base
     pn = Quickbooks::Model::TelephoneNumber.new
     pn.free_form_number = n
     @details.primary_phone = pn
+    #update our locally stored number too
+    update_phone_number
   end
   
   # Convenience Method
@@ -83,6 +85,15 @@ class Customer < ActiveRecord::Base
     pn = Quickbooks::Model::TelephoneNumber.new
     pn.free_form_number = n
     @details.mobile_phone = pn
+  end
+  
+  # update the localy stored phone number as a plain int
+  def update_phone_number
+    begin
+      phone_number = primary_phone.tr('^0-9', '').to_i
+    rescue
+      return nil
+    end
   end
   
   # Convenience Method
