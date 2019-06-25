@@ -87,10 +87,10 @@ class Customer < ActiveRecord::Base
     @details.mobile_phone = pn
   end
   
-  # update the localy stored phone number as a plain int
+  # update the localy stored phone number as a plain string with no special chars
   def update_phone_number
     begin
-      self.phone_number = self.primary_phone.tr('^0-9', '').to_i
+      self.phone_number = self.primary_phone.tr('^0-9', '')
     rescue
       return nil
     end
