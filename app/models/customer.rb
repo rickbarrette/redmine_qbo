@@ -85,12 +85,23 @@ class Customer < ActiveRecord::Base
     pn = Quickbooks::Model::TelephoneNumber.new
     pn.free_form_number = n
     @details.mobile_phone = pn
+    #update our locally stored number too
+    update_mobile_phone_number
   end
   
   # update the localy stored phone number as a plain string with no special chars
   def update_phone_number
     begin
       self.phone_number = self.primary_phone.tr('^0-9', '')
+    rescue
+      return nil
+    end
+  end
+  
+  # update the localy stored phone number as a plain string with no special chars
+  def update_mobile_phone_number
+    begin
+      self.mobile_phone_number = self.mobile_phone.tr('^0-9', '')
     rescue
       return nil
     end
@@ -155,7 +166,7 @@ class Customer < ActiveRecord::Base
   
   # Searchs the database for a customer by name or phone number with out special chars
   def self.search(search)
-    customers = where("name LIKE ? OR phone_number LIKE ?", "%#{search}%", "%#{search}%")
+    customers = where("name LIKE ? OR phone_number LIKE ? OR mobile_phone_number LIKE ?", "%#{search}%", "%#{search}%", "%#{search}%")
     return customers.order(:name)
   end
   
