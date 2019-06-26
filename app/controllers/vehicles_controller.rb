@@ -48,7 +48,7 @@ class VehiclesController < ApplicationController
       redirect_to @vehicle
     else
       flash[:error] = @vehicle.errors.full_messages.to_sentence 
-      redirect_to :back
+      redirect_to Vehicle.find_by_vin @vehicle.vin
     end
   end
   
