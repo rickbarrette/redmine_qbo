@@ -144,6 +144,6 @@ class QboController < ApplicationController
       ActiveRecord::Base.connection.close
     end
 
-    redirect_to :back, :flash => { :notice => "Successfully synced to Quickbooks" }
+    redirect_to :home, :flash => { :notice => "Successfully synced to Quickbooks" }
   end
 end
