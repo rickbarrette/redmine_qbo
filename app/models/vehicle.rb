@@ -60,13 +60,13 @@ class Vehicle < ActiveRecord::Base
     return @details.doors if @details
   end
   
-  # Force Upper Case for VIN numbers
+  # Force Upper Case for make numbers
   def make=(val)
     # The to_s is in case you get nil/non-string
     write_attribute(:make, val.to_s.titleize)
   end
   
-  # Force Upper Case for VIN numbers
+  # Force Upper Case for model numbers
   def model=(val)
     # The to_s is in case you get nil/non-string
     write_attribute(:model, val.to_s.titleize)
