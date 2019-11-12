@@ -107,9 +107,14 @@ private
   # init method to pull JSON details from Edmunds
   def get_details
     if self.vin?
+      #validate the vin before calling a remote server
+      validation = NhtsaVin.validate(self.vin)
       begin
+	#if the vin validation failed, raise an exception and exit
+	raise RuntimeError, validation.error unless validation.valid?
+	# query NHTSA for details on the vin
         query = NhtsaVin.get(self.vin)
-        raise RuntimeError, query.error  unless query.valid?
+        raise RuntimeError, query.error unless query.valid?
         @details = query.response
       rescue Exception => e
         errors.add(:vin, e.message)
