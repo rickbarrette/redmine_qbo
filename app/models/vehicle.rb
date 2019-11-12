@@ -20,7 +20,7 @@ class Vehicle < ActiveRecord::Base
   validates_presence_of :customer
   validates :vin, uniqueness: true
   before_save :decode_vin
-  #after_find :get_details
+  after_find :get_details
   
   self.primary_key = :id
   
