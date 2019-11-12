@@ -81,9 +81,10 @@ class VehiclesController < ApplicationController
         flash[:notice] = "Vehicle updated"
         redirect_to @vehicle
       else
-        flash[:error] = @vehicle.errors.full_messages.to_sentence if @vehicle.errors
         redirect_to edit_vehicle_path
       end
+      #show any errors anyways
+      flash[:error] = @vehicle.errors.full_messages.to_sentence if @vehicle.errors
     rescue ActiveRecord::RecordNotFound
       render_404
     end
