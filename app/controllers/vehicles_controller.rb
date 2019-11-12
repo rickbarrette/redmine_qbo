@@ -84,7 +84,7 @@ class VehiclesController < ApplicationController
         redirect_to edit_vehicle_path
       end
       #show any errors anyways
-      flash[:error] = @vehicle.errors.full_messages.to_sentence if @vehicle.errors
+      flash[:error] = @vehicle.errors.full_messages.to_sentence unless @vehicle.errors.empty?
     rescue ActiveRecord::RecordNotFound
       render_404
     end
