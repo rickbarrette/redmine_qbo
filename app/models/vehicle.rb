@@ -20,7 +20,7 @@ class Vehicle < ActiveRecord::Base
   validates_presence_of :customer
   validates :vin, uniqueness: true
   before_save :decode_vin
-  after_find :get_details
+  #after_find :get_details
   
   self.primary_key = :id
   
@@ -36,11 +36,13 @@ class Vehicle < ActiveRecord::Base
   
   # returns the raw JSON details from EMUNDS
   def details
+    get_details if @details.nil?
     return @details
   end
   
   # returns the style of the vehicle
   def style
+    get_details if @details.nil?
     begin
       return @details.trim if @details
     rescue
@@ -57,6 +59,7 @@ class Vehicle < ActiveRecord::Base
   
   # returns the number of doors of the vehicle
   def doors
+    get_details if @details.nil?
     return @details.doors if @details
   end
   
