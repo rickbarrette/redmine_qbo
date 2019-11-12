@@ -20,7 +20,7 @@ class Vehicle < ActiveRecord::Base
   validates_presence_of :customer
   validates :vin, uniqueness: true
   before_save :decode_vin
-  after_initialize :get_details
+  after_find :get_details
   
   self.primary_key = :id
   
@@ -83,6 +83,21 @@ class Vehicle < ActiveRecord::Base
   def self.search(search)
     where("vin LIKE ?", "%#{search}%")
   end
+	
+  # decodes a vin and updates self
+  def decode_vin
+    get_details
+    if @details
+      begin
+        self.year = @details.year unless @details.year.nil?
+	self.make = @details.make unless @details.make.nil?
+	self.model = @details.model unless @details.model.nil?
+      rescue Exception => e
+        errors.add(:vin, e.message)
+      end
+    end
+    self.name = to_s
+  end
   
 private
   
@@ -97,21 +112,6 @@ private
         errors.add(:vin, e.message)
       end
     end
-  end
-  
-  # decodes a vin and updates self
-  def decode_vin
-    get_details
-    if @details
-      begin
-        self.year = @details.year unless @details.year.nil?
-	self.make = @details.make unless @details.make.nil?
-	self.model = @details.model unless @details.model.nil?
-      rescue Exception => e
-        errors.add(:vin, e.message)
-      end
-    end
-    self.name = to_s
   end
   
 end
