@@ -55,7 +55,7 @@ module IssuePatch
       if spent_hours > 0 then
         qbo = Qbo.first
         company_id = qbo.company_id
-        access_token = qbo.token
+        access_token = Qbo.get_base
         
         # Prepare to create a new Time Activity
         time_service = Quickbooks::Service::TimeActivity.new(:company_id => company_id, :access_token => access_token)
