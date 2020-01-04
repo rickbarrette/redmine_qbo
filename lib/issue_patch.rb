@@ -53,10 +53,15 @@ module IssuePatch
       spent_hours ||= spent_time.sum(:hours) || 0
       
       if spent_hours > 0 then
-      
+        qbo = Qbo.first
+        company_id = qbo.company_id
+        access_token = qbo.token
+        
         # Prepare to create a new Time Activity
-        time_service = Qbo.get_base(:time_activity).service
-        item_service = Qbo.get_base(:item).service
+        time_service = Quickbooks::Service::TimeActivity.new(:company_id => company_id, :access_token => access_token)
+          #Qbo.get_base(:time_activity).service
+        item_service = Quickbooks::Service::Item.new(:company_id => company_id, :access_token => access_token)
+          #Qbo.get_base(:item).service
         time_entry = Quickbooks::Model::TimeActivity.new
   
         # Lets total up each activity before billing.
