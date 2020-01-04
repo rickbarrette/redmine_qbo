@@ -59,8 +59,8 @@ class QboController < ApplicationController
         qbo = Qbo.new
         qbo.qb_token = resp.token
         qbo.qb_secret = resp.refresh_token
-        qbo.token_expires_at = resp.access_token_expires_at 
-        qbo.reconnect_token_at = resp.refresh_token_expires_at 
+        qbo.token_expires_at = 6.months.from_now.utc 
+        qbo.reconnect_token_at = 1.hour.from_now.utc 
         qbo.company_id = params[:realmId]
         if qbo.save!
           redirect_to qbo_sync_path, :flash => { :notice => "Successfully connected to Quickbooks" }
