@@ -211,7 +211,7 @@ class Customer < ActiveRecord::Base
   def pull
     begin
       raise Exception unless self.id
-      @details = Qbo.get_base(:customer).find_by_id(self.id)
+      @details = Qbo.get_base(:customer).fetch_by_id(self.id)
     rescue Exception => e
       @details = Quickbooks::Model::Customer.new
     end
