@@ -55,15 +55,15 @@ class Qbo < ActiveRecord::Base
     
     case type
       when :item
-        return Quickbooks::Service::Item.new(:company_id => company_id, :access_token => access_token)
+        return Quickbooks::Service::Item.new(:company_id => qbo.company_id, :access_token => access_token)
       when :time_activity
-       return Quickbooks::Service::TimeActivity.new(:company_id => company_id, :access_token => access_token)
+       return Quickbooks::Service::TimeActivity.new(:company_id => qbo.company_id, :access_token => access_token)
       when :customer
-        return Quickbooks::Service::Customer.new(:company_id => company_id, :access_token => access_token)
+        return Quickbooks::Service::Customer.new(:company_id => qbo.company_id, :access_token => access_token)
       when :invoice
-        return Quickbooks::Service::Invoice.new(:company_id => company_id, :access_token => access_token)
+        return Quickbooks::Service::Invoice.new(:company_id => qbo.company_id, :access_token => access_token)
       when :estimate
-        return Quickbooks::Service::Estimate.new(:company_id => company_id, :access_token => access_token)
+        return Quickbooks::Service::Estimate.new(:company_id => qbo.company_id, :access_token => access_token)
     else
       return access_token
     end
