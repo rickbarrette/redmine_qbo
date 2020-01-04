@@ -49,7 +49,7 @@ class QboController < ApplicationController
       oauth2_client = Qbo.get_client
       # use the state value to retrieve from your backend any information you need to identify the customer in your system
       #redirect_uri = qbo_oauth_callback_url
-      redirect_uri = callback = "https://redmine.rickbarrette.org/qbo/oauth_callback/"
+      redirect_uri = "https://redmine.rickbarrette.org/qbo/oauth_callback/"
       if resp = oauth2_client.auth_code.get_token(params[:code], redirect_uri: redirect_uri)
         # save your tokens here. For example:
         # quickbooks_credentials.update_attributes(access_token: resp.token, refresh_token: resp.refresh_token, 
@@ -60,7 +60,7 @@ class QboController < ApplicationController
         qbo.qb_token = resp.token
         qbo.qb_secret = resp.refresh_token
         qbo.token_expires_at = 6.months.from_now.utc 
-        qbo.reconnect_token_at = 1.hour.from_now.utc 
+        qbo.reconnect_token_at = 3.months.from_now.utc 
         qbo.company_id = params[:realmId]
         
         access_token = OAuth2::AccessToken.new(oauth2_client, resp.token, refresh_token: resp.refresh_token)
