@@ -34,32 +34,37 @@ class QboController < ApplicationController
   # Called when the user requests that Redmine to connect to QBO
   #
   def authenticate
-    callback = qbo_oauth_callback_url
-    token = Qbo.get_oauth_consumer.get_request_token(:oauth_callback => callback)
-    session[:qb_request_token] = Marshal.dump(token)
-    redirect_to("https://appcenter.intuit.com/Connect/Begin?oauth_token=#{token.token}") and return
+    redirect_uri = quickbooks_oauth_callback_url
+    grant_url = oauth2_client.auth_code.authorize_url(redirect_uri: redirect_uri, response_type: "code", state: SecureRandom.hex(12), scope: "com.intuit.quickbooks.accounting")
+    redirect_to grant_url
   end
-
+  
   #
   # Called by QBO after authentication has been processed
   #
   def oauth_callback
-    at = Marshal.load(session[:qb_request_token]).get_access_token(:oauth_verifier => params[:oauth_verifier])
-    
-    #There can only be one...
-    Qbo.destroy_all
-
-    # Save the authentication information 
-    qbo = Qbo.new
-    qbo.qb_token = at.token
-    qbo.qb_secret = at.secret
-    qbo.token_expires_at = 6.months.from_now.utc
-    qbo.reconnect_token_at = 5.months.from_now.utc
-    qbo.company_id = params['realmId']
-    if qbo.save!
-      redirect_to qbo_sync_path, :flash => { :notice => "Successfully connected to Quickbooks" }
-    else
-      redirect_to plugin_settings_path(:redmine_qbo), :flash => { :error => "Error" }
+    if params[:state].present?
+      # use the state value to retrieve from your backend any information you need to identify the customer in your system
+      redirect_uri = quickbooks_oauth_callback_url
+      if resp = oauth2_client.auth_code.get_token(params[:code], redirect_uri: redirect_uri)
+        # save your tokens here. For example:
+        # quickbooks_credentials.update_attributes(access_token: resp.token, refresh_token: resp.refresh_token, 
+        #    realm_id: params[:realmId])
+        
+        # Save the authentication information 
+        qbo = Qbo.new
+        qbo.qb_token = resp.token
+        qbo.qb_secret = resp.refresh_token
+        qbo.token_expires_at = resp.access_token_expires_at 
+        qbo.reconnect_token_at = resep.refresh_token_expires_at 
+        qbo.company_id = params[:realmId]
+        if qbo.save!
+          redirect_to qbo_sync_path, :flash => { :notice => "Successfully connected to Quickbooks" }
+        else
+          redirect_to plugin_settings_path(:redmine_qbo), :flash => { :error => "Error" }
+        end
+        
+      end
     end
   end
   
