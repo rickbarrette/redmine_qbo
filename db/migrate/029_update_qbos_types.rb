@@ -11,7 +11,7 @@
 class UpdateQbosTypes < ActiveRecord::Migration
   
   def change
-    change_column :qbos, :token, :text
-    change_column :qbos, :secret, :text
+    change_column :qbos, :qb_token, :text
+    change_column :qbos, :qb_secret, :text
   end
 end
