@@ -31,7 +31,7 @@ class Qbo < ActiveRecord::Base
 
   # Get a quickbooks base object for type
   # @params type of base
-  def self.get_base()
+  def self.get_base(type)
     oauth2_client = get_client
     account = first
     access_token = OAuth2::AccessToken.new(oauth2_client, account.qb_secret, refresh_token: account.qb_secret)
@@ -52,8 +52,22 @@ class Qbo < ActiveRecord::Base
         access_token = new_access_token_object
       end
     end
+    
+    case type
+      when :item
+        return Quickbooks::Service::Item.new(:company_id => company_id, :access_token => access_token)
+      when :time_activity
+       return Quickbooks::Service::TimeActivity.new(:company_id => company_id, :access_token => access_token)
+      when :customer
+        return Quickbooks::Service::Customer.new(:company_id => company_id, :access_token => access_token)
+      when :invoice
+        return Quickbooks::Service::Invoice.new(:company_id => company_id, :access_token => access_token)
+      when :estimate
+        return Quickbooks::Service::Estimate.new(:company_id => company_id, :access_token => access_token)
+    else
+      return access_token
+    end
    
-    return access_token
   end
    
    # Get the QBO account
