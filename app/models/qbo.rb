@@ -47,9 +47,11 @@ class Qbo < ActiveRecord::Base
   # @params type of base
   def self.get_base(type)
     oauth2_client = get_client 
-    access_token = OAuth2::AccessToken.new(oauth2_client, qb_secret, refresh_token: qb_secret)
+    access_token = OAuth2::AccessToken.new(oauth2_client, self.qb_secret, refresh_token: self.qb_secret)
     #get a new refesh token if the current one is too old
-    new_access_token_object = access_token.refresh! if refresh_token_expires_at.to_date.past?
+    #if self.refresh_token_expires_at.to_date.past?
+    #  new_access_token_object = access_token.refresh! 
+    #end
     service = Quickbooks::Base.new(first, type)
     service.company_id = company_id # also known as RealmID
     service.access_token = access_token # the OAuth Access Token you have from above
