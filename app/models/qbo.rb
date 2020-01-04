@@ -41,12 +41,14 @@ class Qbo < ActiveRecord::Base
       token = access_token
       expire = 1.hour.from_now.utc
       save!
-    else if expire.to_date.past?
-      new_access_token_object = access_token.refresh!
-      self.token = new_access_token_object
-      self.expire = 1.hour.from_now.utc
-      self.save!
-      access_token = new_access_token_object
+    else 
+      if expire.to_date.past?
+        new_access_token_object = access_token.refresh!
+        self.token = new_access_token_object
+        self.expire = 1.hour.from_now.utc
+        self.save!
+        access_token = new_access_token_object
+      end
     end
    
     return access_token
