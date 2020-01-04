@@ -29,14 +29,12 @@ class Qbo < ActiveRecord::Base
     return $qb_oauth_consumer
   end
 
-  # Get a quickbooks base object for type
+  # Get a quickbooks base service object for type
   # @params type of base
   def self.get_base(type)
     oauth2_client = get_client
-    account = first
-    access_token = OAuth2::AccessToken.new(oauth2_client, account.qb_secret, refresh_token: account.qb_secret)
-    
     qbo = self.first
+    access_token = OAuth2::AccessToken.new(oauth2_client, qbo.qb_secret, refresh_token: qbo.qb_secret)
     
     #save the access
     if qbo.expire.nil?
