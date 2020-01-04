@@ -62,6 +62,11 @@ class QboController < ApplicationController
         qbo.token_expires_at = 6.months.from_now.utc 
         qbo.reconnect_token_at = 1.hour.from_now.utc 
         qbo.company_id = params[:realmId]
+        
+        access_token = OAuth2::AccessToken.new(oauth2_client, resp.token, refresh_token: resp.refresh_token)
+        qbo.token = access_token
+        qbo.expire = 1.hour.from_now.utc
+        
         if qbo.save!
           redirect_to qbo_sync_path, :flash => { :notice => "Successfully connected to Quickbooks" }
         else
