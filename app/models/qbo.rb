@@ -46,8 +46,9 @@ class Qbo < ActiveRecord::Base
   # Get a quickbooks base object for type
   # @params type of base
   def self.get_base(type)
-    oauth2_client = get_client 
-    access_token = OAuth2::AccessToken.new(oauth2_client, self.qb_secret, refresh_token: self.qb_secret)
+    oauth2_client = get_client
+    account = first
+    access_token = OAuth2::AccessToken.new(oauth2_client, account.qb_secret, refresh_token: account.qb_secret)
     #get a new refesh token if the current one is too old
     #if self.refresh_token_expires_at.to_date.past?
     #  new_access_token_object = access_token.refresh! 
