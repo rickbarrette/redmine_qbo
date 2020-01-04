@@ -15,12 +15,12 @@ class Qbo < ActiveRecord::Base
   OAUTH_CONSUMER_KEY = Setting.plugin_redmine_qbo['settingsOAuthConsumerKey']
   OAUTH_CONSUMER_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
   
-  oauth_params = {
-    site: "https://appcenter.intuit.com/connect/oauth2",
-    authorize_url: "https://appcenter.intuit.com/connect/oauth2",
-    token_url: "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer"
-  }
-  oauth2_client = OAuth2::Client.new(OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET, oauth_params)
+  #oauth_params = {
+  #  site: "https://appcenter.intuit.com/connect/oauth2",
+  #  authorize_url: "https://appcenter.intuit.com/connect/oauth2",
+  #  token_url: "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer"
+  #}
+  #oauth2_client = OAuth2::Client.new(OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET, oauth_params)
   
   def self.get_client
     oauth_params = {
@@ -46,6 +46,7 @@ class Qbo < ActiveRecord::Base
   # Get a quickbooks base object for type
   # @params type of base
   def self.get_base(type)
+    oauth2_client = get_client 
     access_token = OAuth2::AccessToken.new(oauth2_client, qb_secret, refresh_token: qb_secret)
     #get a new refesh token if the current one is too old
     new_access_token_object = access_token.refresh! if refresh_token_expires_at.to_date.past?
