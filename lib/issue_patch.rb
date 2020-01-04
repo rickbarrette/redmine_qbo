@@ -58,10 +58,8 @@ module IssuePatch
         access_token = Qbo.get_base
         
         # Prepare to create a new Time Activity
-        time_service = Quickbooks::Service::TimeActivity.new(:company_id => company_id, :access_token => access_token)
-          #Qbo.get_base(:time_activity).service
-        item_service = Quickbooks::Service::Item.new(:company_id => company_id, :access_token => access_token)
-          #Qbo.get_base(:item).service
+        time_service = Qbo.get_base(:time_activity)
+        item_service = Qbo.get_base(:item)
         time_entry = Quickbooks::Model::TimeActivity.new
   
         # Lets total up each activity before billing.
