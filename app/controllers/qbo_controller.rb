@@ -46,7 +46,7 @@ class QboController < ApplicationController
   def oauth_callback
     if params[:state].present?
       # use the state value to retrieve from your backend any information you need to identify the customer in your system
-      redirect_uri = quickbooks_oauth_callback_url
+      redirect_uri = qbo_oauth_callback_url
       if resp = oauth2_client.auth_code.get_token(params[:code], redirect_uri: redirect_uri)
         # save your tokens here. For example:
         # quickbooks_credentials.update_attributes(access_token: resp.token, refresh_token: resp.refresh_token, 
