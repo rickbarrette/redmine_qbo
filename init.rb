@@ -1,6 +1,6 @@
 #The MIT License (MIT)
 #
-#Copyright (c) 2017 rick barrette
+#Copyright (c) 2020 rick barrette
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -31,7 +31,7 @@ Redmine::Plugin.register :redmine_qbo do
     name 'Redmine Quickbooks Online plugin'
     author 'Rick Barrette'
     description 'This is a plugin for Redmine to intergrate with Quickbooks Online to allow for seamless intergration CRM and invoicing of completed issues'
-    version '0.7.0'
+    version '0.8.0'
     url 'https://github.com/rickbarrette/redmine_qbo'
     author_url 'http://rickbarrette.org'
     settings :default => {'empty' => true}, :partial => 'qbo/settings'
