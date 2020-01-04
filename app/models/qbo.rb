@@ -36,17 +36,19 @@ class Qbo < ActiveRecord::Base
     account = first
     access_token = OAuth2::AccessToken.new(oauth2_client, account.qb_secret, refresh_token: account.qb_secret)
     
+    qbo = self.first
+    
     #save the access
-    if self.expire.nil?
-      self.token = access_token
-      self.expire = 1.hour.from_now.utc
-      self.save!
+    if qbo.expire.nil?
+      qbo.token = access_token
+      qbo.expire = 1.hour.from_now.utc
+      qbo.save!
     else 
-      if self.expire.to_date.past?
+      if qbo.expire.to_date.past?
         new_access_token_object = access_token.refresh!
-        self.token = new_access_token_object
-        self.expire = 1.hour.from_now.utc
-        self.save!
+        qbo.token = new_access_token_object
+        qbo.expire = 1.hour.from_now.utc
+        qbo.save!
         access_token = new_access_token_object
       end
     end
