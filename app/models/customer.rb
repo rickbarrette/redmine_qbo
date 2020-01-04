@@ -1,6 +1,6 @@
 #The MIT License (MIT)
 #
-#Copyright (c) 2017 rick barrette
+#Copyright (c) 2020 rick barrette
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -136,7 +136,7 @@ class Customer < ActiveRecord::Base
   # proforms a bruteforce sync operation
   # This needs to be simplified
   def self.sync 
-    service = Qbo.get_base(:customer).service
+    service = Qbo.get_base(:customer)
 
     # Sync ALL customers if the database is empty
     #if count == 0
@@ -173,7 +173,7 @@ class Customer < ActiveRecord::Base
   # proforms a bruteforce sync operation
   # This needs to be simplified
   def self.sync_by_id(id) 
-    service = Qbo.get_base(:customer).service
+    service = Qbo.get_base(:customer)
 
     customer = service.fetch_by_id(id)
     qbo_customer = Customer.find_or_create_by(id: customer.id)
@@ -193,7 +193,7 @@ class Customer < ActiveRecord::Base
   # Push the updates
   def save_with_push
     begin
-      @details = Qbo.get_base(:customer).service.update(@details)
+      @details = Qbo.get_base(:customer).update(@details)
       #raise "QBO Fault" if @details.fault?
       self.id = @details.id
     rescue Exception => e
