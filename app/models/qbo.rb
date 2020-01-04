@@ -24,7 +24,7 @@ class Qbo < ActiveRecord::Base
   
   def self.get_client
     return oauth2_client
-  }
+  end
     
   # Configure quickbooks-ruby-base to access our database
   #Quickbooks::Base.configure do |c|
