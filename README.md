@@ -4,9 +4,13 @@ A plugin for Redmine to connect to Quickbooks Online
 
 The goal of this project is to allow Redmine to connect with Quickbooks Online to create `Time Activity Entries` for completed work when an Issue is closed.
 
-`Note: Although the core functionality is complete, this project is still under heavy development. I am still working on refining everthing and adding other features. Tags should be stable`
+#### Disclaimer
 
-`Note: I am currently using this in a live production enviroment with no issues`
+OAuth2 is hacked into place with version 0.8.0 & working but I'm sure I missed a few things
+
+Note: Although the core functionality is complete, this project is still under heavy development. I am still working on refining everthing and adding other features. Tags should be stable
+
+Also worth metioning I am currently using this in a live production enviroment with no issues
 
 #### Features
 * Issues can be assigned to a `Customer` via drop down in the edit Issue form
