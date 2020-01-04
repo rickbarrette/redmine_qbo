@@ -55,6 +55,8 @@ class QboController < ApplicationController
         # quickbooks_credentials.update_attributes(access_token: resp.token, refresh_token: resp.refresh_token, 
         #    realm_id: params[:realmId])
         
+        Qbo.delete_all
+        
         # Save the authentication information 
         qbo = Qbo.new
         qbo.qb_token = resp.token
