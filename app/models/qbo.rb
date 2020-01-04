@@ -15,7 +15,7 @@ class Qbo < ActiveRecord::Base
   OAUTH_CONSUMER_KEY = Setting.plugin_redmine_qbo['settingsOAuthConsumerKey']
   OAUTH_CONSUMER_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
   
-  $oauth_params = {
+  oauth_params = {
     site: "https://appcenter.intuit.com/connect/oauth2",
     authorize_url: "https://appcenter.intuit.com/connect/oauth2",
     token_url: "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer"
