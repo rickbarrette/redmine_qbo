@@ -20,7 +20,11 @@ class Qbo < ActiveRecord::Base
     authorize_url: "https://appcenter.intuit.com/connect/oauth2",
     token_url: "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer"
   }
-  oauth2_client = OAuth2::Client.new(ENV['OAUTH_CLIENT_ID'], ENV['OAUTH_CLIENT_SECRET'], oauth_params)
+  oauth2_client = OAuth2::Client.new(OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET, oauth_params)
+  
+  def self.get_client
+    return oauth2_client
+  }
     
   # Configure quickbooks-ruby-base to access our database
   #Quickbooks::Base.configure do |c|
