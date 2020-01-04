@@ -15,13 +15,6 @@ class Qbo < ActiveRecord::Base
   OAUTH_CONSUMER_KEY = Setting.plugin_redmine_qbo['settingsOAuthConsumerKey']
   OAUTH_CONSUMER_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
   
-  #oauth_params = {
-  #  site: "https://appcenter.intuit.com/connect/oauth2",
-  #  authorize_url: "https://appcenter.intuit.com/connect/oauth2",
-  #  token_url: "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer"
-  #}
-  #oauth2_client = OAuth2::Client.new(OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET, oauth_params)
-  
   def self.get_client
     oauth_params = {
     site: "https://appcenter.intuit.com/connect/oauth2",
@@ -30,14 +23,7 @@ class Qbo < ActiveRecord::Base
   }
     return OAuth2::Client.new(OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET, oauth_params)
   end
-    
-  # Configure quickbooks-ruby-base to access our database
-  #Quickbooks::Base.configure do |c|
-  #  c.persistent_token = 'qb_token'
-  #  c.persistent_secret = 'qb_secret'
-  #  c.persistent_company_id =  'company_id'
-  #end
-   
+     
   def self.get_oauth_consumer
     # Quickbooks Config Info
     return $qb_oauth_consumer
@@ -45,18 +31,25 @@ class Qbo < ActiveRecord::Base
 
   # Get a quickbooks base object for type
   # @params type of base
-  def self.get_base(type)
+  def self.get_base()
     oauth2_client = get_client
     account = first
     access_token = OAuth2::AccessToken.new(oauth2_client, account.qb_secret, refresh_token: account.qb_secret)
-    #get a new refesh token if the current one is too old
-    #if self.refresh_token_expires_at.to_date.past?
-    #  new_access_token_object = access_token.refresh! 
-    #end
-    service = Quickbooks::Base.new(first, type)
-    service.company_id = company_id # also known as RealmID
-    service.access_token = access_token # the OAuth Access Token you have from above
-    return service
+    
+    #save the access
+    if expire.nil?
+      token = access_token
+      expire = 1.hour.from_now.utc
+      save!
+    else if expire.to_date.past?
+      new_access_token_object = access_token.refresh!
+      self.token = new_access_token_object
+      self.expire = 1.hour.from_now.utc
+      self.save!
+      access_token = new_access_token_object
+    end
+   
+    return access_token
   end
    
    # Get the QBO account
