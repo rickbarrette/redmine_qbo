@@ -33,22 +33,24 @@ class Qbo < ActiveRecord::Base
   # Get a quickbooks base service object for type
   # @params type of base
   def self.get_base(type)
+    # lets getnourbold access token from the database
     oauth2_client = get_client
     qbo = self.first
-    #access_token = OAuth2::AccessToken.new(oauth2_client, qbo.qb_token , refresh_token: qbo.qb_secret)
-    access_token = OAuth2::AccessToken.from_hash(oauth2_client, qbo.token )
+    access_token = OAuth2::AccessToken.from_hash(oauth2_client, qbo.token)
 
-    # check to see if we need to refresh the token
-    #if qbo.expire.to_time.passed?
+    # check to see if we need to refresh the acesstoken
+    if qbo.expire.to_time.utc.past?
+      puts "Updating access token"
       new_access_token_object = access_token.refresh!
       qbo.token = new_access_token_object.to_hash
-      #qbo.qb_token = new_access_token_object.token
-      #qbo.qb_secret = new_access_token_object.refresh_token
       qbo.expire = 1.hour.from_now.utc
       qbo.save!
       access_token = new_access_token_object
-    #end
+    else
+      puts "Using current token"
+    end
     
+    # build the reqiested service
     case type
       when :item
         return Quickbooks::Service::Item.new(:company_id => qbo.company_id, :access_token => access_token)
