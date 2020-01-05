@@ -39,7 +39,7 @@ class Qbo < ActiveRecord::Base
     access_token = OAuth2::AccessToken.from_hash(oauth2_client, qbo.token )
 
     # check to see if we need to refresh the token
-    if qbo.expire.to_date.past?
+    if access_token.expired?
       new_access_token_object = access_token.refresh!
       qbo.token = new_access_token_object.to_hash
       #qbo.qb_token = new_access_token_object.token
