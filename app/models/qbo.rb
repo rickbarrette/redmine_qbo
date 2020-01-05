@@ -62,6 +62,8 @@ class Qbo < ActiveRecord::Base
         return Quickbooks::Service::Estimate.new(:company_id => qbo.company_id, :access_token => access_token)
       when :account
         return Quickbooks::Service::Account.new(:company_id => qbo.company_id, :access_token => access_token)
+      when :employee
+        return Quickbooks::Service:: Employee.new(:company_id => qbo.company_id, :access_token => access_token)
     else
       return access_token
     end
