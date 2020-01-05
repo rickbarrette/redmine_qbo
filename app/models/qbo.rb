@@ -39,7 +39,8 @@ class Qbo < ActiveRecord::Base
     # check to see if we need to refest the token
     if qbo.expire.to_date.past?
       new_access_token_object = access_token.refresh!
-      qbo.token = new_access_token_object
+      Qbo.qb_token = new_access_token_object.token
+      qbo.qb_secret = new_access_token_object.refresh_token
       qbo.expire = 1.hour.from_now.utc
       qbo.save!
       access_token = new_access_token_object
