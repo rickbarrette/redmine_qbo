@@ -1,8 +1,6 @@
 source 'https://rubygems.org'
 
 gem 'quickbooks-ruby'
-gem 'quickbooks-ruby-base'
-gem 'oauth-plugin'
 gem 'oauth2'
 gem 'roxml'
 gem 'nhtsa_vin'
