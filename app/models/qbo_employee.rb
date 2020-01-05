@@ -19,7 +19,7 @@ class QboEmployee < ActiveRecord::Base
   end
   
   def self.sync 
-    employees = get_base.all
+    employees = get_base.query
     
     transaction do
       # Update the item table
