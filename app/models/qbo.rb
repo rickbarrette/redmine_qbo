@@ -37,13 +37,13 @@ class Qbo < ActiveRecord::Base
     access_token = OAuth2::AccessToken.new(oauth2_client, qbo.qb_token , refresh_token: qbo.qb_secret)
     
     # check to see if we need to refest the token
-    #if qbo.expire.to_date.past?
-    #  new_access_token_object = access_token.refresh!
-    #  qbo.token = new_access_token_object
-    #  qbo.expire = 1.hour.from_now.utc
-    #  qbo.save!
-    #  access_token = new_access_token_object
-    #end
+    if qbo.expire.to_date.past?
+      new_access_token_object = access_token.refresh!
+      qbo.token = new_access_token_object
+      qbo.expire = 1.hour.from_now.utc
+      qbo.save!
+      access_token = new_access_token_object
+    end
     
     case type
       when :item
