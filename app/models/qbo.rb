@@ -10,28 +10,38 @@
 
 class Qbo < ActiveRecord::Base
   unloadable
-  validates_presence_of :qb_token, :qb_secret, :company_id, :token_expires_at, :reconnect_token_at
+  #validates_presence_of :qb_token, :qb_secret, :company_id, :token_expires_at, :reconnect_token_at
+  validates_presence_of :token, :company_id, :expire
   serialize :token
 
   OAUTH_CONSUMER_KEY = Setting.plugin_redmine_qbo['settingsOAuthConsumerKey']
   OAUTH_CONSUMER_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
   
+  #
+  # Getter for quickbooks OAuth2 client
+  #
   def self.get_client
     oauth_params = {
-    site: "https://appcenter.intuit.com/connect/oauth2",
-    authorize_url: "https://appcenter.intuit.com/connect/oauth2",
-    token_url: "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer"
-  }
+     site: "https://appcenter.intuit.com/connect/oauth2",
+     authorize_url: "https://appcenter.intuit.com/connect/oauth2",
+     token_url: "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer"
+    }
     return OAuth2::Client.new(OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET, oauth_params)
   end
-     
+  
+
+  #
+  # Getter for oauth consumer
+  #
   def self.get_oauth_consumer
     # Quickbooks Config Info
     return $qb_oauth_consumer
   end
 
+  # 
   # Get a quickbooks base service object for type
   # @params type of base
+  #
   def self.get_base(type)
     # lets getnourbold access token from the database
     oauth2_client = get_client

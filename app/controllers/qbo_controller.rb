@@ -51,20 +51,15 @@ class QboController < ApplicationController
       #redirect_uri = qbo_oauth_callback_url
       redirect_uri = "https://redmine.rickbarrette.org/qbo/oauth_callback/"
       if resp = oauth2_client.auth_code.get_token(params[:code], redirect_uri: redirect_uri)
-        # save your tokens here. For example:
-        # quickbooks_credentials.update_attributes(access_token: resp.token, refresh_token: resp.refresh_token, 
-        #    realm_id: params[:realmId])
         
+        # Remove the last authentication information
         Qbo.delete_all
         
         # Save the authentication information 
         qbo = Qbo.new
-        qbo.qb_token = resp.token
-        qbo.qb_secret = resp.refresh_token
-        qbo.token_expires_at = 6.months.from_now.utc 
-        qbo.reconnect_token_at = 3.months.from_now.utc 
         qbo.company_id = params[:realmId]
         
+        # Generate Access Token & Serialize it into the database
         access_token = OAuth2::AccessToken.new(oauth2_client, resp.token, refresh_token: resp.refresh_token)
         qbo.token = access_token.to_hash
         qbo.expire = 1.hour.from_now.utc
