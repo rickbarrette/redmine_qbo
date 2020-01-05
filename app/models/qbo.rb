@@ -11,7 +11,8 @@
 class Qbo < ActiveRecord::Base
   unloadable
   validates_presence_of :qb_token, :qb_secret, :company_id, :token_expires_at, :reconnect_token_at
-  
+  serialize :token
+
   OAUTH_CONSUMER_KEY = Setting.plugin_redmine_qbo['settingsOAuthConsumerKey']
   OAUTH_CONSUMER_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
   
@@ -35,7 +36,7 @@ class Qbo < ActiveRecord::Base
     oauth2_client = get_client
     qbo = self.first
     #access_token = OAuth2::AccessToken.new(oauth2_client, qbo.qb_token , refresh_token: qbo.qb_secret)
-    access_token = OAuth2::AccessToken.from_hash(oauth2_client, eval( qbo.token) )
+    access_token = OAuth2::AccessToken.from_hash(oauth2_client, qbo.token )
 
     # check to see if we need to refresh the token
     if qbo.expire.to_date.past?
