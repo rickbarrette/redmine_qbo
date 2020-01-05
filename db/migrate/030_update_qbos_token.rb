@@ -12,6 +12,6 @@ class UpdateQbosToken < ActiveRecord::Migration
   
   def change
     add_column :qbos, :token, :text
-    add_column :qbos, :expire, :date
+    add_column :qbos, :expire, :datetime
   end
 end
