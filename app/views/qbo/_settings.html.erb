@@ -1,7 +1,7 @@
 <!--
 The MIT License (MIT)
 
-Copyright (c) 2016 rick barrette
+Copyright (c) 2020 rick barrette
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -22,7 +22,7 @@ intuit.ipp.anywhere.setup({menuProxy: '/path/to/blue-dot', grantUrl: '<%= qbo_au
   <tbody>
   
     <tr>
-      <th>Intuit QBO OAuth Consumer Key</th>
+      <th>Intuit QBO OAuth2 Client ID</th>
       <td>
         <input type="text" style="width:350px" id="settingsOAuthConsumerKey" 
                            value="<%= settings['settingsOAuthConsumerKey'] %>" 
@@ -31,7 +31,7 @@ intuit.ipp.anywhere.setup({menuProxy: '/path/to/blue-dot', grantUrl: '<%= qbo_au
     </tr>
 
     <tr>
-      <th>Intuit QBO OAuth Consumer Secret</th>
+      <th>Intuit QBO OAuth2 Client Secret</th>
       <td>
         <input type="text" style="width:350px" id="settingsOAuthConsumerSecret"
                            value="<%= settings['settingsOAuthConsumerSecret'] %>"
@@ -49,20 +49,15 @@ intuit.ipp.anywhere.setup({menuProxy: '/path/to/blue-dot', grantUrl: '<%= qbo_au
     </tr>
 
      <tr>
-       <th>Token Expires At</th>
-       <td><%= if Qbo.exists? then Qbo.first.token_expires_at end %>
-     </tr>
-
-     <tr>
-       <th>Reconnect Token At</th>
-       <td><%= if Qbo.exists? then Qbo.first.reconnect_token_at end  %>
+       <th>OAuth2 Access Token Expires At</th>
+       <td><%= if Qbo.exists? then Qbo.first.expire end %>
      </tr>
 
   </tbody>
 </table>
 
 <br/>
-Note: You need to authenticate after saving your key and secret above
+Note: You need to authenticate with Quickbooks after saving your key and secret above
 <br/>
 <br/>
 

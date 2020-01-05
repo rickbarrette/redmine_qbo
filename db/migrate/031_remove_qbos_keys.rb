@@ -9,11 +9,10 @@
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class RemoveQbosKeys < ActiveRecord::Migration
-  
   def change
-    remove_column :qbos, :qb_token
-    remove_column :qbos, :qb_secrect
+    remove_column :qbos, :qb_secret
     remove_column :qbos, :token_expires_at
     remove_column :qbos, :reconnect_token_at
+    remove_column :qbos, :qb_token
   end
 end
