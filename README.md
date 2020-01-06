@@ -6,8 +6,6 @@ The goal of this project is to allow Redmine to connect with Quickbooks Online t
 
 #### Disclaimer
 
-OAuth2 is hacked into place with version 0.8.0 & working but I'm sure I missed a few things
-
 Note: Although the core functionality is complete, this project is still under heavy development. I am still working on refining everthing and adding other features. Tags should be stable
 
 Also worth metioning I am currently using this in a live production enviroment with no issues
