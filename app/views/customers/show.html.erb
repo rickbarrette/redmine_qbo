@@ -19,6 +19,10 @@
     </div>
     
     <br/>
-    <h2>Issues:</h2>
-    <%= render :partial => 'issues/list_simple', locals: {issues: @issues} %>
+    <h2>Open Issues:</h2>
+    <%= render :partial => 'issues/list_simple', locals: {issues: @issues.open} %>
+
+    <h2>Closed Issues:</h2>
+    <%= render :partial => 'issues/list_simple', locals: {issues: @issues.where(is_closed = 1)} %>
+
   </div>
