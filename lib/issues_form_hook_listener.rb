@@ -39,7 +39,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     search_customer = f.autocomplete_field :customer,
       autocomplete_customer_name_customers_path,
       :selected => selected_customer,
-      :update_elements => { :id => '#issue_customer_id', :value => '#issue_customer' }
+      :update_elements => { :id => '#issue_customer_id', :value => '#issue_customer' },
       :onchange => "updateIssueFrom('#{escape_javascript update_issue_form_path(@project, @issue)}', this)"
 
     customer_id = f.hidden_field :customer_id, :id => "issue_customer_id"
