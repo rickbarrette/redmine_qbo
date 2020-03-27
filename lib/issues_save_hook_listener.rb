@@ -10,6 +10,12 @@
 
 class IssuesSaveHookListener < Redmine::Hook::ViewListener
 
+  # Called Before Issue Saved
+  def controller_issues_edit_before_save(context={})
+    issue = context[:issue]
+    issue.subject = issue.subject.titleize
+  end
+
   # Called After Issue Saved
   def controller_issues_edit_after_save(context={})
     issue = context[:issue]
