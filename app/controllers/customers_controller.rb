@@ -11,7 +11,7 @@
 # This controller class will handle map management
 class CustomersController < ApplicationController
   unloadable
-  
+
   include AuthHelper
   helper :issues
   helper :journals
@@ -26,27 +26,33 @@ class CustomersController < ApplicationController
   helper :sort
   include SortHelper
   helper :timelog
-  
+
   before_filter :add_customer, :only => :new
   before_filter :view_customer, :except => :new
   skip_before_filter :verify_authenticity_token, :check_if_login_required, :only => [:view]
-  
+
   default_search_scope :names
-  
+
   autocomplete :customer, :name, :full => true, :extra_data => [:id]
-  
+
+  # getter method for a customer's vehicles
+  # TODO: move into customer model
   def filter_vehicles_by_customer
     @filtered_vehicles = Vehicle.all.where(customer_id: params[:selected_customer])
   end
-  
+
+  # getter method for a customer's invoices
+  # TODO: move into customer model
   def filter_invoices_by_customer
     @filtered_invoices = QboInvoice.all.where(customer_id: params[:selected_customer])
   end
-  
+
+  # getter method for a customer's estimates
+  # TODO: move into customer model
   def filter_estimates_by_customer
     @filtered_estimates = QboEstimate.all.where(customer_id: params[:selected_customer])
   end
-  
+
   # display a list of all customers
   def index
     if params[:search]
@@ -56,22 +62,24 @@ class CustomersController < ApplicationController
       end
     end
   end
-  
+
+  # initialize a new customer
   def new
     @customer = Customer.new
   end
-  
+
+  # create a new customer
   def create
     @customer = Customer.new(params[:customer])
     if @customer.save
       flash[:notice] = "New Customer Created"
       redirect_to @customer
     else
-      flash[:error] = @customer.errors.full_messages.to_sentence 
+      flash[:error] = @customer.errors.full_messages.to_sentence
       redirect_to new_customer_path
     end
   end
-  
+
   # display a specific customer
   def show
     begin
@@ -82,7 +90,7 @@ class CustomersController < ApplicationController
       render_404
     end
   end
-  
+
   # return an HTML form for editing a customer
   def edit
     begin
@@ -91,7 +99,7 @@ class CustomersController < ApplicationController
       render_404
     end
   end
-  
+
   # update a specific customer
   def update
     begin
@@ -107,7 +115,8 @@ class CustomersController < ApplicationController
       render_404
     end
   end
-  
+
+  # delete a customer
   def destroy
     begin
       Customer.find_by_id(params[:id]).destroy
@@ -117,12 +126,12 @@ class CustomersController < ApplicationController
       render_404
     end
   end
-  
-  # Customer view for an issue
+
+  # displays an issue for a customer with a provided security CustomerToken
   def view
-    
+
     User.current = User.find_by lastname: 'Anonymous'
-    
+
     @token = CustomerToken.where("token = ? and expires_at > ?", params[:token], Time.now)
     @token = @token.first
     if @token
@@ -137,10 +146,10 @@ class CustomersController < ApplicationController
       Journal.preload_journals_details_custom_fields(@journals)
       @journals.select! {|journal| journal.notes? || journal.visible_details.any?}
       @journals.reverse! if User.current.wants_comments_in_reverse_order?
-  
+
       @changesets = @issue.changesets.visible.preload(:repository, :user).to_a
       @changesets.reverse! if User.current.wants_comments_in_reverse_order?
-  
+
       @relations = @issue.relations.select {|r| r.other_issue(@issue) && r.other_issue(@issue).visible? }
       @allowed_statuses = @issue.new_statuses_allowed_to(User.current)
       @priorities = IssuePriority.active
@@ -150,17 +159,21 @@ class CustomersController < ApplicationController
       render_403
     end
   end
-  
+
   private
-  
+
+  # redmine permission - add customers
   def add_customer
     global_check_permission(:add_customers)
   end
-  
+
+  # redmine permission - view customers
   def view_customer
     global_check_permission(:view_customers)
   end
-  
+
+  # checks to see if there is only one item  in an array
+  # @return true if array only has one item
   def only_one_non_zero?( array )
     found_non_zero = false
     array.each do |val|
