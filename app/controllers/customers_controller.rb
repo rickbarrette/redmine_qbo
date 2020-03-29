@@ -36,19 +36,19 @@ class CustomersController < ApplicationController
   autocomplete :customer, :name, :full => true, :extra_data => [:id]
 
   # getter method for a customer's vehicles
-  # TODO: move into customer model
+  # used for customer autocomplete field / issue form
   def filter_vehicles_by_customer
     @filtered_vehicles = Vehicle.all.where(customer_id: params[:selected_customer])
   end
 
   # getter method for a customer's invoices
-  # TODO: move into customer model
+  # used for customer autocomplete field / issue form
   def filter_invoices_by_customer
     @filtered_invoices = QboInvoice.all.where(customer_id: params[:selected_customer])
   end
 
   # getter method for a customer's estimates
-  # TODO: move into customer model
+  # used for customer autocomplete field / issue form
   def filter_estimates_by_customer
     @filtered_estimates = QboEstimate.all.where(customer_id: params[:selected_customer])
   end
