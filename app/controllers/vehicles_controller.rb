@@ -11,11 +11,11 @@
 # This controller class will handle map management
 class VehiclesController < ApplicationController
   unloadable
-  
+
   include AuthHelper
-  
+
   before_filter :require_user
-  
+
   # display a list of all vehicles
   def index
     if params[:customer_id]
@@ -25,7 +25,8 @@ class VehiclesController < ApplicationController
         render_404
       end
     end
-    
+
+    # search for a vehicle by vin
     if params[:search]
       @vehicles = Vehicle.search(params[:search]).paginate(:page => params[:page])
       if only_one_non_zero?(@vehicles)
@@ -47,11 +48,11 @@ class VehiclesController < ApplicationController
       flash[:notice] = "New Vehicle Created"
       redirect_to @vehicle
     else
-      flash[:error] = @vehicle.errors.full_messages.to_sentence 
+      flash[:error] = @vehicle.errors.full_messages.to_sentence
       redirect_to Vehicle.find_by_vin @vehicle.vin
     end
   end
-  
+
   # display a specific vehicle
   def show
     begin
@@ -61,7 +62,7 @@ class VehiclesController < ApplicationController
       render_404
     end
   end
-  
+
   # return an HTML form for editing a vehicle
   def edit
     begin
@@ -71,11 +72,11 @@ class VehiclesController < ApplicationController
       render_404
     end
   end
-  
+
   # update a specific vehicle
   def update
     @customer = params[:customer]
-    begin   
+    begin
       @vehicle = Vehicle.find_by_id(params[:id])
       if @vehicle.update_attributes(params[:vehicle])
         flash[:notice] = "Vehicle updated"
@@ -88,7 +89,7 @@ class VehiclesController < ApplicationController
     rescue ActiveRecord::RecordNotFound
       render_404
     end
-  end  
+  end
 
   # delete a specific vehicle
   def destroy
@@ -100,9 +101,11 @@ class VehiclesController < ApplicationController
       render_404
     end
   end
-  
+
   private
-  
+
+  # checks to see if there is only one item  in an array
+  # @return true if array only has one item
   def only_one_non_zero?( array )
     found_non_zero = false
     array.each do |val|
