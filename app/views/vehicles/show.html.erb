@@ -1,5 +1,5 @@
 <h2>Vehicle #<%=@vehicle.id%> <span style="float:right"> <%= render :partial => 'customers/search' %> </span> </h2>
-<br/> 
+<br/>
 
 <div style="text-align: left; width:90%;">
   <%= render :partial => 'vehicles/details', locals: {vehicle: @vehicle} %>
@@ -10,5 +10,5 @@
 
   <p> <b> Closed Issues </b> </p>
 
-  <%= render :partial => 'issues/list_simple', locals: {issues: @vehicle.issues.where(is_closed=1)} %>
+  <%= render :partial => 'issues/list_simple', locals: {issues: (@vehicle.issues - @vehicle.issues.open)} %>
 </div>
