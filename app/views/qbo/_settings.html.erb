@@ -15,7 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 <!-- configure the Intuit object: 'grantUrl' is a URL in your application which kicks off the flow, see below -->
 <script>
-intuit.ipp.anywhere.setup({menuProxy: '/path/to/blue-dot', grantUrl: '<%= qbo_authenticate_url %>'});
+intuit.ipp.anywhere.setup({menuProxy: '/path/to/blue-dot', grantUrl: '<%= Setting.host_name %>/qbo/authenticate'});
 </script>
 
 <table >

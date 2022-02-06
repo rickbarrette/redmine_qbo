@@ -149,7 +149,11 @@ class QboInvoice < ActiveRecord::Base
 
     # Push updates
     #invoice.sync_token += 1 if is_changed
-    get_base.update(invoice) if is_changed
+    begin
+      get_base.update(invoice) if is_changed
+    rescue
+      # Do nothing, probaly too many vehicles on the invoice. This is a problem with how it's billed
+      # TODO Add notes in memo area
   end
     
 end
