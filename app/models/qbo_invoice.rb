@@ -23,6 +23,7 @@ class QboInvoice < ActiveRecord::Base
   
   # sync ALL the invoices
   def self.sync
+    logger.debug "Syncing all invoices"
     last = Qbo.first.last_sync
     
     query = "SELECT Id, DocNumber FROM Invoice"
@@ -42,6 +43,7 @@ class QboInvoice < ActiveRecord::Base
   
   #sync by invoice ID
   def self.sync_by_id(id)
+    logger.debug "Syncing invoice #{id}"
     #update the information in the database
     invoice = get_base.fetch_by_id(id) 
     process_invoice invoice
@@ -56,6 +58,8 @@ class QboInvoice < ActiveRecord::Base
     # skip this issue if the issue customer is not the same as the invoice customer
     return if issue.customer_id != invoice.customer_ref.value.to_i
     
+    logger.debug "Attaching invoice #{invoice.id} to issue #{issue.id}"
+
     # Load the invoice into the database
     qbo_invoice = QboInvoice.find_or_create_by(id: invoice.id)
     qbo_invoice.doc_number = invoice.doc_number 
@@ -73,6 +77,7 @@ class QboInvoice < ActiveRecord::Base
   
   # processes the invoice into the system
   def self.process_invoice(invoice)
+    logger.debug "Processing invoice"
     # Check the private notes 
     if not invoice.private_note.nil?
       invoice.private_note.scan(/#(\w+)/).flatten.each { |issue|
@@ -105,6 +110,7 @@ class QboInvoice < ActiveRecord::Base
           break if vin.nil?
           if not cf.string_value.to_s.eql? vin
             cf.string_value = vin.to_s
+            logger.debug "VIN has changed"
             is_changed = true
           end
         end
@@ -149,7 +155,15 @@ class QboInvoice < ActiveRecord::Base
 
     # Push updates
     #invoice.sync_token += 1 if is_changed
-    get_base.update(invoice) if is_changed
+    begin
+      if is_changed
+        logger.debug "Trying to update invoice"
+        get_base.update(invoice) if is_changed
+      end
+    rescue
+      #do nothing
+      logger.fatal "Failed to update invoice"
+    end
   end
     
 end

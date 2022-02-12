@@ -87,6 +87,8 @@ class QboController < ApplicationController
   
   # Quickbooks Webhook Callback
   def qbo_webhook
+
+    logger.debug "Quickbooks is calling webhook"
     
     # check the payload
     signature = request.headers['intuit-signature']
@@ -110,10 +112,12 @@ class QboController < ApplicationController
         
         # TODO rename all other models!
         name.prepend("Qbo") if not name.eql? "Customer"
-        
+       
+        logger.debug "Casting #{name.constantize} to obj"
+
         # Magicly initialize the correct class
         obj = name.constantize
-        
+
         # for merge events
         obj.destroy(entity['deletedId']) if entity['deletedId']
         
@@ -122,7 +126,13 @@ class QboController < ApplicationController
             obj.destroy(id)
         #if not then update!
         else
-          obj.sync_by_id(id)
+          begin
+            obj.sync_by_id(id)
+          rescue => e
+            logger.error "Failed to call sync_by_id on obj"
+            logger.error e.message
+            logger.error e.backtrace.join("\n")
+          end
         end
       end
       
@@ -134,12 +144,15 @@ class QboController < ApplicationController
     else
       render nothing: true, status: 400
     end
+
+    logger.debug "Quickbooks webhook complete"
   end
 
   #
   # Synchronizes the QboCustomer table with QBO
   #
   def sync
+    logger.debug "Syncing EVERYTHING"
     # Update info in background
     Thread.new do
       if Qbo.exists?
