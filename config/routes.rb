@@ -20,6 +20,7 @@ get 'qbo/sync', :to => 'qbo#sync'
 
 # Estimate & Invoice PDF
 get 'qbo/estimate/:id', :to => 'estimate#show', as: :estimate
+get 'qbo/estimate/doc/:id', :to => 'estimate#doc', as: :estimate_doc
 get 'qbo/invoice/:id', :to => 'invoice#show', as: :invoice
 
 #manual billing
@@ -47,3 +48,5 @@ end
 
 #allow for just vehicles too
 resources :vehicles
+
+#resources :qbo_estimates

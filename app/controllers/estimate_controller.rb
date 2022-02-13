@@ -18,10 +18,28 @@ class EstimateController < ApplicationController
   # Downloads and forwards the estimate pdf
   #
   def show
-    base = QboEstimate.get_base
-    estimate = base.fetch_by_id(params[:id])
-    @pdf = base.pdf(estimate)
-    send_data @pdf, filename: "estimate #{estimate.doc_number}.pdf", :disposition => 'inline', :type => "application/pdf"
+    e = QboEstimate.find_by_id(params[:id]) if params[:id]
+    e = QboEstimate.find_by_doc_number(params[:search]) if params[:search]
+
+    begin
+      send_data e.pdf, filename: "estimate #{e.doc_number}.pdf", :disposition => 'inline', :type => "application/pdf"
+    rescue
+      redirect_to :back, :flash => { :error => "Estimate not found" }
+    end
+  end
+
+  #
+  # Downloads estimate by document number
+  #
+  def doc
+    e = QboEstimate.find_by_doc_number(params[:id]) if params[:id]
+    e = QboEstimate.find_by_doc_number(params[:search]) if params[:search]
+    
+    begin
+      send_data e.pdf, filename: "estimate #{e.doc_number}.pdf", :disposition => 'inline', :type => "application/pdf"
+    rescue
+      redirect_to :back, :flash => { :error => "Estimate not found" }
+    end
   end
 
 end

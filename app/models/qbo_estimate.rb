@@ -55,4 +55,12 @@ class QboEstimate < ActiveRecord::Base
     qbo_estimate.id = estimate.id
     qbo_estimate.save!
   end
+
+  # download the pdf from quickbooks
+  def pdf
+    base = QboEstimate.get_base
+    estimate = base.fetch_by_id(id)
+    return base.pdf(estimate)
+  end
+  
 end
