@@ -156,16 +156,11 @@ class QboInvoice < ActiveRecord::Base
     # Push updates
     #invoice.sync_token += 1 if is_changed
     begin
+      logger.debug "Trying to update invoice"
       get_base.update(invoice) if is_changed
     rescue
       # Do nothing, probaly too many vehicles on the invoice. This is a problem with how it's billed
       # TODO Add notes in memo area
-      if is_changed
-        logger.debug "Trying to update invoice"
-        get_base.update(invoice) if is_changed
-      end
-    rescue
-      #do nothing
       logger.fatal "Failed to update invoice"
     end
   end
