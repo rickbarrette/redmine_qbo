@@ -161,7 +161,7 @@ class QboInvoice < ActiveRecord::Base
     rescue
       # Do nothing, probaly too many vehicles on the invoice. This is a problem with how it's billed
       # TODO Add notes in memo area
-      logger.fatal "Failed to update invoice"
+      logger.error "Failed to update invoice"
     end
   end
     
