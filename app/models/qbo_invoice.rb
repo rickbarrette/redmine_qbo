@@ -60,6 +60,8 @@ class QboInvoice < ActiveRecord::Base
     
     logger.debug "Attaching invoice #{invoice.id} to issue #{issue.id}"
     
+    qbo_invoice = QboInvoice.find_or_create_by(id: invoice.id)
+
     unless issue.qbo_invoices.include?(qbo_invoice)
       issue.qbo_invoices << qbo_invoice
       issue.save!
