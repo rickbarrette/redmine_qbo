@@ -18,6 +18,10 @@ class QboController < ApplicationController
   before_action :require_user, :except => :qbo_webhook
   skip_before_action :verify_authenticity_token, :check_if_login_required, :only => [:qbo_webhook]
 
+  def allowed_params
+    params.permit(:code, :state, :realmId, :id)
+  end
+
   #
   # Called when the QBO Top Menu us shown
   #
