@@ -92,6 +92,7 @@ class CustomersController < ApplicationController
       @issues = @customer.issues
       @billing_address = address_to_s(@customer.billing_address)
       @shipping_address = address_to_s(@customer.shipping_address)
+      @closed_issues = (@issues - @issues.open)
     rescue ActiveRecord::RecordNotFound
       render_404
     end
