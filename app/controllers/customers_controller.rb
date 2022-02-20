@@ -28,7 +28,7 @@ class CustomersController < ApplicationController
   helper :timelog
 
   before_action  :add_customer, :only => :new
-  before_action  :view_customer, :except => :new
+  before_action  :view_customer, :except => [:new, :view]
   skip_before_action :verify_authenticity_token, :check_if_login_required, :only => [:view]
 
   default_search_scope :names
