@@ -62,5 +62,35 @@ class QboEstimate < ActiveRecord::Base
     estimate = base.fetch_by_id(id)
     return base.pdf(estimate)
   end
+
+  # Magic Method
+  # Maps Get/Set methods to QBO estimate object
+  def method_missing(sym, *arguments)  
+    # Check to see if the method exists
+    if Quickbooks::Model::Estimate.method_defined?(sym)
+      # download details if required
+      pull unless @details
+      method_name = sym.to_s
+      # Setter
+      if method_name[-1, 1] == "="  
+        @details.method(method_name).call(arguments[0])  
+      # Getter
+      else  
+        return @details.method(method_name).call 
+      end
+    end  
+  end
+
+  private
+  
+  # pull the details
+  def pull
+    begin
+      raise Exception unless self.id
+      @details = Qbo.get_base(:estimate).fetch_by_id(self.id)
+    rescue Exception => e
+      @details = Quickbooks::Model::Estimate.new
+    end
+  end
   
 end
