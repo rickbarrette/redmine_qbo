@@ -1,4 +1,4 @@
 <%= form_tag("/qbo/estimate/doc", :method => "get", id: "est-search-form") do %>
-    <%= text_field_tag :search, params[:search], placeholder: t(:label_search_estimates) %>
+    <%= text_field_tag :search, params[:search], placeholder: t(:label_search_estimates), :autocomplete => "off" %>
     <%= submit_tag t(:label_search), :formtarget => "_blank" %>
 <% end %>

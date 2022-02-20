@@ -1,5 +1,5 @@
 <%= form_tag(customers_path, :method => "get", id: "search-form") do %>
-<%= text_field_tag :search, params[:search], placeholder: t(:label_search_customers) %>
+<%= text_field_tag :search, params[:search], placeholder: t(:label_search_customers), :autocomplete => "off" %>
 <%= submit_tag t(:label_search) %>
 <% end %>
 <%= button_to t(:label_new_customer), new_customer_path, method: :get%>
