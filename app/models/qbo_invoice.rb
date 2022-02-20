@@ -65,6 +65,7 @@ class QboInvoice < ActiveRecord::Base
     qbo_invoice.doc_number = invoice.doc_number 
     qbo_invoice.id = invoice.id
     qbo_invoice.customer_id = invoice.customer_ref
+    qbo_invoice.txn_date = invoice.txn_date
     qbo_invoice.save!
     
     unless issue.qbo_invoices.include?(qbo_invoice)

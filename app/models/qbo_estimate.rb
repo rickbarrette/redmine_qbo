@@ -53,6 +53,7 @@ class QboEstimate < ActiveRecord::Base
     qbo_estimate.doc_number = estimate.doc_number
     qbo_estimate.customer_id = estimate.customer_ref.value
     qbo_estimate.id = estimate.id
+    qbo_estimate.txn_date = estimate.txn_date
     qbo_estimate.save!
   end
 
