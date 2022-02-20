@@ -59,14 +59,6 @@ class QboInvoice < ActiveRecord::Base
     return if issue.customer_id != invoice.customer_ref.value.to_i
     
     logger.debug "Attaching invoice #{invoice.id} to issue #{issue.id}"
-
-    # Load the invoice into the database
-    qbo_invoice = QboInvoice.find_or_create_by(id: invoice.id)
-    qbo_invoice.doc_number = invoice.doc_number 
-    qbo_invoice.id = invoice.id
-    qbo_invoice.customer_id = invoice.customer_ref
-    qbo_invoice.txn_date = invoice.txn_date
-    qbo_invoice.save!
     
     unless issue.qbo_invoices.include?(qbo_invoice)
       issue.qbo_invoices << qbo_invoice
@@ -79,6 +71,15 @@ class QboInvoice < ActiveRecord::Base
   # processes the invoice into the system
   def self.process_invoice(invoice)
     logger.debug "Processing invoice"
+
+    # Load the invoice into the database
+    qbo_invoice = QboInvoice.find_or_create_by(id: invoice.id)
+    qbo_invoice.doc_number = invoice.doc_number 
+    qbo_invoice.id = invoice.id
+    qbo_invoice.customer_id = invoice.customer_ref
+    qbo_invoice.txn_date = invoice.txn_date
+    qbo_invoice.save!
+
     # Check the private notes 
     if not invoice.private_note.nil?
       invoice.private_note.scan(/#(\w+)/).flatten.each { |issue|
