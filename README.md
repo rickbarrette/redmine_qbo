@@ -8,7 +8,7 @@ The goal of this project is to allow Redmine to connect with Quickbooks Online t
 
 Note: Although the core functionality is complete, this project is still under heavy development. I am still working on refining everthing and adding other features. Tags should be stable
 
-Also worth metioning I am currently using this in a live production enviroment with no issues
+Use tags Version 1.0.0 & up for Redmine 4+ and Version 0.8.1 for Redine 3
 
 #### Features
 * Issues can be assigned to a `Customer` via drop down in the edit Issue form
@@ -52,11 +52,6 @@ Also worth metioning I am currently using this in a live production enviroment w
 
 5. Assign an Employee to each of your users via the User Administration Page
 
-## Automatic Deploy
-  
-  If you want the redmine server to be automaticly restarted after a git pull event add this hook to your git hook directory
-  https://gist.github.com/rickbarrette/3c999c7f37e321f9c60380de99e494f5
-
 ## Usage
 
   To enable automatic `Time Activity` entries for an Issue , you need only to assign a `Customer` to an Issue via drop downs in the issue creation/update form.
@@ -79,7 +74,7 @@ Note: After the inital synchronization, this plugin will recieve push notificati
 
 The MIT License (MIT)
 
-Copyright (c) 2020 rick barrette
+Copyright (c) 2022 rick barrette
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
