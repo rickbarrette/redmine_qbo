@@ -22,7 +22,7 @@ intuit.ipp.anywhere.setup({menuProxy: '/path/to/blue-dot', grantUrl: '<%= Settin
   <tbody>
   
     <tr>
-      <th>Intuit QBO OAuth2 Client ID</th>
+      <th><%=t(:label_client_id)%></th>
       <td>
         <input type="text" style="width:350px" id="settingsOAuthConsumerKey" 
                            value="<%= settings['settingsOAuthConsumerKey'] %>" 
@@ -31,7 +31,7 @@ intuit.ipp.anywhere.setup({menuProxy: '/path/to/blue-dot', grantUrl: '<%= Settin
     </tr>
 
     <tr>
-      <th>Intuit QBO OAuth2 Client Secret</th>
+      <th><%=t(:label_client_secret)%></th>
       <td>
         <input type="text" style="width:350px" id="settingsOAuthConsumerSecret"
                            value="<%= settings['settingsOAuthConsumerSecret'] %>"
@@ -40,7 +40,7 @@ intuit.ipp.anywhere.setup({menuProxy: '/path/to/blue-dot', grantUrl: '<%= Settin
     </tr>
     
     <tr>
-      <th>Intuit QBO Webhook Token</th>
+      <th><%=t(:label_webhook_token)%></th>
       <td>
         <input type="text" style="width:350px" id="settingsWebhookToken"
                            value="<%= settings['settingsWebhookToken'] %>"
@@ -49,7 +49,7 @@ intuit.ipp.anywhere.setup({menuProxy: '/path/to/blue-dot', grantUrl: '<%= Settin
     </tr>
 
      <tr>
-       <th>OAuth2 Access Token Expires At</th>
+       <th><%=t(:label_oauth_expires)%></th>
        <td><%= if Qbo.exists? then Qbo.first.expire end %>
      </tr>
 
@@ -57,7 +57,7 @@ intuit.ipp.anywhere.setup({menuProxy: '/path/to/blue-dot', grantUrl: '<%= Settin
 </table>
 
 <br/>
-Note: You need to authenticate with Quickbooks after saving your key and secret above
+<%=t(:label_oauth_note)%>
 <br/>
 <br/>
 
@@ -68,27 +68,27 @@ Note: You need to authenticate with Quickbooks after saving your key and secret 
 <br/>
 
 <div>
-    <b>Customer Count:</b> <%= Customer.count%>
+    <b><%=t(:label_customer_count)%>:</b> <%= Customer.count%>
     </div>
       
     <div>
-        <b>Item Count:</b> <%= QboItem.count %>
+        <b><%=t(:label_item_count)%>:</b> <%= QboItem.count %>
     </div>
       
     <div>
-        <b>Employee Count:</b> <%= QboEmployee.count %>
+        <b><%=t(:label_employee_count)%>:</b> <%= QboEmployee.count %>
     </div>
     
     <div>
-        <b>Invoice Count:</b> <%= QboInvoice.count %>
+        <b><%=t(:label_invoice_count)%>:</b> <%= QboInvoice.count %>
     </div>
     
     <div>
-        <b>Estimate Count:</b> <%= QboEstimate.count %>
+        <b><%=t(:label_estimate_count)%>:</b> <%= QboEstimate.count %>
     </div>
       
     <br/>
     
     <div>
-        <b>Last Sync: </b> <%= Qbo.last_sync if Qbo.exists? %> <%= link_to " Sync Now", qbo_sync_path %>
+        <b><%=t(:label_last_sync)%> </b> <%= Qbo.last_sync if Qbo.exists? %> <%= link_to " Sync Now", qbo_sync_path %>
 </div>

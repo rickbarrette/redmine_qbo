@@ -1,6 +1,6 @@
 <%= form_tag(customers_path, :method => "get", id: "search-form") do %>
-<%= text_field_tag :search, params[:search], placeholder: "Search Customers" %>
-<%= submit_tag "Search" %>
+<%= text_field_tag :search, params[:search], placeholder: t(:label_search_customers) %>
+<%= submit_tag t(:label_search) %>
 <% end %>
-<%= button_to "New Customer", new_customer_path, method: :get%>
-<%= button_to "Sync", qbo_sync_path, method: :get%>
+<%= button_to t(:label_new_customer), new_customer_path, method: :get%>
+<%= button_to t(:label_sync), qbo_sync_path, method: :get%>

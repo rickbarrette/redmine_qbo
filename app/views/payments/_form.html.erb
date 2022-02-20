@@ -5,28 +5,28 @@
       <%= form_for @payment do |f| %> 
        
         <div class="clearfix">
-          Customer: 
+          <%=t(:field_customer)%>: 
           <div class="input">
             <%= f.collection_select :customer_id, @customers, :id, :name, include_blank: true, :selected => @customer, :required => true%>
           </div>
         </div>
         
         <div class="clearfix">
-          Deposit to Account: 
+          <%=t(:label_deposit_into)%>: 
           <div class="input">
             <%= f.collection_select :account_id, @accounts, :id, :name, include_blank: true, :selected => @account, :required => true%>
           </div>
         </div>
         
         <div class="clearfix">
-          Payment Method: 
+          <%=t(:label_payment_method)%>: 
           <div class="input">
             <%= f.collection_select :payment_method_id, @payment_methods, :id, :name, include_blank: true, :selected => @payment_method, :required => true%>
           </div>
         </div>
         
         <div class="clearfix">
-          Amount: 
+          <%=t(:label_amount)%>: 
           <div class="input">
             <%= f.number_field :total_amount %>
           </div>

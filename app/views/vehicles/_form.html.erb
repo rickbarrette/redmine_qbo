@@ -4,43 +4,43 @@
 
       <%= form_for @vehicle do |f| %> 
         <div class="clearfix">
-		Customer:
-	  <div class="input">
-		  <%= f.autocomplete_field :customer, autocomplete_customer_name_customers_path, :value => @customer.name, :update_elements => {:id => '#customer_id', :value => '#issue_customer'}, :required => true %>
-		  <%= f.hidden_field :customer_id, :id => "customer_id", :value => @customer.id %>
-            </div>
+		      <%=t(:field_customer)%>:
+	        <div class="input">
+            <%= f.autocomplete_field :customer, autocomplete_customer_name_customers_path, :value => @customer.name, :update_elements => {:id => '#customer_id', :value => '#issue_customer'}, :required => true %>
+            <%= f.hidden_field :customer_id, :id => "customer_id", :value => @customer.id %>
+          </div>
         </div>
         
         <div class="clearfix">
-          Year: 
+          <%=t(:label_year)%>: 
           <div class="input">
             <%= f.number_field :year %>
           </div>
         </div>
         
         <div class="clearfix">
-          Make:
+          <%=t(:label_make)%>:
           <div class="input">
             <%= f.text_field :make %>
           </div>
         </div>
         
         <div class="clearfix">
-          Model:
+          <%=t(:label_model)%>:
           <div class="input">
             <%= f.text_field :model %>
           </div>
         </div>
         
         <div class="clearfix">
-          VIN:
+          <%=t(:field_vin)%>:
           <div class="input">
             <%= f.text_field :vin , :autofocus => true %>
           </div>
         </div>
         
         <div class="clearfix">
-          Notes: 
+          <%=t(:field_notes)%>: 
           <div class="input">
             <%= f.text_area :notes, :cols => 60, :rows => 10, :no_label => true %>
           </div>

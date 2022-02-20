@@ -1,8 +1,8 @@
-<h2>Customer #<%= @customer.id %> - <%= @customer.name %> </h2>
+<h2><%=t(:field_customer)%> #<%= @customer.id %> - <%= @customer.name %> </h2>
   <br/>
 
   <div class="subject">
-    <div><h3>Details:</h3></div>
+    <div><h3><%=t(:label_details)%>:</h3></div>
   </div>
 
   <div class="attributes">
@@ -12,17 +12,17 @@
         <%= render :partial => 'customers/details', locals: {customer: @customer} %>
       </div>
       <div class="splitcontentleft">
-        <h4>Vehicles:</h4>
+        <h4><%=t(:field_vehicles)%>:</h4>
         <%= render :partial => 'vehicles/list' %>
         <%= button_to "New Vehicle", new_customer_vehicle_path(@customer), method: :get %>
       </div>
     </div>
 
     <br/>
-    <h2>Open Issues:</h2>
+    <h2><%=t(:label_open_issues)%>:</h2>
     <%= render :partial => 'issues/list_simple', locals: {issues: @issues.open} %>
 
-    <h2>Closed Issues:</h2>
+    <h2><%=t(:label_closed_issues)%>:</h2>
     <%= render :partial => 'issues/list_simple', locals: {issues: (@issues - @issues.open)} %>
 
   </div>

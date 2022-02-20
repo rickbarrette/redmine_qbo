@@ -11,32 +11,32 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 -->
 
 <body>
-    <h1> Redmine Quickbooks</h1>
+    <h1><%=t(:label_redmine_qbo)%></h1>
     
     <div>
-        <b>Customer Count:</b> <%= @customer_count.to_s%>
+        <b><%=t(:label_customer_count)%>:</b> <%= @customer_count.to_s%>
     </div>
       
     <div>
-        <b>Item Count:</b> <%= @qbo_item_count.to_s %>
+        <b><%=t(:label_item_count)%>:</b> <%= @qbo_item_count.to_s %>
     </div>
       
     <div>
-        <b>Employee Count:</b> <%= @qbo_employee_count.to_s %>
+        <b><%=t(:label_employee_count)%>:</b> <%= @qbo_employee_count.to_s %>
     </div>
     
     <div>
-        <b>Invoice Count:</b> <%= @qbo_invoice_count.to_s %>
+        <b><%=t(:label_invoice_count)%>:</b> <%= @qbo_invoice_count.to_s %>
     </div>
     
     <div>
-        <b>Estimate Count:</b> <%= @qbo_estimate_count.to_s %>
+        <b><%=t(:label_estimate_count)%>:</b> <%= @qbo_estimate_count.to_s %>
     </div>
       
     <br/>
     
     <div>
-        <b>Last Sync: </b> <%= Qbo.last_sync if Qbo.exists? %>
+        <b><%=t(:label_last_sync)%>: </b> <%= Qbo.last_sync if Qbo.exists? %>
     </div>
     
 </body>

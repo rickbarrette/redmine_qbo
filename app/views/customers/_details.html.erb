@@ -1,53 +1,53 @@
 <table>
   <tbody>
     <tr>
-      <th>Email</th>
+      <th><%=t(:label_email)%></th>
       <td><%= customer.email %></td>
     </tr>
     
     <tr>
-      <th>Primary Phone</th>
+      <th><%=t(:label_primary_phone)%></th>
       <td><%= number_to_phone(customer.primary_phone.gsub(/[^\d]/, '').to_i, area_code: true) if customer.primary_phone %></td>
     </tr>
     
     <tr>
-      <th>Mobile Phone</th>
+      <th><%=t(:label_mobile_phone)%></th>
       <td><%= number_to_phone(customer.mobile_phone.gsub(/[^\d]/, '').to_i, area_code: true) if customer.mobile_phone %></td>
     </tr>
     
      <tr>
-        <th>Bill Address</th>
+        <th><%=t(:label_billing_address)%></th>
         <td><%= customer.billing_address %></td>
     </tr>
     
      <tr>
-        <th>Shipping Address</th>
+        <th><%=t(:label_shipping_address)%></th>
         <td><%= customer.shipping_address %></td>
     </tr>
     
     <tr>
-        <th>Issues</th>
+        <th><%=t(:issues)%></th>
         <td><%= customer.issues.count %></td>
     </tr>
     
     <tr>
-        <th>Account Balance</th>
+        <th><%=t(:label_account_balance)%></th>
         <td>$<%= customer.balance %></td>
     </tr>
     
     <tr>
-        <th>Balance With Jobs</th>
+        <th><%=t(:label_balance_with_jobs)%></th>
         <td>$<%= customer.balance_with_jobs %></td>
     </tr>
     
     <tr>
-      <th>Notes</th>
+      <th><%=t(:field_notes)%></th>
       <td><%= customer.notes %></td>
     </tr>
     
     <tr>
       <td>
-        <%= button_to "Edit Customer", edit_customer_path(customer), method: :get%> 
+        <%= button_to t(:label_edit_customer), edit_customer_path(customer), method: :get%> 
       </td>
     </tr>
   </tbody>

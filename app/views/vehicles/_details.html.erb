@@ -2,36 +2,34 @@
   <tbody>
   
     <tr>
-      <th>Customer</th>
+      <th><%= t(:field_customer)%></th>
       <td><%= link_to vehicle.customer.name, customer_path(vehicle.customer) %></td>
     </tr>
   
     <tr>
-      <th>Vehicle</th>
+      <th><%= t(:field_vehicle) %></th>
       <td><%= vehicle.to_s %></td>
     </tr>
     
     <tr>
-      <th>VIN</th>
+      <th><%= t(:field_vin) %></th>
       <td><%= @vin[0] if @vin %><b><%=@vin[1] if @vin%></b></td>
     </tr>
     
     <tr>
-      <th>Notes</th>
+      <th><%= t(:field_notes) %></th>
       <td><%= vehicle.notes %></td>
     </tr>
     
     <tr>
-        <th>Issues</th>
+        <th> <%= t(:issues) %> </th>
         <td><%= vehicle.issues.count %></td>
     </tr>
     
     <tr>
-      <td/>
       <td>
-      
-        <%= button_to "Edit", edit_vehicle_path(vehicle), method: :get%> 
-        <%= button_to "Delete", vehicle, method: :delete, data: {confirm: "You sure?"} %> 
+        <%= button_to t(:label_edit), edit_vehicle_path(vehicle), method: :get%> 
+        <%= button_to t(:label_delete), vehicle, method: :delete, data: {confirm: t(:warn_ru_sure)} %> 
       </td>
     </tr>
   </tbody>

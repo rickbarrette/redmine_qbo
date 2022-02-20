@@ -1,14 +1,14 @@
-<h2>Vehicle #<%=@vehicle.id%> <span style="float:right"> <%= render :partial => 'customers/search' %> </span> </h2>
+<h2><%=t(:field_vehicle)%> #<%=@vehicle.id%> <span style="float:right"> <%= render :partial => 'customers/search' %> </span> </h2>
 <br/>
 
 <div style="text-align: left; width:90%;">
   <%= render :partial => 'vehicles/details', locals: {vehicle: @vehicle} %>
 
-  <p> <b> Open Issues </b>  </p>
+  <p> <b> <%=t(:label_open_issues)%> </b>  </p>
 
   <%= render :partial => 'issues/list_simple', locals: {issues: @vehicle.issues.open} %>
 
-  <p> <b> Closed Issues </b> </p>
+  <p> <b> <%=t(:label_closed_issues)%> </b> </p>
 
   <%= render :partial => 'issues/list_simple', locals: {issues: (@vehicle.issues - @vehicle.issues.open)} %>
 </div>

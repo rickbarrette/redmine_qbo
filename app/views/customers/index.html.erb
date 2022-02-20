@@ -1,4 +1,4 @@
-<h2>Customers <span style="float:right"> <%= render :partial => 'customers/search' %> </span> </h2>
+<h2><%=t(:field_customers)%> <span style="float:right"> <%= render :partial => 'customers/search' %> </span> </h2>
 <% if @customers.present? %>
   <br/>
   <% @customers.each do |c| %>
@@ -9,14 +9,14 @@
     </div>
   <% end %>
 
-<p>Matching <%= @customers.count %> Customers </p>
+<p><%=t(:label_matching)%> <%= @customers.count %> <%=t(:field_customers)%> </p>
 
 <div class="actions">
   <%= will_paginate @customers %>
 </div>
 
 <% else %>
-  <p>There are no customers containing the term(s) <%= params[:search] %>.</p>
+  <p><%=t(:label_no_customers)%> <%= params[:search] %>.</p>
 <% end %>
 
 <div>
