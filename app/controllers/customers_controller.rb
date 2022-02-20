@@ -194,7 +194,7 @@ class CustomersController < ApplicationController
   # format a quickbooks address to a human readable string
   def address_to_s (address)
     return if address.nil?
-    string =  a.line1
+    string =  address.line1
     string << "\n" + address.line2 if address.line2
     string << "\n" + address.line3 if address.line3
     string << "\n" + address.line4 if address.line4
