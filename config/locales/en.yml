@@ -74,3 +74,6 @@ en:
   label_oauth_expires: "OAuth2 Access Token Expires At"
   label_oauth_note: "Note: You need to authenticate with Quickbooks after saving your key and secret above"
   field_customers: "Customers"
+  label_no_estimates: "No Estimates"
+  label_no_invoices: "No Invoices"
+  label_invoices: "Invoices"

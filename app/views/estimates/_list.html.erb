@@ -1,0 +1,11 @@
+<% if @customer.present? %>
+
+  <% @customer.qbo_estimates.each do |estimate| %>
+    <div class="row">
+      <b><%= link_to "##{estimate.doc_number}", estimate_path(estimate) %> </b>
+    </div>
+  <% end %>
+
+<% else %>
+  <p><%=t(:label_no_estimates)%>.</p>
+<% end %>

@@ -1,0 +1,11 @@
+<% if @customer.present? %>
+
+  <% @customer.qbo_invoices.each do |invoice| %>
+    <div class="row">
+      <b><%= link_to "##{invoice.doc_number}", invoice_path(invoice) %> </b>
+    </div>
+  <% end %>
+
+<% else %>
+  <p><%=t(:label_no_invoices)%>.</p>
+<% end %>

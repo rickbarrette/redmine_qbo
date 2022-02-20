@@ -2,14 +2,27 @@
   <br/>
 
   <div class="subject">
-    <div><h3><%=t(:label_details)%>:</h3></div>
+    <div><h4><%=t(:label_details)%>:</h4></div>
   </div>
 
   <div class="attributes">
 
     <div class="splitcontent">
+
       <div class="splitcontentleft">
         <%= render :partial => 'customers/details', locals: {customer: @customer} %>
+
+          <div class="splitcontent">
+            <div class="splitcontentleft">
+              <h4><%=t(:estimates)%>:</h4>
+              <%= render :partial => 'estimates/list', locals: {customer: @customer} %>
+            </div>
+            <div class="splitcontentleft">
+              <h4><%=t(:label_invoices)%>:</h4>
+              <%= render :partial => 'invoices/list', locals: {customer: @customer} %>
+            </div>
+          </div>
+
       </div>
       <div class="splitcontentleft">
         <h4><%=t(:field_vehicles)%>:</h4>
