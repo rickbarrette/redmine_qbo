@@ -90,6 +90,8 @@ class CustomersController < ApplicationController
       @customer = Customer.find_by_id(params[:id])
       @vehicles = @customer.vehicles.paginate(:page => params[:page])
       @issues = @customer.issues
+      @billing_address = address_to_s(@customer.billing_address)
+      @shipping_address = address_to_s(@customer.shipping_address)
     rescue ActiveRecord::RecordNotFound
       render_404
     end
@@ -187,6 +189,20 @@ class CustomersController < ApplicationController
       end
     end
     found_non_zero
+  end
+
+  # format a quickbooks address to a human readable string
+  def address_to_s (address)
+    return if address.nil?
+    string =  a.line1
+    string << "\n" + address.line2 if address.line2
+    string << "\n" + address.line3 if address.line3
+    string << "\n" + address.line4 if address.line4
+    string << "\n" + address.line5 if address.line5
+    string << " " + address.city
+    string << ", " + address.country_sub_division_code
+    string << " " + address.postal_code
+    return string
   end
 
 end

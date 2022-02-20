@@ -17,12 +17,12 @@
     
      <tr>
         <th><%=t(:label_billing_address)%></th>
-        <td><%= customer.billing_address %></td>
+        <td><%= @billing_address %></td>
     </tr>
     
      <tr>
         <th><%=t(:label_shipping_address)%></th>
-        <td><%= customer.shipping_address %></td>
+        <td><%= @shipping_address %></td>
     </tr>
     
     <tr>
@@ -33,11 +33,6 @@
     <tr>
         <th><%=t(:label_account_balance)%></th>
         <td>$<%= customer.balance %></td>
-    </tr>
-    
-    <tr>
-        <th><%=t(:label_balance_with_jobs)%></th>
-        <td>$<%= customer.balance_with_jobs %></td>
     </tr>
     
     <tr>
