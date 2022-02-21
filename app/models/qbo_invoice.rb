@@ -115,12 +115,18 @@ class QboInvoice < ActiveRecord::Base
       # TODO create hook for seperate plugin 
       begin
         if cf.name.eql? "VIN"
-          vin = Vehicle.find(issue.vehicles_id).vin
-          break if vin.nil?
-          if not cf.string_value.to_s.eql? vin
-            cf.string_value = vin.to_s
-            logger.debug "VIN has changed"
-            is_changed = true
+          # Only update if blank to prevent infite loops
+          # TODO check cf_sync_confict flag once implemented
+          if cf.string_value.to_s.blank?
+
+            vin = Vehicle.find(issue.vehicles_id).vin
+            break if vin.nil?
+            if not cf.string_value.to_s.eql? vin
+              cf.string_value = vin.to_s
+              logger.debug "VIN has changed"
+              is_changed = true
+            end
+
           end
         end
       rescue
