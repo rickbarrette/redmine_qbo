@@ -10,13 +10,12 @@
 
 class QboInvoice < ActiveRecord::Base
   unloadable
-  
   has_and_belongs_to_many :issues
   belongs_to :customer 
-  #attr_accessible :doc_number, :id
-  validates_presence_of :doc_number, :id
+  validates_presence_of :doc_number, :id, :customer_id, :txn_date
   self.primary_key = :id
   
+  # Get the quickbooks-ruby base for invoice
   def self.get_base
     Qbo.get_base(:invoice)
   end
@@ -25,17 +24,18 @@ class QboInvoice < ActiveRecord::Base
   def self.sync
     logger.debug "Syncing all invoices"
     last = Qbo.first.last_sync
-    
+
     query = "SELECT Id, DocNumber FROM Invoice"
     query << " WHERE  Metadata.LastUpdatedTime >= '#{last.iso8601}' " if last
   
+    # TODO actually do something with the above query
+    # .all() is never called since count is never initialized
     if count == 0
       invoices = get_base.all 
     else
       invoices = get_base.query()
     end
-    
-    # Update the invoice table 
+     
     invoices.each { | invoice | 
       process_invoice invoice
     }
@@ -44,14 +44,13 @@ class QboInvoice < ActiveRecord::Base
   #sync by invoice ID
   def self.sync_by_id(id)
     logger.debug "Syncing invoice #{id}"
-    #update the information in the database
     invoice = get_base.fetch_by_id(id) 
     process_invoice invoice
   end
   
   private
   
-   # Attach the invoice to the issue
+  # Attach the invoice to the issue
   def self.attach_to_issue(issue, invoice)
     return if issue.nil?
     
@@ -70,7 +69,7 @@ class QboInvoice < ActiveRecord::Base
     compare_custom_fields(issue, invoice)
   end
   
-  # processes the invoice into the system
+  # processes the invoice into the database
   def self.process_invoice(invoice)
     logger.debug "Processing invoice"
 
@@ -82,7 +81,7 @@ class QboInvoice < ActiveRecord::Base
     qbo_invoice.txn_date = invoice.txn_date
     qbo_invoice.save!
 
-    # Check the private notes 
+    # Scan the private notes  for hashtags and attach to the applicable issues
     if not invoice.private_note.nil?
       invoice.private_note.scan(/#(\w+)/).flatten.each { |issue|
         attach_to_issue(Issue.find_by_id(issue.to_i), invoice)
@@ -99,15 +98,21 @@ class QboInvoice < ActiveRecord::Base
     }
   end
   
+  # compares the custome fields on invoices & issues and updates the invoice as needed
+  #
+  # the issue here is when two or more issues share an invoice with the same custom field, but diffrent values
+  # this condions causes an infinite loop as the webhook is called when an invoice is updated
+  # TODO maybe add a cf_sync_confict flag to invoices
   def self.compare_custom_fields(issue, invoice)
+    # TODO break if QboInvoice.find(invoice.id).cf_sync_confict
     is_changed = false
     
-    # update the invoive custom fields with infomation from the work ticket if available
+    # update the invoive custom fields with infomation from the issue if available
     invoice.custom_fields.each { |cf|
-    
-      # TODO Add some hooks here
       
       # VIN from the attached vehicle
+      # TODO move this into seperate plugin
+      # TODO create hook for seperate plugin 
       begin
         if cf.name.eql? "VIN"
           vin = Vehicle.find(issue.vehicles_id).vin
@@ -130,41 +135,25 @@ class QboInvoice < ActiveRecord::Base
         if not value.value.to_s.blank?
           # Check to see if the value is diffrent
           if not cf.string_value.to_s.eql? value.value.to_s
-            
-            # Use the lowest Milage
-            if cf.name.eql? "Mileage In"
-              if cf.string_value.to_i > value.value.to_i or cf.string_value.blank?
-                cf.string_value = value.value.to_s
-                is_changed = true
-              end
-            # Use the max milage
-            elsif  cf.name.eql? "Mileage Out"
-              if cf.string_value.to_i < value.value.to_i or cf.string_value.blank?
-                cf.string_value = value.value.to_s
-                is_changed = true
-              end
-            else
-              # Everything else
-              cf.string_value = value.value.to_s
-              is_changed = true
-            end
+            # update the custom field on the invoice
+            cf.string_value = value.value.to_s
+            is_changed = true
           end
         end
       rescue
         # Nothing to do here, there is no match
       end
     }
-    
-    # TODO Add some hooks here
 
     # Push updates
-    #invoice.sync_token += 1 if is_changed
     begin
       logger.debug "Trying to update invoice"
       get_base.update(invoice) if is_changed
     rescue
-      # Do nothing, probaly too many vehicles on the invoice. This is a problem with how it's billed
+      # Do nothing, probaly custome field  sync confict on the invoice. 
+      # This is a problem with how it's billed
       # TODO Add notes in memo area
+      # TODO flag QboInvoice.cf_sync_confict here
       logger.error "Failed to update invoice"
     end
   end
@@ -187,7 +176,7 @@ class QboInvoice < ActiveRecord::Base
     end  
   end
   
-  # pull the details
+  # pull the details from quickbooks
   def pull
     begin
       raise Exception unless self.id
