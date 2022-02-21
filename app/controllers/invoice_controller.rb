@@ -23,5 +23,10 @@ class InvoiceController < ApplicationController
     invoice = base.fetch_by_id(params[:id])
     @pdf = base.pdf(invoice)
     send_data @pdf, filename: "invoice #{invoice.doc_number}.pdf", :disposition => 'inline', :type => "application/pdf"
+
+    Thread.new do
+      QboInvoice.sync_by_id params[:id]
+      ActiveRecord::Base.connection.close
+    end
   end
 end
