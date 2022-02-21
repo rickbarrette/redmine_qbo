@@ -23,7 +23,8 @@ class QboEstimate < ActiveRecord::Base
   end
   
   # sync all estimates
-  def self.sync 
+  def self.sync
+    logger.debug "Syncing ALL estimates"
     estimates = get_base.all
     estimates.each { |estimate|
       process_estimate(estimate)
@@ -35,6 +36,7 @@ class QboEstimate < ActiveRecord::Base
   
   # sync only one estimate
   def self.sync_by_id(id)
+    logger.debug "Syncing estimate #{id}"
     process_estimate(get_base.fetch_by_id(id))
   end
   
@@ -49,6 +51,7 @@ class QboEstimate < ActiveRecord::Base
   
   # process an estimate into the database
   def self.process_estimate(estimate)
+    logger.info "Processing estimate #{estimate.id}"
     qbo_estimate = find_or_create_by(id: estimate.id)
     qbo_estimate.doc_number = estimate.doc_number
     qbo_estimate.customer_id = estimate.customer_ref.value

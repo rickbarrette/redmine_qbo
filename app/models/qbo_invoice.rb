@@ -71,7 +71,7 @@ class QboInvoice < ActiveRecord::Base
   
   # processes the invoice into the database
   def self.process_invoice(invoice)
-    logger.debug "Processing invoice"
+    logger.info "Processing invoice #{invoice.id}"
 
     # Load the invoice into the database
     qbo_invoice = QboInvoice.find_or_create_by(id: invoice.id)
@@ -104,6 +104,7 @@ class QboInvoice < ActiveRecord::Base
   # this condions causes an infinite loop as the webhook is called when an invoice is updated
   # TODO maybe add a cf_sync_confict flag to invoices
   def self.compare_custom_fields(issue, invoice)
+    logger.debug "Comparing custom fields"
     # TODO break if QboInvoice.find(invoice.id).cf_sync_confict
     is_changed = false
     
@@ -118,7 +119,7 @@ class QboInvoice < ActiveRecord::Base
           # Only update if blank to prevent infite loops
           # TODO check cf_sync_confict flag once implemented
           if cf.string_value.to_s.blank?
-
+            logger.debug " VIN was blank, updating the invoice vin in quickbooks"
             vin = Vehicle.find(issue.vehicles_id).vin
             break if vin.nil?
             if not cf.string_value.to_s.eql? vin

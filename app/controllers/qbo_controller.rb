@@ -92,7 +92,7 @@ class QboController < ApplicationController
   # Quickbooks Webhook Callback
   def qbo_webhook
 
-    logger.debug "Quickbooks is calling webhook"
+    logger.info "Quickbooks is calling webhook"
     
     # check the payload
     signature = request.headers['intuit-signature']
@@ -149,14 +149,14 @@ class QboController < ApplicationController
       render nothing: true, status: 400
     end
 
-    logger.debug "Quickbooks webhook complete"
+    logger.info "Quickbooks webhook complete"
   end
 
   #
   # Synchronizes the QboCustomer table with QBO
   #
   def sync
-    logger.debug "Syncing EVERYTHING"
+    logger.info "Syncing EVERYTHING"
     # Update info in background
     Thread.new do
       if Qbo.exists?
