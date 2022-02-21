@@ -46,6 +46,7 @@ class QboEstimate < ActiveRecord::Base
     estimate = get_base.fetch_by_id(id)
     qbo_estimate = find_or_create_by(id: id)
     qbo_estimate.doc_number = estimate.doc_number
+    qbo_estimate.txn_date = estimate.txn_date
     qbo_estimate.save!
   end
   
