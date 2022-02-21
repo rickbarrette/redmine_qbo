@@ -186,8 +186,6 @@ class QboInvoice < ActiveRecord::Base
       end
     end  
   end
-
-  private
   
   # pull the details
   def pull
