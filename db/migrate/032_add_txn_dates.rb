@@ -12,5 +12,33 @@ class AddTxnDates < ActiveRecord::Migration[5.1]
   def change
     add_column :qbo_invoices, :txn_date, :date
     add_column :qbo_estimates, :txn_date, :date
+
+    reversible do |direction|
+      direction.up {
+        break unless Qbo.first
+
+        QboEstimate.reset_column_information
+        QboInvoice.reset_column_information
+
+        say "Sync Estimates"
+
+        QboEstimate.sync
+
+        say "Sync Invoices"
+
+        invoices = QboInvoice.get_base.all
+
+        invoices.each { |invoice|
+            # Load the invoice into the database
+            qbo_invoice = QboInvoice.find_or_create_by(id: invoice.id)
+            qbo_invoice.doc_number = invoice.doc_number
+            qbo_invoice.id = invoice.id
+            qbo_invoice.customer_id = invoice.customer_ref
+            qbo_invoice.txn_date = invoice.txn_date
+            qbo_invoice.save!
+        }
+      }
+    end
   end
+
 end
