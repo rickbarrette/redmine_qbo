@@ -89,7 +89,7 @@ class CustomersController < ApplicationController
     begin
       @customer = Customer.find_by_id(params[:id])
       @vehicles = @customer.vehicles.paginate(:page => params[:page])
-      @issues = @customer.issues
+      @issues = @customer.issues.order(id: :desc)
       @billing_address = address_to_s(@customer.billing_address)
       @shipping_address = address_to_s(@customer.shipping_address)
       @closed_issues = (@issues - @issues.open)
