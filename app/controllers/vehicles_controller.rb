@@ -62,6 +62,8 @@ class VehiclesController < ApplicationController
     begin
       @vehicle = Vehicle.find_by_id(params[:id])
       @vin = @vehicle.vin.scan(/.{1,9}/) if @vehicle.vin
+      @issues = @vehicle.issues.order(id: :desc)
+      @closed_issues = (@issues - @issues.open)
     rescue ActiveRecord::RecordNotFound
       render_404
     end

@@ -4,11 +4,11 @@
 <div style="text-align: left; width:90%;">
   <%= render :partial => 'vehicles/details', locals: {vehicle: @vehicle} %>
 
-  <p> <b> <%=t(:label_open_issues)%> </b>  </p>
+  <p><b><%=@issues.open.count%> <%=t(:label_open_issues)%> </b>  </p>
 
-  <%= render :partial => 'issues/list_simple', locals: {issues: @vehicle.issues.open} %>
+  <%= render :partial => 'issues/list_simple', locals: {issues: @issues.open} %>
 
-  <p> <b> <%=t(:label_closed_issues)%> </b> </p>
+  <p><b><%=@closed_issues.count%> <%=t(:label_closed_issues)%> </b> </p>
 
-  <%= render :partial => 'issues/list_simple', locals: {issues: (@vehicle.issues - @vehicle.issues.open)} %>
+  <%= render :partial => 'issues/list_simple', locals: {issues: (@closed_issues)} %>
 </div>

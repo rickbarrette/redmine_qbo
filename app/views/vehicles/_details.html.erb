@@ -22,11 +22,6 @@
     </tr>
     
     <tr>
-        <th> <%= t(:issues) %> </th>
-        <td><%= vehicle.issues.count %></td>
-    </tr>
-    
-    <tr>
       <td>
         <%= button_to t(:label_edit), edit_vehicle_path(vehicle), method: :get%> 
         <%= button_to t(:label_delete), vehicle, method: :delete, data: {confirm: t(:warn_ru_sure)} %> 
