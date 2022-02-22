@@ -16,7 +16,7 @@ module QueryPatch
   def available_columns
     unless @available_columns
       @available_columns = self.class.available_columns.dup
-      @available_columns << QueryColumn.new(:customer, :sortable => "#{Customer.table_name}.name", :groupable => true, :caption => :field_customer)
+      @available_columns << QueryColumn.new(:customer, :sortable => "#{Issue.table_name}.customer_id", :groupable => true, :caption => :field_customer)
       @available_columns << QueryColumn.new(:qbo_billed, :sortable => "#{TimeEntry.table_name}.qbo_billed", :groupable => true, :caption => :field_qbo_billed)
     end
     super
@@ -24,7 +24,7 @@ module QueryPatch
   
   # Add customers to filters
   def initialize_available_filters
-    add_available_filter "customer", :type => :text
+    #add_available_filter "customer", :type => :text
     super
   end
 
