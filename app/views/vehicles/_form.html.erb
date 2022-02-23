@@ -14,21 +14,21 @@
         <div class="clearfix">
           <%=t(:label_year)%>: 
           <div class="input">
-            <%= f.number_field :year %>
+            <%= f.number_field :year, :autocomplete => "off"  %>
           </div>
         </div>
         
         <div class="clearfix">
           <%=t(:label_make)%>:
           <div class="input">
-            <%= f.text_field :make %>
+            <%= f.text_field :make, :autocomplete => "off"  %>
           </div>
         </div>
         
         <div class="clearfix">
           <%=t(:label_model)%>:
           <div class="input">
-            <%= f.text_field :model %>
+            <%= f.text_field :model, :autocomplete => "off"  %>
           </div>
         </div>
         

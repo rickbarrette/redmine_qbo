@@ -7,28 +7,28 @@
         <div class="clearfix">
           <%=t(:label_display_name)%> 
           <div class="input">
-            <%= f.text_field :name, :required => true %>
+            <%= f.text_field :name, :required => true, :autocomplete => "off"  %>
           </div>
         </div>
         
         <div class="clearfix">
           <%=t(:label_primary_phone)%>
           <div class="input">
-            <%= f.telephone_field :primary_phone %>
+            <%= f.telephone_field :primary_phone, :autocomplete => "off"  %>
           </div>
         </div>
         
        <div class="clearfix">
           <%=t(:label_mobile_phone)%>:
           <div class="input">
-            <%= f.telephone_field :mobile_phone %>
+            <%= f.telephone_field :mobile_phone, :autocomplete => "off"  %>
           </div>
         </div>
         
         <div class="clearfix">
           <%=t(:label_email)%>:
           <div class="input">
-            <%= f.email_field :email %>
+            <%= f.email_field :email, :autocomplete => "off"  %>
           </div>
         </div>
         
