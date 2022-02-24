@@ -1,6 +1,6 @@
 #The MIT License (MIT)
 #
-#Copyright (c) 2017 rick barrette
+#Copyright (c) 2022 rick barrette
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -18,7 +18,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
   end
 
   # Edit Issue Form
-  # Show a dropdown for quickbooks contacts
+  # TODO figure out how to do this with a view
   def view_issues_form_details_bottom(context={})
     f = context[:form]
 
@@ -28,7 +28,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
       selected_vehicle = context[:project].vehicle ? context[:project].vehicle.id : nil
     end
 
-    # Check to see if there is a quickbooks user attached to the issue
+    # Check to see if there are things attached to the issue
     selected_customer =  context[:issue].customer ? context[:issue].customer.id  : nil
     selected_estimate =  context[:issue].qbo_estimate ? context[:issue].qbo_estimate.id  : nil
     selected_vehicle = context[:issue].vehicles_id ? context[:issue].vehicles_id : nil
@@ -36,16 +36,22 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     # Load customer information
     customer = Customer.find_by_id(selected_customer) if selected_customer
 
+    # Customer Name Text Box with database backed autocomplete
     search_customer = f.autocomplete_field :customer,
       autocomplete_customer_name_customers_path,
       :selected => selected_customer,
       :onchange => "updateIssueFrom('/issues/#{context[:issue].id}/edit.js', this)",
-      :update_elements => { :id => '#issue_customer_id', :value => '#issue_customer' }
+      :update_elements => { 
+        :id => '#issue_customer_id', 
+        :value => '#issue_customer' 
+      }
 
+    # Customer ID - Hidden Field
     customer_id = f.hidden_field :customer_id,
       :id => "issue_customer_id",
       :onchange => "updateIssueFrom('/issues/#{context[:issue].id}/edit.js', this)"
 
+    # Load estimates & vehicles
     if context[:issue].customer
       if customer.vehicles
         vehicles = customer.vehicles.pluck(:name, :id)
@@ -58,9 +64,8 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
       estimates = [nil].compact
     end
 
-     # Generate the drop down list of quickbooks extimates
+    # Generate the drop down list of quickbooks extimates & vehicles
     select_estimate = f.select :qbo_estimate_id, estimates, :selected => selected_estimate, include_blank: true
-
     vehicle = f.select :vehicles_id, vehicles, :selected => selected_vehicle, include_blank: true
 
     return "<p><label for=\"issue_customer\">Customer</label>#{search_customer} #{customer_id}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>"

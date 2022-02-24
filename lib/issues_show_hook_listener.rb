@@ -32,7 +32,7 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
       issue.qbo_invoice_ids.each do |i|
         invoice = QboInvoice.find i
         invoice_link = invoice_link + link_to( invoice.doc_number, "#{Redmine::Utils::relative_url_root}/qbo/invoice/#{i}", :target => "_blank").to_s + " "
-	invoice_link = invoice_link.html_safe
+	      invoice_link = invoice_link.html_safe
       end
     end
     
@@ -51,11 +51,11 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
       :partial => 'qbo/issues_show_details',
         locals: {
           customer: customer, 
-	  estimate_link: estimate_link, 
-	  invoice_link: invoice_link, 
-	  vehicle: vehicle, 
-	  split_vin: split_vin,
-	  notes: notes
+	        estimate_link: estimate_link, 
+	        invoice_link: invoice_link, 
+	        vehicle: vehicle, 
+	        split_vin: split_vin,
+	        notes: notes
         } 
       })
   end
