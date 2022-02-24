@@ -14,6 +14,6 @@ class HeaderFooterHookListener < Redmine::Hook::ViewListener
   end
 
   def view_layouts_base_body_bottom(context = {})
-    return "<div id='qbo_footer' align='center'><b>Last Sync: </b> #{Qbo.last_sync if Qbo.exists?}</div>"
+    return "<div id='qbo_footer' align='center'><b>#{I18n.translate(:label_last_sync)}: </b> #{Qbo.last_sync if Qbo.exists?}</div>"
   end
 end
