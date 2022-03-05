@@ -68,6 +68,6 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     select_estimate = f.select :qbo_estimate_id, estimates, :selected => selected_estimate, include_blank: true
     vehicle = f.select :vehicles_id, vehicles, :selected => selected_vehicle, include_blank: true
 
-    return "<p><label for=\"issue_customer\">Customer</label>#{search_customer} #{customer_id}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>"
+    return "<p><label for=\"issue_customer\">Customer</label>#{search_customer} #{customer_id} #{link_to_function I18n.t(:label_load_customer), "updateIssueFrom('/issues/#{context[:issue].id}/edit.js', this)"}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>"
   end
 end
