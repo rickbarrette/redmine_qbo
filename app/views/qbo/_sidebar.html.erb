@@ -1,2 +1,6 @@
-<%= render :partial => 'customers/sidebar' %>
-<%= render :partial => 'estimates/sidebar' %>
+<% if User.current.logged? %>
+
+    <%= render :partial => 'customers/sidebar' %>
+    <%= render :partial => 'estimates/sidebar' %>
+
+<% end %>
