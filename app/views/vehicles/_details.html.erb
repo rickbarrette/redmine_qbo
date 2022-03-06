@@ -1,35 +1,45 @@
-<table>
-  <tbody>
-  
-    <tr>
-      <th><%= t(:field_customer)%></th>
-      <td><%= link_to vehicle.customer.name, customer_path(vehicle.customer) %></td>
-    </tr>
-  
-    <tr>
-      <th><%= t(:field_vehicle) %></th>
-      <td><%= vehicle.to_s %></td>
-    </tr>
-    
-    <tr>
-      <th><%= t(:field_vin) %></th>
-      <td><%= @vin[0] if @vin %><b><%=@vin[1] if @vin%></b></td>
-    </tr>
-    
-    <th><%= t(:label_trim) %></th>
-      <td><%= vehicle.doors %> <%=t(:label_door) if vehicle.doors? %> <%= vehicle.trim %></td>
-    </tr>
+<div class="issue">
+  <div class="splitcontent">
+    <div class="splitcontentleft">
+      <h4><%=t(:label_details)%>:</h4>
+      
+      <table>
+        <tbody>
 
-    <tr>
-      <th><%= t(:field_notes) %></th>
-      <td><%= vehicle.notes %></td>
-    </tr>
-    
-    <tr>
-      <td>
-        <%= button_to t(:label_edit), edit_vehicle_path(vehicle), method: :get%> 
-        <%= button_to t(:label_delete), vehicle, method: :delete, data: {confirm: t(:warn_ru_sure)} %> 
-      </td>
-    </tr>
-  </tbody>
-</table>
+          <tr>
+            <th><%= t(:field_customer)%></th>
+            <td><%= link_to vehicle.customer.name, customer_path(vehicle.customer) %></td>
+          </tr>
+        
+          <tr>
+            <th><%= t(:field_vehicle) %></th>
+            <td><%= vehicle.to_s %></td>
+          </tr>
+          
+          <tr>
+            <th><%= t(:field_vin) %></th>
+            <td><%= @vin[0] if @vin %><b><%=@vin[1] if @vin%></b></td>
+          </tr>
+          
+          <th><%= t(:label_trim) %></th>
+            <td><%= vehicle.doors %> <%=t(:label_door) if vehicle.doors? %> <%= vehicle.trim %></td>
+          </tr>
+        </tbody>
+      </table>
+      
+    </div>
+
+    <div class="splitcontentleft">
+
+      <h4><%=t(:field_notes)%>:</h4>
+        <td><%= vehicle.notes %></td>
+      </tr>
+
+    </div>
+  </div>
+</div>
+
+<div style="float: right;">
+  <%= button_to t(:label_edit), edit_vehicle_path(vehicle), method: :get%> 
+  <%= button_to t(:label_delete), vehicle, method: :delete, data: {confirm: t(:warn_ru_sure)} %> 
+</div>
