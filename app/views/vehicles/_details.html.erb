@@ -17,7 +17,7 @@
     </tr>
     
     <th><%= t(:label_trim) %></th>
-      <td><%= vehicle.doors %> <%=t(:label_door)%> <%= vehicle.trim %></td>
+      <td><%= vehicle.doors %> <%=t(:label_door) if vehicle.doors? %> <%= vehicle.trim %></td>
     </tr>
 
     <tr>
