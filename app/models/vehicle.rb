@@ -15,12 +15,9 @@ class Vehicle < ActiveRecord::Base
   belongs_to :customer
   has_many :issues, :foreign_key => 'vehicles_id'
   
-  #attr_accessible :year, :make, :model, :customer_id, :notes, :vin
-  
   validates_presence_of :customer
   validates :vin, uniqueness: true
   before_save :decode_vin
-  #after_find :get_details
   
   self.primary_key = :id
   
@@ -34,34 +31,11 @@ class Vehicle < ActiveRecord::Base
     end
   end
   
-  # returns the raw JSON details from EMUNDS
+  # returns the raw JSON details from NHTSA
   def details
     get_details if @details.nil?
     return @details
   end
-  
-  # returns the style of the vehicle
-  def style
-    get_details if @details.nil?
-    begin
-      return @details.trim if @details
-    rescue
-      return nil
-    end
-  end
-  
-  # returns the drive of the vehicle i.e. 2 wheel, 4 wheel, ect.
-  def drive
-    #todo fix this
-    #return @details.drive_type if @details
-    return nil
-  end
-  
-  # returns the number of doors of the vehicle
-  #def doors
-  #  get_details if @details.nil?
-  #  return @details.doors if @details
-  #end
   
   # Force Upper Case for make numbers
   def make=(val)
@@ -75,9 +49,8 @@ class Vehicle < ActiveRecord::Base
     write_attribute(:model, val.to_s.titleize)
   end
   
-  # Force Upper Case for VIN numbers
+  # Force Upper Case & strip VIN of all illegal chars (for barcode scanner)
   def vin=(val)
-    #strip VIN of all illegal chars (for barcode scanner)
     val = val.to_s.upcase.gsub(/[^A-HJ-NPR-Za-hj-npr-z\d]+/,"")
     write_attribute(:vin, val)
   end
@@ -104,9 +77,9 @@ class Vehicle < ActiveRecord::Base
     self.name = to_s
   end
   
-private
+  private
   
-  # init method to pull JSON details from Edmunds
+  # init method to pull JSON details from NHTSA
   def get_details
     if self.vin?
       #validate the vin before calling a remote server
