@@ -64,7 +64,7 @@ class VehiclesController < ApplicationController
       @vin = @vehicle.vin.scan(/.{1,9}/) if @vehicle.vin
       @issues = @vehicle.issues.order(id: :desc)
       @closed_issues = (@issues - @issues.open)
-    rescue ActiveRecord::RecordNotFound
+    rescue 
       render_404
     end
   end
@@ -74,7 +74,7 @@ class VehiclesController < ApplicationController
     begin
       @vehicle = Vehicle.find_by_id(params[:id])
       @customer = @vehicle.customer
-    rescue ActiveRecord::RecordNotFound
+    rescue 
       render_404
     end
   end
@@ -92,7 +92,7 @@ class VehiclesController < ApplicationController
       end
       #show any errors anyways
       flash[:error] = @vehicle.errors.full_messages.to_sentence unless @vehicle.errors.empty?
-    rescue ActiveRecord::RecordNotFound
+    rescue 
       render_404
     end
   end
@@ -103,7 +103,7 @@ class VehiclesController < ApplicationController
       Vehicle.find_by_id(params[:id]).destroy
       flash[:notice] = "Vehicle deleted successfully"
       redirect_to action: :index
-    rescue ActiveRecord::RecordNotFound
+    rescue 
       render_404
     end
   end

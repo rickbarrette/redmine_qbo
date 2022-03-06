@@ -93,7 +93,7 @@ class CustomersController < ApplicationController
       @billing_address = address_to_s(@customer.billing_address)
       @shipping_address = address_to_s(@customer.shipping_address)
       @closed_issues = (@issues - @issues.open)
-    rescue ActiveRecord::RecordNotFound
+    rescue 
       render_404
     end
   end
@@ -102,7 +102,7 @@ class CustomersController < ApplicationController
   def edit
     begin
       @customer = Customer.find_by_id(params[:id])
-    rescue ActiveRecord::RecordNotFound
+    rescue 
       render_404
     end
   end
@@ -118,7 +118,7 @@ class CustomersController < ApplicationController
         redirect_to edit_customer_path
         flash[:error] = @customer.errors.full_messages.to_sentence if @customer.errors
       end
-    rescue ActiveRecord::RecordNotFound
+    rescue 
       render_404
     end
   end
@@ -129,7 +129,7 @@ class CustomersController < ApplicationController
       Customer.find_by_id(params[:id]).destroy
       flash[:notice] = "Customer deleted successfully"
       redirect_to action: :index
-    rescue ActiveRecord::RecordNotFound
+    rescue 
       render_404
     end
   end
