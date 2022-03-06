@@ -11,7 +11,7 @@
         <br/>
         <%= vehicle.customer %>
         <br/>
-        <%= vehicle.vin %>
+        <%= vehicle.vin.scan(/.{1,9}/)[0] if vehicle.vin %><b><%=vehicle.vin.scan(/.{1,9}/)[1] if vehicle.vin%></b>
       </div>
     </div>
     <br/>
