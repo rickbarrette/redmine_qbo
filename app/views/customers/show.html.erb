@@ -1,43 +1,42 @@
 <h2><%=t(:field_customer)%> #<%= @customer.id %> - <%= @customer.name %> </h2>
-  <br/>
-
-  <div class="subject">
-    <div><h4><%=t(:label_details)%>:</h4></div>
-  </div>
-
-  <div class="attributes">
+  <div class="issue">
 
     <div class="splitcontent">
 
       <div class="splitcontentleft">
+
+        <h4><%=t(:label_details)%>:</h4>
+
         <%= render :partial => 'customers/details', locals: {customer: @customer} %>
 
-          <div class="splitcontent">
-            <div class="splitcontentleft">
-              <h4><%=t(:estimates)%>:</h4>
-              <%= render :partial => 'estimates/list', locals: {customer: @customer} %>
-            </div>
-
-            <div class="splitcontentleft">
-              <h4><%=t(:label_invoices)%>:</h4>
-              <%= render :partial => 'invoices/list', locals: {customer: @customer} %>
-            </div>
+        <div class="splitcontent">
+          <div class="splitcontentleft">
+            <h4><%=t(:estimates)%>:</h4>
+            <%= render :partial => 'estimates/list', locals: {customer: @customer} %>
           </div>
 
+          <div class="splitcontentleft">
+            <h4><%=t(:label_invoices)%>:</h4>
+            <%= render :partial => 'invoices/list', locals: {customer: @customer} %>
+          </div>
+        </div>
+
       </div>
-      
+        
       <div class="splitcontentleft">
         <h4><%=t(:field_vehicles)%>:</h4>
         <%= render :partial => 'vehicles/list' %>
+        <div style="float: right;">
           <%= button_to "New Vehicle", new_customer_vehicle_path(@customer), method: :get %>
+        </div>
       </div>
     </div>
 
-    <br/>
-    <h2><%=@issues.open.count%> <%=t(:label_open_issues)%>:</h2>
-    <%= render :partial => 'issues/list_simple', locals: {issues: @issues.open} %>
-
-    <h2><%=@closed_issues.count%> <%=t(:label_closed_issues)%>:</h2>
-    <%= render :partial => 'issues/list_simple', locals: {issues: @closed_issues} %>
-
   </div>
+
+<br/>
+<h2><%=@issues.open.count%> <%=t(:label_open_issues)%>:</h2>
+<%= render :partial => 'issues/list_simple', locals: {issues: @issues.open} %>
+
+<h2><%=@closed_issues.count%> <%=t(:label_closed_issues)%>:</h2>
+<%= render :partial => 'issues/list_simple', locals: {issues: @closed_issues} %>
