@@ -58,10 +58,10 @@ class Vehicle < ActiveRecord::Base
   end
   
   # returns the number of doors of the vehicle
-  def doors
-    get_details if @details.nil?
-    return @details.doors if @details
-  end
+  #def doors
+  #  get_details if @details.nil?
+  #  return @details.doors if @details
+  #end
   
   # Force Upper Case for make numbers
   def make=(val)
@@ -93,8 +93,10 @@ class Vehicle < ActiveRecord::Base
     if @details
       begin
         self.year = @details.year unless @details.year.nil?
-	self.make = @details.make unless @details.make.nil?
-	self.model = @details.model unless @details.model.nil?
+	      self.make = @details.make unless @details.make.nil?
+	      self.model = @details.model unless @details.model.nil?
+        self.doors = @details.doors unless @details.doors.nil?
+        self.trim = @details.trim unless @details.trim.nil?
       rescue Exception => e
         errors.add(:vin, e.message)
       end
@@ -110,9 +112,9 @@ private
       #validate the vin before calling a remote server
       validation = NhtsaVin.validate(self.vin)
       begin
-	#if the vin validation failed, raise an exception and exit
-	raise RuntimeError, validation.error unless validation.valid?
-	# query NHTSA for details on the vin
+        #if the vin validation failed, raise an exception and exit
+        raise RuntimeError, validation.error unless validation.valid?
+        # query NHTSA for details on the vin
         query = NhtsaVin.get(self.vin)
         raise RuntimeError, query.error unless query.valid?
         @details = query.response

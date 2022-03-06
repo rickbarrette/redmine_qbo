@@ -16,6 +16,10 @@
       <td><%= @vin[0] if @vin %><b><%=@vin[1] if @vin%></b></td>
     </tr>
     
+    <th><%= t(:label_trim) %></th>
+      <td><%= vehicle.doors %> <%=t(:label_door)%> <%= vehicle.trim %></td>
+    </tr>
+
     <tr>
       <th><%= t(:field_notes) %></th>
       <td><%= vehicle.notes %></td>
