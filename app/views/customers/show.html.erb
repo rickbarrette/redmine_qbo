@@ -35,8 +35,8 @@
   </div>
 
 <br/>
-<h2><%=@issues.open.count%> <%=t(:label_open_issues)%>:</h2>
+<h3><%=@issues.open.count%> <%=t(:label_open_issues)%>:</h3>
 <%= render :partial => 'issues/list_simple', locals: {issues: @issues.open} %>
 
-<h2><%=@closed_issues.count%> <%=t(:label_closed_issues)%>:</h2>
+<h3><%=@closed_issues.count%> <%=t(:label_closed_issues)%>:</h3>
 <%= render :partial => 'issues/list_simple', locals: {issues: @closed_issues} %>
