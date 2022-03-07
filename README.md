@@ -2,7 +2,7 @@
 
 A plugin for Redmine to connect to Quickbooks Online
 
-The goal of this project is to allow Redmine to connect with Quickbooks Online to create `Time Activity Entries` for billable hours loged when an Issue is closed.
+The goal of this project is to allow Redmine to connect with Quickbooks Online to create Time Activity Entries for billable hours loged when an Issue is closed.
 
 #### Disclaimer
 
@@ -39,6 +39,7 @@ Use tags Version 1.0.0 & up for Redmine 4+ and Version 0.8.1 for Redine 3 & down
 1. To install, clone this repo into your plugin folder
 
   `git clone git@github.com:rickbarrette/redmine_qbo.git` 
+  then
   `git checkout <tag>`
   
 2. Migrate your database
