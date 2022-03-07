@@ -2,45 +2,45 @@
 
 A plugin for Redmine to connect to Quickbooks Online
 
-The goal of this project is to allow Redmine to connect with Quickbooks Online to create `Time Activity Entries` for completed work when an Issue is closed.
+The goal of this project is to allow Redmine to connect with Quickbooks Online to create Time Activity Entries for billable hours loged when an Issue is closed.
 
 #### Disclaimer
 
-Note: Although the core functionality is complete, this project is still under heavy development. I am still working on refining everthing and adding other features. Tags should be stable
+Note: Although the core functionality is complete, this project is still under development & the master branch may be unstable. Tags should be stable and are recommended
 
-Use tags Version 1.0.0 & up for Redmine 4+ and Version 0.8.1 for Redine 3
+Use tags Version 1.0.0 & up for Redmine 4+ and Version 0.8.1 for Redine 3 & down
 
 #### Features
-* Issues can be assigned to a `Customer` via drop down in the edit Issue form
-* The `Employee` for the Issue is assigned via the assigned Redmine User
-  - This is set via a drop down in the user admistration page.
-* IF an `Issue` has been assined a `Customer` when an Issue is closed the following will happen:
-  - A new `Time Activity` will be billed agaist the `Customer` assinged to the issue for each Redmine Time Entery. 
+* Issues can be assigned to a Customer via drop down in the edit Issue form
+  - Once a customer is attached to an Issue, you can attach an Estimate to the issue via a drop down menu
+* Employee is assigned to a user via a drop down in the user admistration page.
+* IF an Issue has been assined a Customer when an Issue is closed the following will happen:
+  - A new Time Activity will be billed agaist the Customer assinged to the issue for each Redmine Time Entery. 
     + Time Entries will be totalled up by Activity name. This will allow billing for diffrent activities without having to create seperate Issues.
-    + The Time Activity names are used to lookup `Items` in Quickbooks.
-    + IF there isn'tany Items that match the Activity name it will be skipped, and will not be billed to the `Customer` 
-  - Labor Rates are set by the `Item` in Quickbooks
-* `Payments` Can be created via the Redmine application menu
-* `Customers` Can be created via the Redmine application menu
-  - `Customers` can be searched
-  - Basic information for the `Customer` can be viewed/edit via the Customer page
+    + The Time Activity names are used to dynamically lookup Items in Quickbooks.
+    + IF there isn't any Items that match the Activity name it will be skipped, and will not be billed to the Customer 
+  - Labor Rates are set by corresponding the Item in Quickbooks
+* Customers Can be created via the New Customer Page
+  - Customers can be searched by name or phone number
+  - Basic information for the Customer can be viewed/edit via the Customer page
 * Webhook Support
-  - `Invoices` are automaticly attached to an Issue if a line item has a hashtag number in a `Line Item`
-    + `Invoice` Custom Fields are matched Issue Custom Fileds and are automaticly updated in Quickbooks. For example, this is usefull for extracting the Mileage In / Out from the Issue and updating the Invoice with the information.
-  - `Customers` are automaticly updated in local database
+  - Invoices are automaticly attached to an Issue if a line item has a hashtag number in a Line Item
+    + Invoice Custom Fields are matched Issue Custom Fileds and are automaticly updated in Quickbooks. For example, this is usefull for extracting the Mileage In / Out from the Issue and updating the Invoice with the information.
+  - Customers are automaticly updated in local database
 
 ## Prerequisites
 
 * Sign up to become a developer for Intuit https://developer.intuit.com/
 * Create your own aplication to obtain your API keys
 * Set up webhook service to https://redmine.yourdomain.com/qbo/webhook
-  - See https://developer.intuit.com/docs/0100_accounting/0300_developer_guides/webhooks
 
 ## The Install
 
 1. To install, clone this repo into your plugin folder
 
   `git clone git@github.com:rickbarrette/redmine_qbo.git` 
+  then
+  `git checkout <tag>`
   
 2. Migrate your database
 
@@ -59,16 +59,13 @@ Use tags Version 1.0.0 & up for Redmine 4+ and Version 0.8.1 for Redine 3
 Note: After the inital synchronization, this plugin will recieve push notifications via Intuit's webhook service.
 
 ## TODO
-  * Abiltiy to add line items to a ticket in a dynamic table so they can be added to the invoice upon closing of the issue
-  * Customer Deletion
-  * Email Customer updates, provding a link that would: bypass the login page, go directly to the issue directing them to, and allow them to view only that issue. 
+  * Customer link option to allow for temporary sharing of an issue
   * Add Setting for Sandbox Mode
   * Refactor Models prefixed with Qbo...
-  * Seperate Vehicles into a seperate plugin
-  * Make HTML Pretty 
+  * Seperate Vehicles into a seperate plugin (I use redmine for my automotive shop management 😉)
+  * Make HTML Pretty (It's ugly right now but it works)
   * Intergrate Customer Search into Redmine Search
-  * Fix Issue sort by Customer
-  * MORE Stuff...
+  * MORE Stuff as I make it up...
 
 ## License
 
