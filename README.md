@@ -18,7 +18,7 @@ Use tags Version 1.0.0 & up for Redmine 4+ and Version 0.8.1 for Redine 3 & down
   - A new Time Activity will be billed agaist the Customer assinged to the issue for each Redmine Time Entery. 
     + Time Entries will be totalled up by Activity name. This will allow billing for diffrent activities without having to create seperate Issues.
     + The Time Activity names are used to dynamically lookup Items in Quickbooks.
-    + IF there isn't any Items that match the Activity name it will be skipped, and will not be billed to the `Customer` 
+    + IF there isn't any Items that match the Activity name it will be skipped, and will not be billed to the Customer 
   - Labor Rates are set by corresponding the Item in Quickbooks
 * Customers Can be created via the New Customer Page
   - Customers can be searched by name or phone number
