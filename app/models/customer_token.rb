@@ -11,7 +11,6 @@
 class CustomerToken < ActiveRecord::Base
   unloadable
   has_many :issues
-  #attr_accessible :token, :expires_at, :issue_id
   validates_presence_of :expires_at, :issue_id
   before_create :generate_token
 
@@ -20,4 +19,9 @@ class CustomerToken < ActiveRecord::Base
   def generate_token
     self.token = SecureRandom.base64(15).tr('+/=lIO0', OAUTH_CONSUMER_SECRET)
   end
+
+  def remove_expired_tokens
+    CustomerToken.where("expires_at < ?", Time.now).destroy_all
+  end
+
 end

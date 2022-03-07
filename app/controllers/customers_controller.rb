@@ -134,6 +134,23 @@ class CustomersController < ApplicationController
     end
   end
 
+  # creates new customer view tokens, removes expired tokens & redirects to newly created customer view with new token.
+  def share
+
+    Thread.new do
+      logger.debug "Removing expired customer tokens"
+      CustomerToken.remove_expired_tokens
+      ActiveRecord::Base.connection.close
+    end
+
+    begin
+      issue = Issue.find_by_id(params[:id])
+      redirect_to "#{Redmine::Utils::relative_url_root}/customers/view/#{issue.share_token.token}"
+    rescue
+      render_404
+    end
+  end
+  
   # displays an issue for a customer with a provided security CustomerToken
   def view
 
