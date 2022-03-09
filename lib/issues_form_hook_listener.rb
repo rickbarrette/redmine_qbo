@@ -10,7 +10,7 @@
 
 class IssuesFormHookListener < Redmine::Hook::ViewListener
 
-  # Load the javascript
+  # Load the javascript to support the autocomplete forms
   def view_layouts_base_html_head(context = {})
     js = javascript_include_tag 'application', :plugin => 'redmine_qbo'
     js += javascript_include_tag 'autocomplete-rails', :plugin => 'redmine_qbo'
@@ -18,19 +18,20 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
   end
 
   # Edit Issue Form
-  # TODO figure out how to do this with a view
+  # Here we build the required form components before passing them to a partial view formatting. 
   def view_issues_form_details_bottom(context={})
     f = context[:form]
 
-    #check project level customer/vehicle ownership first
+    # check project level customer ownership first
+    # This is done to preload customer information if the entire project is dedicated to a customer
     if context[:project]
       selected_customer = context[:project].customer ? context[:project].customer.id : nil
       selected_vehicle = context[:project].vehicle ? context[:project].vehicle.id : nil
     end
 
-    # Check to see if there are things attached to the issue
-    selected_customer =  context[:issue].customer ? context[:issue].customer.id  : nil
-    selected_estimate =  context[:issue].qbo_estimate ? context[:issue].qbo_estimate.id  : nil
+    # Check to see if the issue already belongs to a customer
+    selected_customer = context[:issue].customer ? context[:issue].customer.id  : nil
+    selected_estimate = context[:issue].qbo_estimate ? context[:issue].qbo_estimate.id  : nil
     selected_vehicle = context[:issue].vehicles_id ? context[:issue].vehicles_id : nil
 
     # Load customer information
@@ -64,10 +65,21 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
       estimates = [nil].compact
     end
 
-    # Generate the drop down list of quickbooks extimates & vehicles
+    # Generate the drop down list of quickbooks estimates & vehicles
     select_estimate = f.select :qbo_estimate_id, estimates, :selected => selected_estimate, include_blank: true
     vehicle = f.select :vehicles_id, vehicles, :selected => selected_vehicle, include_blank: true
 
-    return "<p><label for=\"issue_customer\">Customer</label>#{search_customer} #{customer_id} #{link_to_function I18n.t(:label_load_customer), "updateIssueFrom('/issues/#{context[:issue].id}/edit.js', this)"}</p> <p>#{select_estimate}</p> <p>#{vehicle}</p>"
+    # Pass all prebuilt form components to our partial
+    context[:controller].send(:render_to_string, {
+      :partial => 'issues/form_hook',
+        locals: {
+          search_customer: search_customer, 
+	        customer_id: customer_id, 
+	        context: context, 
+	        select_estimate: select_estimate,
+	        vehicle: vehicle
+        } 
+      }
+    )
   end
 end
