@@ -60,9 +60,10 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
       })
   end
 
+  # Display Buttons under the issue above subtasks
   def view_issues_show_description_bottom(context={})
-    bill_button = button_to "Bill Time", bill_path( context[:issue].id ), method: :get if User.current.admin?
-    share_button = button_to "Share", share_path( context[:issue].id ), method: :get if User.current.logged?
+    bill_button = button_to I18n.t(:label_bill_time), bill_path( context[:issue].id ), method: :get if User.current.admin?
+    share_button = button_to I18n.t(:label_share), share_path( context[:issue].id ), method: :get if User.current.logged?
     return "<br/> #{bill_button} #{share_button}"
   end
   
