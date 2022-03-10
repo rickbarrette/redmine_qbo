@@ -17,13 +17,13 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     
     # Check to see if there is a quickbooks user attached to the issue
     if issue.customer
-      customer =  link_to issue.customer.name, "#{Redmine::Utils::relative_url_root}/customers/#{issue.customer.id}"
+      customer =  link_to issue.customer.name, customer_path( issue.customer.id )
     end
     
     # Estimate Number
     if issue.qbo_estimate
       estimate =  issue.qbo_estimate.doc_number
-      estimate_link = link_to estimate, "#{Redmine::Utils::relative_url_root}/qbo/estimate/#{issue.qbo_estimate.id}", :target => "_blank"
+      estimate_link = link_to estimate, estimate_path( issue.qbo_estimate.id ), :target => "_blank"
     end
     
     # Invoice Number
@@ -31,14 +31,14 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     if issue.qbo_invoice_ids
       issue.qbo_invoice_ids.each do |i|
         invoice = QboInvoice.find i
-        invoice_link = invoice_link + link_to( invoice.doc_number, "#{Redmine::Utils::relative_url_root}/qbo/invoice/#{i}", :target => "_blank").to_s + " "
+        invoice_link = invoice_link + link_to( invoice.doc_number, invoice_path( i ), :target => "_blank").to_s + " "
 	      invoice_link = invoice_link.html_safe
       end
     end
     
     begin
       v = Vehicle.find(issue.vehicles_id)
-      vehicle = link_to v.to_s, "#{Redmine::Utils::relative_url_root}/vehicles/#{v.id}"
+      vehicle = link_to v.to_s, vehicle_path( v.id )
       vin = v.vin 
       notes = v.notes
     rescue
@@ -61,8 +61,8 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
   end
 
   def view_issues_show_description_bottom(context={})
-    bill_button = button_to "Bill Time", "#{Redmine::Utils::relative_url_root}/qbo/bill/#{context[:issue].id}", method: :get if User.current.admin?
-    share_button = button_to "Share", "#{Redmine::Utils::relative_url_root}/customers/share/#{context[:issue].id}", method: :get if User.current.logged?
+    bill_button = button_to "Bill Time", bill_path( context[:issue].id ), method: :get if User.current.admin?
+    share_button = button_to "Share", share_path( context[:issue].id ), method: :get if User.current.logged?
     return "<br/> #{bill_button} #{share_button}"
   end
   
