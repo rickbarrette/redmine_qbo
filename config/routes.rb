@@ -19,9 +19,9 @@ get 'qbo/oauth_callback', :to => 'qbo#oauth_callback'
 get 'qbo/sync', :to => 'qbo#sync'
 
 # Estimate & Invoice PDF
-get 'estimate/:id', :to => 'estimate#show', as: :estimate
-get 'estimate/doc/:id', :to => 'estimate#doc', as: :estimate_doc
-get 'invoice/:id', :to => 'invoice#show', as: :invoice
+get 'estimates/:id', :to => 'estimate#show', as: :estimate
+get 'estimates/doc/:id', :to => 'estimate#doc', as: :estimate_doc
+get 'invoices/:id', :to => 'invoice#show', as: :invoice
 
 #manual billing
 get 'bill/:id', :to => 'qbo#bill', as: :bill
