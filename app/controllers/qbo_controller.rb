@@ -23,18 +23,6 @@ class QboController < ApplicationController
   end
 
   #
-  # Called when the QBO Top Menu us shown
-  #
-  def index
-    @qbo = Qbo.first
-    @customer_count = Customer.count
-    @item_count = QboItem.count
-    @employee_count = Employee.count
-    @invoice_count = Invoice.count
-    @estimate_count = Estimate.count
-  end
-
-  #
   # Called when the user requests that Redmine to connect to QBO
   #
   def authenticate

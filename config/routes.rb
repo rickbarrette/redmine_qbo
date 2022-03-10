@@ -8,15 +8,15 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-# Main Quickbooks landing page
-get 'qbo', :to=> 'qbo#index'
-
 #authentication
 get 'qbo/authenticate', :to => 'qbo#authenticate'
 get 'qbo/oauth_callback', :to => 'qbo#oauth_callback'
 
 #manual sync
 get 'qbo/sync', :to => 'qbo#sync'
+
+#webhook
+post 'qbo/webhook', :to => 'qbo#webhook'
 
 # Estimate & Invoice PDF
 get 'estimates/:id', :to => 'estimate#show', as: :estimate
@@ -29,9 +29,6 @@ get 'bill/:id', :to => 'qbo#bill', as: :bill
 #customer issue view
 get 'customers/view/:token', :to => 'customers#view', as: :view
 get 'customers/share/:id', :to => 'customers#share', as: :share
-
-#webhook
-post 'qbo/webhook', :to => 'qbo#webhook'
 
 #java script routes
 get 'filter_vehicles_by_customer' => 'customers#filter_vehicles_by_customer'
