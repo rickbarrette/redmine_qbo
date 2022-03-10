@@ -8,7 +8,7 @@ The goal of this project is to allow Redmine to connect with Quickbooks Online t
 
 Note: Although the core functionality is complete, this project is still under development & the master branch may be unstable. Tags should be stable and are recommended
 
-Use tags Version 1.0.0 & up for Redmine 4+ and Version 0.8.1 for Redine 3 & down
+Use tags Version 1.0.0+ for Redmine 4+ and Version 0.8.1 for Redine 3
 
 #### Features
 * Issues can be assigned to a Customer via drop down in the edit Issue form
@@ -54,14 +54,13 @@ Use tags Version 1.0.0 & up for Redmine 4+ and Version 0.8.1 for Redine 3 & down
 
 ## Usage
 
-  To enable automatic `Time Activity` entries for an Issue , you need only to assign a `Customer` to an Issue via drop downs in the issue creation/update form.
+  To enable automatic Time Activity entries for an Issue , you need only to assign a Customer to an Issue via drop downs in the issue creation/update form.
 
 Note: After the inital synchronization, this plugin will recieve push notifications via Intuit's webhook service.
 
 ## TODO
   * Customer link option to allow for temporary sharing of an issue
   * Add Setting for Sandbox Mode
-  * Refactor Models prefixed with Qbo...
   * Seperate Vehicles into a seperate plugin (I use redmine for my automotive shop management 😉)
   * Make HTML Pretty (It's ugly right now but it works)
   * Intergrate Customer Search into Redmine Search
