@@ -26,8 +26,6 @@ module IssuePatch
       belongs_to :customer_token, primary_key: :id
       belongs_to :estimate, primary_key: :id
       has_and_belongs_to_many :invoices
-        #, :association_foreign_key => 'issue_id', :class_name => 'Issue', :join_table => 'issues_invoices'
-  
       belongs_to :vehicle, primary_key: :id
     end
     
@@ -43,7 +41,6 @@ module IssuePatch
     def bill_time
      
       # Check to see if we have everything we need to bill the customer
-      #return unless status.is_closed?
       return if assigned_to.nil?
       return unless Qbo.first 
       return unless customer 
