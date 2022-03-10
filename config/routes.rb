@@ -19,19 +19,16 @@ get 'qbo/oauth_callback', :to => 'qbo#oauth_callback'
 get 'qbo/sync', :to => 'qbo#sync'
 
 # Estimate & Invoice PDF
-get 'qbo/estimate/:id', :to => 'estimate#show', as: :estimate
-get 'qbo/estimate/doc/:id', :to => 'estimate#doc', as: :estimate_doc
-get 'qbo/invoice/:id', :to => 'invoice#show', as: :invoice
+get 'estimate/:id', :to => 'estimate#show', as: :estimate
+get 'estimate/doc/:id', :to => 'estimate#doc', as: :estimate_doc
+get 'invoice/:id', :to => 'invoice#show', as: :invoice
 
 #manual billing
-get 'qbo/bill/:id', :to => 'qbo#bill', as: :bill
+get 'bill/:id', :to => 'qbo#bill', as: :bill
 
 #customer issue view
 get 'customers/view/:token', :to => 'customers#view', as: :view
 get 'customers/share/:id', :to => 'customers#share', as: :share
-
-#payments
-resources :payments
 
 #webhook
 post 'qbo/webhook', :to => 'qbo#webhook'

@@ -48,9 +48,7 @@ Redmine::Plugin.register :redmine_qbo do
   # Permissions for security
   permission :view_customers, :customers => :index, :public => false
   permission :add_customers, :customers => :new, :public => false
-  permission :view_payments, :payments => :index, :public => false
-  permission :add_payments, :payments => :new, :public => false
-  permission :view_vehicles, :payments => :new, :public => false
+  permission :view_vehicles, :vehicles => :new, :public => false
 
   # Register top menu items
   menu :top_menu, :customers, { :controller => :customers, :action => :index }, :caption => 'Customers', :if => Proc.new {User.current.logged?}
