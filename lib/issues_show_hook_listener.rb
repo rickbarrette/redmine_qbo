@@ -21,16 +21,16 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     end
     
     # Estimate Number
-    if issue.qbo_estimate
-      estimate =  issue.qbo_estimate.doc_number
-      estimate_link = link_to estimate, estimate_path( issue.qbo_estimate.id ), :target => "_blank"
+    if issue.estimate
+      estimate =  issue.estimate.doc_number
+      estimate_link = link_to estimate, estimate_path( issue.estimate.id ), :target => "_blank"
     end
     
     # Invoice Number
     invoice_link = ""
-    if issue.qbo_invoice_ids
-      issue.qbo_invoice_ids.each do |i|
-        invoice = QboInvoice.find i
+    if issue.invoice_ids
+      issue.invoice_ids.each do |i|
+        invoice = Invoice.find i
         invoice_link = invoice_link + link_to( invoice.doc_number, invoice_path( i ), :target => "_blank").to_s + " "
 	      invoice_link = invoice_link.html_safe
       end

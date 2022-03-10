@@ -18,8 +18,8 @@ class EstimateController < ApplicationController
   # Downloads and forwards the estimate pdf
   #
   def show
-    e = QboEstimate.find_by_id(params[:id]) if params[:id]
-    e = QboEstimate.find_by_doc_number(params[:search]) if params[:search]
+    e = Estimate.find_by_id(params[:id]) if params[:id]
+    e = Estimate.find_by_doc_number(params[:search]) if params[:search]
 
     begin
       send_data e.pdf, filename: "estimate #{e.doc_number}.pdf", :disposition => 'inline', :type => "application/pdf"
@@ -32,8 +32,8 @@ class EstimateController < ApplicationController
   # Downloads estimate by document number
   #
   def doc
-    e = QboEstimate.find_by_doc_number(params[:id]) if params[:id]
-    e = QboEstimate.find_by_doc_number(params[:search]) if params[:search]
+    e = Estimate.find_by_doc_number(params[:id]) if params[:id]
+    e = Estimate.find_by_doc_number(params[:search]) if params[:search]
     
     begin
       send_data e.pdf, filename: "estimate #{e.doc_number}.pdf", :disposition => 'inline', :type => "application/pdf"

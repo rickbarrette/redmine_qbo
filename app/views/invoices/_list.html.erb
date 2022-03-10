@@ -1,6 +1,6 @@
 <% if @customer.present? %>
 
-  <% @customer.qbo_invoices.order(doc_number: :desc).each do |invoice| %>
+  <% @customer.invoices.order(doc_number: :desc).each do |invoice| %>
     <div class="row">
       <b><%= link_to "##{invoice.doc_number}", invoice_path(invoice), target: :_blank %></b> <%= invoice.txn_date %>
     </div>

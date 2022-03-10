@@ -8,35 +8,16 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class QboEmployee < ActiveRecord::Base
-  unloadable
-  has_many :users
-  #attr_accessible :name
-  validates_presence_of :id, :name
-  
-  def self.get_base
-    Qbo.get_base(:employee)
-  end
-  
-  def self.sync 
-    employees = get_base.all
+class DropQboPrefix < ActiveRecord::Migration[5.1]
+  def change
+    rename_table :qbo_invoices, :invoices
+    rename_table :qbo_estimates, :estimates
+    rename_table :qbo_employees, :employees
+    rename_table :issues_qbo_invoices, :invoices_issues
     
-    transaction do
-      # Update the item table
-      employees.each { |employee|
-        qbo_employee = 	find_or_create_by(id: employee.id)
-        qbo_employee.name = employee.display_name
-        qbo_employee.id = employee.id
-        qbo_employee.save!
-      }
-    end
-  end
+    rename_column :issues, :qbo_estimate_id, :estimate_id
+    rename_column :users, :qbo_employee_id, :employee_id
+    rename_column :invoices_issues, :qbo_invoice_id, :invoice_id
 
-  def self.sync_by_id(id)
-    employee = get_base.fetch_by_id(id)
-    qbo_employee = find_or_create_by(id: employee.id)
-    qbo_employee.name = employee.display_name
-    qbo_employee.id = employee.id
-    qbo_employee.save!
-  end
+  end 
 end

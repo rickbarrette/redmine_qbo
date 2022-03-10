@@ -48,13 +48,13 @@ class CustomersController < ApplicationController
   # getter method for a customer's invoices
   # used for customer autocomplete field / issue form
   def filter_invoices_by_customer
-    @filtered_invoices = QboInvoice.all.where(customer_id: params[:selected_customer])
+    @filtered_invoices = Invoice.all.where(customer_id: params[:selected_customer])
   end
 
   # getter method for a customer's estimates
   # used for customer autocomplete field / issue form
   def filter_estimates_by_customer
-    @filtered_estimates = QboEstimate.all.where(customer_id: params[:selected_customer])
+    @filtered_estimates = Estimate.all.where(customer_id: params[:selected_customer])
   end
 
   # display a list of all customers

@@ -34,7 +34,7 @@ get 'customers/share/:id', :to => 'customers#share', as: :share
 resources :payments
 
 #webhook
-post 'qbo/webhook', :to => 'qbo#qbo_webhook'
+post 'qbo/webhook', :to => 'qbo#webhook'
 
 #java script routes
 get 'filter_vehicles_by_customer' => 'customers#filter_vehicles_by_customer'

@@ -12,9 +12,9 @@ class Customer < ActiveRecord::Base
   unloadable
   
   has_many :issues
-  has_many :qbo_purchases
-  has_many :qbo_invoices
-  has_many :qbo_estimates
+  has_many :purchases
+  has_many :invoices
+  has_many :estimates
   has_many :vehicles
   
   #attr_accessible :name, :notes, :email, :primary_phone, :mobile_phone, :phone_number
@@ -149,16 +149,16 @@ class Customer < ActiveRecord::Base
     #end
     
     customers.each do |customer|
-      qbo_customer = Customer.find_or_create_by(id: customer.id)
+      customer = Customer.find_or_create_by(id: customer.id)
       if customer.active?
-        if not qbo_customer.name.eql? customer.display_name
-          qbo_customer.name = customer.display_name
-          qbo_customer.id = customer.id
-          qbo_customer.save_without_push
+        if not customer.name.eql? customer.display_name
+          customer.name = customer.display_name
+          customer.id = customer.id
+          customer.save_without_push
         end
       else
-        if not qbo_customer.new_record?
-          qbo_customer.delete
+        if not customer.new_record?
+          customer.delete
         end
       end
     end
@@ -176,16 +176,16 @@ class Customer < ActiveRecord::Base
     service = Qbo.get_base(:customer)
 
     customer = service.fetch_by_id(id)
-    qbo_customer = Customer.find_or_create_by(id: customer.id)
+    customer = Customer.find_or_create_by(id: customer.id)
     if customer.active?
-      if not qbo_customer.name.eql? customer.display_name
-        qbo_customer.name = customer.display_name
-        qbo_customer.id = customer.id
-        qbo_customer.save_without_push
+      if not customer.name.eql? customer.display_name
+        customer.name = customer.display_name
+        customer.id = customer.id
+        customer.save_without_push
       end
     else
-      if not qbo_customer.new_record?
-        qbo_customer.delete
+      if not customer.new_record?
+        customer.delete
       end
     end
   end

@@ -14,7 +14,7 @@ class CustomerToken < ActiveRecord::Base
   validates_presence_of :expires_at, :issue_id
   before_create :generate_token
 
-  OAUTH_CONSUMER_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret'] || 'CONFIGURE_QBO__' + SecureRandom.uuid
+  OAUTH_CONSUMER_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret'] || 'CONFIGURE__' + SecureRandom.uuid
   
   def generate_token
     self.token = SecureRandom.base64(15).tr('+/=lIO0', OAUTH_CONSUMER_SECRET)

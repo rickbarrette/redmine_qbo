@@ -7,13 +7,36 @@
 #The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-class HeaderFooterHookListener < Redmine::Hook::ViewListener
 
-  def view_layouts_base_html_head(context = {})
-    #nothing
+class Employee < ActiveRecord::Base
+  unloadable
+  has_many :users
+  #attr_accessible :name
+  validates_presence_of :id, :name
+  
+  def self.get_base
+    Qbo.get_base(:employee)
+  end
+  
+  def self.sync 
+    employees = get_base.all
+    
+    transaction do
+      # Update the item table
+      employees.each { |employee|
+        employee = 	find_or_create_by(id: employee.id)
+        employee.name = employee.display_name
+        employee.id = employee.id
+        employee.save!
+      }
+    end
   end
 
-  def view_layouts_base_body_bottom(context = {})
-    return "<div id='footer' align='center'><b>#{I18n.translate(:label_last_sync)}: </b> #{Qbo.last_sync if Qbo.exists?}</div>"
+  def self.sync_by_id(id)
+    employee = get_base.fetch_by_id(id)
+    employee = find_or_create_by(id: employee.id)
+    employee.name = employee.display_name
+    employee.id = employee.id
+    employee.save!
   end
 end

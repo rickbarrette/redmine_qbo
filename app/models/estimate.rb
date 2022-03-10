@@ -8,7 +8,7 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class QboEstimate < ActiveRecord::Base
+class Estimate < ActiveRecord::Base
   unloadable
   
   has_and_belongs_to_many :issues
@@ -44,26 +44,26 @@ class QboEstimate < ActiveRecord::Base
   def self.update(id)
     # Update the item table
     estimate = get_base.fetch_by_id(id)
-    qbo_estimate = find_or_create_by(id: id)
-    qbo_estimate.doc_number = estimate.doc_number
-    qbo_estimate.txn_date = estimate.txn_date
-    qbo_estimate.save!
+    estimate = find_or_create_by(id: id)
+    estimate.doc_number = estimate.doc_number
+    estimate.txn_date = estimate.txn_date
+    estimate.save!
   end
   
   # process an estimate into the database
   def self.process_estimate(estimate)
     logger.info "Processing estimate #{estimate.id}"
-    qbo_estimate = find_or_create_by(id: estimate.id)
-    qbo_estimate.doc_number = estimate.doc_number
-    qbo_estimate.customer_id = estimate.customer_ref.value
-    qbo_estimate.id = estimate.id
-    qbo_estimate.txn_date = estimate.txn_date
-    qbo_estimate.save!
+    estimate = find_or_create_by(id: estimate.id)
+    estimate.doc_number = estimate.doc_number
+    estimate.customer_id = estimate.customer_ref.value
+    estimate.id = estimate.id
+    estimate.txn_date = estimate.txn_date
+    estimate.save!
   end
 
   # download the pdf from quickbooks
   def pdf
-    base = QboEstimate.get_base
+    base = Estimate.get_base
     estimate = base.fetch_by_id(id)
     return base.pdf(estimate)
   end

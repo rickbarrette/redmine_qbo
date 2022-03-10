@@ -1,6 +1,6 @@
 #The MIT License (MIT)
 #
-#Copyright (c) 2020 rick barrette
+#Copyright (c) 2022 rick barrette
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -24,9 +24,9 @@ module IssuePatch
       unloadable # Send unloadable so it will not be unloaded in development
       belongs_to :customer, primary_key: :id
       belongs_to :customer_token, primary_key: :id
-      belongs_to :qbo_estimate, primary_key: :id
-      has_and_belongs_to_many :qbo_invoices
-        #, :association_foreign_key => 'issue_id', :class_name => 'Issue', :join_table => 'issues_qbo_invoices'
+      belongs_to :estimate, primary_key: :id
+      has_and_belongs_to_many :invoices
+        #, :association_foreign_key => 'issue_id', :class_name => 'Issue', :join_table => 'issues_invoices'
   
       belongs_to :vehicle, primary_key: :id
     end
@@ -49,7 +49,7 @@ module IssuePatch
       return unless customer 
 
       # Get unbilled time entries
-      spent_time = time_entries.where(qbo_billed: [false, nil])
+      spent_time = time_entries.where(billed: [false, nil])
       spent_hours ||= spent_time.sum(:hours) || 0
       
       if spent_hours > 0 then
@@ -65,7 +65,7 @@ module IssuePatch
         spent_time.each do |entry|
           h[entry.activity.name] += entry.hours
           # update time entries billed status
-          entry.qbo_billed = true
+          entry.billed = true
           entry.save
         end
         
@@ -83,8 +83,8 @@ module IssuePatch
           
           # Create the new billable time entry and upload it
           time_entry.description = "#{tracker} ##{id}: #{subject} #{"(Partial @ #{done_ratio}%)" if not closed?}"
-          # TODO entry.user.qbo_employee.id
-          time_entry.employee_id = assigned_to.qbo_employee_id 
+          # TODO entry.user.employee.id
+          time_entry.employee_id = assigned_to.employee_id 
           time_entry.customer_id = customer_id
           time_entry.billable_status = "Billable"
           time_entry.hours = hours

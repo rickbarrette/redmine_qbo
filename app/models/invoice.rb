@@ -8,7 +8,7 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class QboInvoice < ActiveRecord::Base
+class Invoice < ActiveRecord::Base
   unloadable
   has_and_belongs_to_many :issues
   belongs_to :customer 
@@ -59,10 +59,10 @@ class QboInvoice < ActiveRecord::Base
     
     logger.debug "Attaching invoice #{invoice.id} to issue #{issue.id}"
     
-    qbo_invoice = QboInvoice.find_or_create_by(id: invoice.id)
+    invoice = Invoice.find_or_create_by(id: invoice.id)
 
-    unless issue.qbo_invoices.include?(qbo_invoice)
-      issue.qbo_invoices << qbo_invoice
+    unless issue.invoices.include?(invoice)
+      issue.invoices << invoice
       issue.save!
     end
     
@@ -74,12 +74,12 @@ class QboInvoice < ActiveRecord::Base
     logger.info "Processing invoice #{invoice.id}"
 
     # Load the invoice into the database
-    qbo_invoice = QboInvoice.find_or_create_by(id: invoice.id)
-    qbo_invoice.doc_number = invoice.doc_number 
-    qbo_invoice.id = invoice.id
-    qbo_invoice.customer_id = invoice.customer_ref
-    qbo_invoice.txn_date = invoice.txn_date
-    qbo_invoice.save!
+    invoice = Invoice.find_or_create_by(id: invoice.id)
+    invoice.doc_number = invoice.doc_number 
+    invoice.id = invoice.id
+    invoice.customer_id = invoice.customer_ref
+    invoice.txn_date = invoice.txn_date
+    invoice.save!
 
     # Scan the private notes  for hashtags and attach to the applicable issues
     if not invoice.private_note.nil?
@@ -105,7 +105,7 @@ class QboInvoice < ActiveRecord::Base
   # TODO maybe add a cf_sync_confict flag to invoices
   def self.compare_custom_fields(issue, invoice)
     logger.debug "Comparing custom fields"
-    # TODO break if QboInvoice.find(invoice.id).cf_sync_confict
+    # TODO break if Invoice.find(invoice.id).cf_sync_confict
     is_changed = false
     
     # update the invoive custom fields with infomation from the issue if available
@@ -160,7 +160,7 @@ class QboInvoice < ActiveRecord::Base
       # Do nothing, probaly custome field  sync confict on the invoice. 
       # This is a problem with how it's billed
       # TODO Add notes in memo area
-      # TODO flag QboInvoice.cf_sync_confict here
+      # TODO flag Invoice.cf_sync_confict here
       logger.error "Failed to update invoice"
     end
   end

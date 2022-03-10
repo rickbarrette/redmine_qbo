@@ -30,12 +30,12 @@ Redmine::Plugin.register :redmine_qbo do
   
   # Add safe attributes for core models
   Issue.safe_attributes 'customer_id'
-  Issue.safe_attributes 'qbo_item_id'
-  Issue.safe_attributes 'qbo_estimate_id'
-  Issue.safe_attributes 'qbo_invoice_id'
+  Issue.safe_attributes 'item_id'
+  Issue.safe_attributes 'estimate_id'
+  Issue.safe_attributes 'invoice_id'
   Issue.safe_attributes 'vehicles_id'
-  User.safe_attributes 'qbo_employee_id'
-  TimeEntry.safe_attributes 'qbo_billed'
+  User.safe_attributes 'employee_id'
+  TimeEntry.safe_attributes 'billed'
   Project.safe_attributes 'customer_id'
   Project.safe_attributes 'vehicle_id'
 

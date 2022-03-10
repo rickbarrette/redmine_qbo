@@ -15,7 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 <!-- configure the Intuit object: 'grantUrl' is a URL in your application which kicks off the flow, see below -->
 <script>
-intuit.ipp.anywhere.setup({menuProxy: '/path/to/blue-dot', grantUrl: '<%= Setting.host_name %>/qbo/authenticate'});
+  intuit.ipp.anywhere.setup({menuProxy: '/path/to/blue-dot', grantUrl: '<%= Setting.host_name %>/qbo/authenticate'});
 </script>
 
 <table >
@@ -24,27 +24,36 @@ intuit.ipp.anywhere.setup({menuProxy: '/path/to/blue-dot', grantUrl: '<%= Settin
     <tr>
       <th><%=t(:label_client_id)%></th>
       <td>
-        <input type="text" style="width:350px" id="settingsOAuthConsumerKey" 
-                           value="<%= settings['settingsOAuthConsumerKey'] %>" 
-                           name="settings[settingsOAuthConsumerKey]" >
+        <input 
+          type="text" 
+          style="width:350px" 
+          id="settingsOAuthConsumerKey" 
+          value="<%= settings['settingsOAuthConsumerKey'] %>" 
+          name="settings[settingsOAuthConsumerKey]" >
       </td>
     </tr>
 
     <tr>
       <th><%=t(:label_client_secret)%></th>
       <td>
-        <input type="text" style="width:350px" id="settingsOAuthConsumerSecret"
-                           value="<%= settings['settingsOAuthConsumerSecret'] %>"
-                           name="settings[settingsOAuthConsumerSecret]" >
+        <input 
+          type="text" 
+          style="width:350px" 
+          id="settingsOAuthConsumerSecret"
+          value="<%= settings['settingsOAuthConsumerSecret'] %>"
+          name="settings[settingsOAuthConsumerSecret]" >
       </td>
     </tr>
     
     <tr>
       <th><%=t(:label_webhook_token)%></th>
       <td>
-        <input type="text" style="width:350px" id="settingsWebhookToken"
-                           value="<%= settings['settingsWebhookToken'] %>"
-                           name="settings[settingsWebhookToken]" >
+        <input 
+          type="text" 
+          style="width:350px" 
+          id="settingsWebhookToken"
+          value="<%= settings['settingsWebhookToken'] %>"
+          name="settings[settingsWebhookToken]" >
       </td>
     </tr>
 
@@ -72,19 +81,19 @@ intuit.ipp.anywhere.setup({menuProxy: '/path/to/blue-dot', grantUrl: '<%= Settin
     </div>
       
     <div>
-        <b><%=t(:label_employee_count)%>:</b> <%= QboEmployee.count %>
+        <b><%=t(:label_employee_count)%>:</b> <%= Employee.count %>
     </div>
     
     <div>
-        <b><%=t(:label_invoice_count)%>:</b> <%= QboInvoice.count %>
+        <b><%=t(:label_invoice_count)%>:</b> <%= Invoice.count %>
     </div>
     
     <div>
-        <b><%=t(:label_estimate_count)%>:</b> <%= QboEstimate.count %>
+        <b><%=t(:label_estimate_count)%>:</b> <%= Estimate.count %>
     </div>
       
     <br/>
     
     <div>
-        <b><%=t(:label_last_sync)%> </b> <%= Qbo.last_sync if Qbo.exists? %> <%= link_to " Sync Now", qbo_sync_path %>
+        <b><%=t(:label_last_sync)%> </b> <%= Qbo.last_sync if Qbo.exists? %> <%= link_to t(:label_sync_now), qbo_sync_path %>
 </div>

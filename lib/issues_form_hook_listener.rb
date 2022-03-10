@@ -31,7 +31,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
 
     # Check to see if the issue already belongs to a customer
     selected_customer = context[:issue].customer ? context[:issue].customer.id  : nil
-    selected_estimate = context[:issue].qbo_estimate ? context[:issue].qbo_estimate.id  : nil
+    selected_estimate = context[:issue].estimate ? context[:issue].estimate.id  : nil
     selected_vehicle = context[:issue].vehicles_id ? context[:issue].vehicles_id : nil
 
     # Load customer information
@@ -59,14 +59,14 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
       else
         vehicles = [nil].compact
       end
-      estimates = customer.qbo_estimates.pluck(:doc_number, :id).sort! {|x, y| y <=> x}
+      estimates = customer.estimates.pluck(:doc_number, :id).sort! {|x, y| y <=> x}
     else
       vehicles = [nil].compact
       estimates = [nil].compact
     end
 
     # Generate the drop down list of quickbooks estimates & vehicles
-    select_estimate = f.select :qbo_estimate_id, estimates, :selected => selected_estimate, include_blank: true
+    select_estimate = f.select :estimate_id, estimates, :selected => selected_estimate, include_blank: true
     vehicle = f.select :vehicles_id, vehicles, :selected => selected_vehicle, include_blank: true
 
     # Pass all prebuilt form components to our partial

@@ -15,8 +15,8 @@ class QboController < ApplicationController
   
   include AuthHelper
   
-  before_action :require_user, :except => :qbo_webhook
-  skip_before_action :verify_authenticity_token, :check_if_login_required, :only => [:qbo_webhook]
+  before_action :require_user, :except => :webhook
+  skip_before_action :verify_authenticity_token, :check_if_login_required, :only => [:webhook]
 
   def allowed_params
     params.permit(:code, :state, :realmId, :id)
@@ -28,10 +28,10 @@ class QboController < ApplicationController
   def index
     @qbo = Qbo.first
     @customer_count = Customer.count
-    @qbo_item_count = QboItem.count
-    @qbo_employee_count = QboEmployee.count
-    @qbo_invoice_count = QboInvoice.count
-    @qbo_estimate_count = QboEstimate.count
+    @item_count = QboItem.count
+    @employee_count = Employee.count
+    @invoice_count = Invoice.count
+    @estimate_count = Estimate.count
   end
 
   #
@@ -40,7 +40,6 @@ class QboController < ApplicationController
   def authenticate
     oauth2_client = Qbo.get_client
     callback = Setting.host_name + "/qbo/oauth_callback/" 
-    #callback = qbo_oauth_callback_url
     grant_url = oauth2_client.auth_code.authorize_url(redirect_uri: callback, response_type: "code", state: SecureRandom.hex(12), scope: "com.intuit.quickbooks.accounting")
     redirect_to grant_url
   end
@@ -52,7 +51,6 @@ class QboController < ApplicationController
     if params[:state].present?
       oauth2_client = Qbo.get_client
       # use the state value to retrieve from your backend any information you need to identify the customer in your system
-      #redirect_uri = qbo_oauth_callback_url
       redirect_uri = Setting.host_name + "/qbo/oauth_callback/"
       if resp = oauth2_client.auth_code.get_token(params[:code], redirect_uri: redirect_uri)
         
@@ -69,7 +67,7 @@ class QboController < ApplicationController
         qbo.expire = 1.hour.from_now.utc
         
         if qbo.save!
-          redirect_to qbo_sync_path, :flash => { :notice => "Successfully connected to Quickbooks" }
+          redirect_to sync_path, :flash => { :notice => "Successfully connected to Quickbooks" }
         else
           redirect_to plugin_settings_path(:redmine_qbo), :flash => { :error => "Error" }
         end
@@ -90,7 +88,7 @@ class QboController < ApplicationController
   end
   
   # Quickbooks Webhook Callback
-  def qbo_webhook
+  def webhook
 
     logger.info "Quickbooks is calling webhook"
     
@@ -161,10 +159,10 @@ class QboController < ApplicationController
     Thread.new do
       if Qbo.exists?
         Customer.sync
-        QboInvoice.sync
+        Invoice.sync
         QboItem.sync
-        QboEmployee.sync
-        QboEstimate.sync
+        Employee.sync
+        Estimate.sync
         
         # Record the last sync time
         Qbo.update_time_stamp
