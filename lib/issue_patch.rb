@@ -10,7 +10,7 @@
 
 require_dependency 'issue'
 
-# Patches Redmine's Issues dynamically.  
+# Patches Redmine's Issues dynamically.
 # Adds a relationships
 module IssuePatch
 
@@ -102,7 +102,7 @@ module IssuePatch
     CustomerToken.create(:expires_at => Time.now + 1.month, :issue_id => id)
   end
   
-end    
+end  
 
 # Add module to Issue
 Issue.send(:include, IssuePatch)

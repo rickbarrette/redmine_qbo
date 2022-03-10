@@ -17,12 +17,12 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     
     # Check to see if there is a quickbooks user attached to the issue
     if issue.customer
-      customer =  link_to issue.customer.name, customer_path( issue.customer.id )
+      customer = link_to issue.customer.name, customer_path( issue.customer.id )
     end
     
     # Estimate Number
     if issue.estimate
-      estimate =  issue.estimate.doc_number
+      estimate = issue.estimate.doc_number
       estimate_link = link_to estimate, estimate_path( issue.estimate.id ), :target => "_blank"
     end
     

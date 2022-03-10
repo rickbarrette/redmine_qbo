@@ -89,14 +89,14 @@ module IssuesPdfHelperPatch
 
       if pdf.get_rtl
         border_first_top = 'RT'
-        border_last_top  = 'LT'
+        border_last_top = 'LT'
         border_first = 'R'
-        border_last  = 'L'
+        border_last = 'L'
       else
         border_first_top = 'LT'
-        border_last_top  = 'RT'
+        border_last_top = 'RT'
         border_first = 'L'
-        border_last  = 'R'
+        border_last = 'R'
       end
 
       rows = left.size > right.size ? left.size : right.size
@@ -109,9 +109,9 @@ module IssuesPdfHelperPatch
         heights << pdf.get_string_height(35, item ? "#{item.first}:" : "")
         pdf.SetFontStyle('',9)
         item = left[i]
-        heights << pdf.get_string_height(60, item ? item.last.to_s  : "")
+        heights << pdf.get_string_height(60, item ? item.last.to_s : "")
         item = right[i]
-        heights << pdf.get_string_height(60, item ? item.last.to_s  : "")
+        heights << pdf.get_string_height(60, item ? item.last.to_s : "")
         height = heights.max
 
         item = left[i]
@@ -122,7 +122,7 @@ module IssuesPdfHelperPatch
 
         item = right[i]
         pdf.SetFontStyle('B',9)
-        pdf.RDMMultiCell(35, height, item ? "#{item.first}:" : "",  (i == 0 ? border_first_top : border_first), '', 0, 0)
+        pdf.RDMMultiCell(35, height, item ? "#{item.first}:" : "", (i == 0 ? border_first_top : border_first), '', 0, 0)
         pdf.SetFontStyle('',9)
         pdf.RDMMultiCell(60, height, item ? item.last.to_s : "", (i == 0 ? border_last_top : border_last), '', 0, 2)
 
@@ -195,7 +195,7 @@ module IssuesPdfHelperPatch
         pdf.ln
         for changeset in issue.changesets
           pdf.SetFontStyle('B',8)
-          csstr  = "#{l(:label_revision)} #{changeset.format_identifier} - "
+          csstr = "#{l(:label_revision)} #{changeset.format_identifier} - "
           csstr += format_time(changeset.committed_on) + " - " + changeset.author.to_s
           pdf.RDMCell(190, 5, csstr)
           pdf.ln

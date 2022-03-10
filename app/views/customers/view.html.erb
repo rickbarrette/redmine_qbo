@@ -5,7 +5,7 @@
 <%= avatar(@issue.author, :size => "50") %>
 
 <div class="subject">
-<%=  render_issue_subject_with_tree(@issue)  %>
+<%= render_issue_subject_with_tree(@issue) %>
 <%=t(:label_customer_link_expires)%> <%= distance_of_time_in_words(Time.now, @token.expires_at) %>
 </div>
         <p class="author">

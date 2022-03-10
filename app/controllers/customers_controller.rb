@@ -27,8 +27,8 @@ class CustomersController < ApplicationController
   include SortHelper
   helper :timelog
 
-  before_action  :add_customer, :only => :new
-  before_action  :view_customer, :except => [:new, :view]
+  before_action :add_customer, :only => :new
+  before_action :view_customer, :except => [:new, :view]
   skip_before_action :verify_authenticity_token, :check_if_login_required, :only => [:view]
 
   default_search_scope :names
@@ -162,9 +162,9 @@ class CustomersController < ApplicationController
       session[:token] = @token.token
       @issue = Issue.find @token.issue_id
       @journals = @issue.journals.
-                  preload(:details).
-                  preload(:user => :email_address).
-                  reorder(:created_on, :id).to_a
+        preload(:details).
+        preload(:user => :email_address).
+        reorder(:created_on, :id).to_a
       @journals.each_with_index {|j,i| j.indice = i+1}
       @journals.reject!(&:private_notes?) unless User.current.allowed_to?(:view_private_notes, @issue.project)
       Journal.preload_journals_details_custom_fields(@journals)
@@ -212,7 +212,7 @@ class CustomersController < ApplicationController
   # format a quickbooks address to a human readable string
   def address_to_s (address)
     return if address.nil?
-    string =  address.line1
+    string = address.line1
     string << "\n" + address.line2 if address.line2
     string << "\n" + address.line3 if address.line3
     string << "\n" + address.line4 if address.line4

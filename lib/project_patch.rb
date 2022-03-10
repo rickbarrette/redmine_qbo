@@ -10,7 +10,7 @@
 
 require_dependency 'project'
 
-# Patches Redmine's Projects dynamically.  
+# Patches Redmine's Projects dynamically.
 # Adds a relationships
 module ProjectPatch
 

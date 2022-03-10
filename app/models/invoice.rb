@@ -26,7 +26,7 @@ class Invoice < ActiveRecord::Base
     last = Qbo.first.last_sync
 
     query = "SELECT Id, DocNumber FROM Invoice"
-    query << " WHERE  Metadata.LastUpdatedTime >= '#{last.iso8601}' " if last
+    query << " WHERE Metadata.LastUpdatedTime >= '#{last.iso8601}' " if last
   
     # TODO actually do something with the above query
     # .all() is never called since count is never initialized
@@ -81,7 +81,7 @@ class Invoice < ActiveRecord::Base
     invoice.txn_date = invoice.txn_date
     invoice.save!
 
-    # Scan the private notes  for hashtags and attach to the applicable issues
+    # Scan the private notes for hashtags and attach to the applicable issues
     if not invoice.private_note.nil?
       invoice.private_note.scan(/#(\w+)/).flatten.each { |issue|
         attach_to_issue(Issue.find_by_id(issue.to_i), invoice)
@@ -157,7 +157,7 @@ class Invoice < ActiveRecord::Base
       logger.debug "Trying to update invoice"
       get_base.update(invoice) if is_changed
     rescue
-      # Do nothing, probaly custome field  sync confict on the invoice. 
+      # Do nothing, probaly custome field sync confict on the invoice. 
       # This is a problem with how it's billed
       # TODO Add notes in memo area
       # TODO flag Invoice.cf_sync_confict here
@@ -167,20 +167,20 @@ class Invoice < ActiveRecord::Base
 
   # Magic Method
   # Maps Get/Set methods to QBO invoice object
-  def method_missing(sym, *arguments)  
+  def method_missing(sym, *arguments)
     # Check to see if the method exists
     if Quickbooks::Model::Invoice.method_defined?(sym)
       # download details if required
       pull unless @details
       method_name = sym.to_s
       # Setter
-      if method_name[-1, 1] == "="  
-        @details.method(method_name).call(arguments[0])  
+      if method_name[-1, 1] == "="
+        @details.method(method_name).call(arguments[0])
       # Getter
-      else  
+      else
         return @details.method(method_name).call 
       end
-    end  
+    end
   end
   
   # pull the details from quickbooks

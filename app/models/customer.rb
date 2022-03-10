@@ -116,21 +116,21 @@ class Customer < ActiveRecord::Base
   
   # Magic Method
   # Maps Get/Set methods to QBO customer object
-  def method_missing(sym, *arguments)  
+  def method_missing(sym, *arguments)
     # Check to see if the method exists
     if Quickbooks::Model::Customer.method_defined?(sym)
       # download details if required
       pull unless @details
       method_name = sym.to_s
       # Setter
-      if method_name[-1, 1] == "="  
-        @details.method(method_name).call(arguments[0])  
+      if method_name[-1, 1] == "="
+        @details.method(method_name).call(arguments[0])
       # Getter
-      else  
+      else
         return @details.method(method_name).call 
       end
-    end  
-  end  
+    end
+  end
   
   # proforms a bruteforce sync operation
   # This needs to be simplified

@@ -18,6 +18,5 @@ class DropQboPrefix < ActiveRecord::Migration[5.1]
     rename_column :issues, :qbo_estimate_id, :estimate_id
     rename_column :users, :qbo_employee_id, :employee_id
     rename_column :invoices_issues, :qbo_invoice_id, :invoice_id
-
   end 
 end

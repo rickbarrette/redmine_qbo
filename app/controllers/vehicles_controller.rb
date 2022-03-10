@@ -110,7 +110,7 @@ class VehiclesController < ApplicationController
 
   private
 
-  # checks to see if there is only one item  in an array
+  # checks to see if there is only one item in an array
   # @return true if array only has one item
   def only_one_non_zero?( array )
     found_non_zero = false

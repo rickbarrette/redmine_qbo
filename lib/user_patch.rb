@@ -10,7 +10,7 @@
 
 require_dependency 'user'
 
-# Patches Redmine's User dynamically.  
+# Patches Redmine's User dynamically.
 # Adds a relationships
 module UserPatch
   def self.included(base) # :nodoc:
@@ -33,7 +33,7 @@ module UserPatch
   
   end
   
-end    
+end
 
 # Add module to Issue
 User.send(:include, UserPatch)

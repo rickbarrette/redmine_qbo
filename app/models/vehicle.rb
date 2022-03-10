@@ -66,8 +66,8 @@ class Vehicle < ActiveRecord::Base
     if @details
       begin
         self.year = @details.year unless @details.year.nil?
-	      self.make = @details.make unless @details.make.nil?
-	      self.model = @details.model unless @details.model.nil?
+        self.make = @details.make unless @details.make.nil?
+        self.model = @details.model unless @details.model.nil?
         self.doors = @details.doors unless @details.doors.nil?
         self.trim = @details.trim unless @details.trim.nil?
       rescue Exception => e

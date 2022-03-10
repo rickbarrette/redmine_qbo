@@ -28,7 +28,6 @@ class Qbo < ActiveRecord::Base
     return OAuth2::Client.new(OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET, oauth_params)
   end
   
-
   #
   # Getter for oauth consumer
   #
@@ -74,7 +73,7 @@ class Qbo < ActiveRecord::Base
       when :account
         return Quickbooks::Service::Account.new(:company_id => qbo.company_id, :access_token => access_token)
       when :employee
-        return Quickbooks::Service:: Employee.new(:company_id => qbo.company_id, :access_token => access_token)
+        return Quickbooks::Service::Employee.new(:company_id => qbo.company_id, :access_token => access_token)
     else
       return access_token
     end
