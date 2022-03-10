@@ -111,9 +111,6 @@ class QboController < ApplicationController
       entities.each do |entity|
         id = entity['id'].to_i
         name = entity['name']
-        
-        # TODO rename all other models!
-        name.prepend("Qbo") if not name.eql? "Customer"
        
         logger.debug "Casting #{name.constantize} to obj"
 
