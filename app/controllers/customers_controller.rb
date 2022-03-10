@@ -145,7 +145,7 @@ class CustomersController < ApplicationController
 
     begin
       issue = Issue.find_by_id(params[:id])
-      redirect_to "#{Redmine::Utils::relative_url_root}/customers/view/#{issue.share_token.token}"
+      redirect_to view_path issue.share_token.token
     rescue
       render_404
     end
