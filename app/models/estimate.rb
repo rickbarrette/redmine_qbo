@@ -13,7 +13,6 @@ class Estimate < ActiveRecord::Base
   
   has_and_belongs_to_many :issues
   belongs_to :customer 
-  #attr_accessible :doc_number, :id
   validates_presence_of :doc_number, :id
   self.primary_key = :id
   

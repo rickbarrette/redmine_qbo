@@ -11,7 +11,6 @@
 class Employee < ActiveRecord::Base
   unloadable
   has_many :users
-  #attr_accessible :name
   validates_presence_of :id, :name
   
   def self.get_base

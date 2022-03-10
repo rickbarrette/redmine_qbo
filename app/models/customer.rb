@@ -17,7 +17,6 @@ class Customer < ActiveRecord::Base
   has_many :estimates
   has_many :vehicles
   
-  #attr_accessible :name, :notes, :email, :primary_phone, :mobile_phone, :phone_number
   validates_presence_of :id, :name
   
   self.primary_key = :id
