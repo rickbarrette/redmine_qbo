@@ -59,7 +59,6 @@ Use tags Version 1.0.0+ for Redmine 4+ and Version 0.8.1 for Redine 3
 Note: After the inital synchronization, this plugin will recieve push notifications via Intuit's webhook service.
 
 ## TODO
-  * Customer link option to allow for temporary sharing of an issue
   * Add Setting for Sandbox Mode
   * Seperate Vehicles into a seperate plugin (I use redmine for my automotive shop management 😉)
   * Make HTML Pretty (It's ugly right now but it works)
