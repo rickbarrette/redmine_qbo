@@ -156,9 +156,11 @@ class CustomersController < ApplicationController
 
     User.current = User.find_by lastname: 'Anonymous'
 
-    @token = CustomerToken.where("token = ? and expires_at > ?", params[:token], Time.now)
-    @token = @token.first
-    if @token
+    @token = CustomerToken.find_by token: params[:token]
+    begin
+      @token.destroy if @token.expired?
+      raise "Token Expired" if @token.destroyed
+      
       session[:token] = @token.token
       @issue = Issue.find @token.issue_id
       @journals = @issue.journals.
@@ -179,7 +181,7 @@ class CustomersController < ApplicationController
       @priorities = IssuePriority.active
       @time_entry = TimeEntry.new(:issue => @issue, :project => @issue.project)
       @relation = IssueRelation.new
-    else
+    rescue
       render_403
     end
   end

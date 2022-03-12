@@ -11,26 +11,42 @@
 class CustomerToken < ActiveRecord::Base
   unloadable
   has_many :issues
-  validates_presence_of :expires_at, :issue_id
-  before_create :generate_token
+  validates_presence_of :issue_id
+  before_create :generate_token, :generate_expire_date
+  attr_accessor :destroyed
+  after_destroy :mark_as_destroyed
 
   OAUTH_CONSUMER_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret'] || 'CONFIGURE__' + SecureRandom.uuid
   
+  # generates a random token using the plugin setting settingsOAuthConsumerSecret for salt
   def generate_token
     self.token = SecureRandom.base64(15).tr('+/=lIO0', OAUTH_CONSUMER_SECRET)
   end
 
-  def remove_expired_tokens
-    CustomerToken.where("expires_at < ?", Time.now).destroy_all
+  # generates an expiring date
+  def generate_expire_date
+    self.expires_at = Time.now + 1.month
+  end
+
+  # set destroyed flag
+  def mark_as_destroyed
+    self.destroyed = true
+  end
+
+  # purge expired tokens
+  def self.remove_expired_tokens
+    where("expires_at < ?", Time.now).destroy_all
   end
   
+  # has the token expired?
   def expired?
     self.expires_at < Time.now
   end
 
   # Getter convenience method for tokens
   def self.get_token(issue)
-    # reuse existing tokens
+    
+    # check to see if token exists & if it is expired
     token = find_by_issue_id issue.id
     unless token.nil?
       return token unless token.expired?
@@ -38,8 +54,8 @@ class CustomerToken < ActiveRecord::Base
       token.destroy
     end
 
-    # TODO add setting in pluging settings page
-    return create(:expires_at => Time.now + 1.month, :issue_id => issue.id)
+    # only create new token if we have an issue to attach it to
+    return create(:issue_id => issue.id) if User.current.logged?
   end
 
 end
