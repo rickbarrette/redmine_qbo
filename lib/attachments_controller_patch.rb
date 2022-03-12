@@ -1,6 +1,6 @@
 #The MIT License (MIT)
 #
-#Copyright (c) 2017 rick barrette
+#Copyright (c) 2022 rick barrette
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -12,27 +12,32 @@ require_dependency 'attachments_controller'
 
 module AttachmentsControllerPatch
 
-  def self.included(base) # :nodoc:
-    base.extend(ClassMethods)
+  def self.included(base)
 
-    base.send(:include, InstanceMethods)
-
-    # Same as typing in the class 
     base.class_eval do
       unloadable # Send unloadable so it will not be unloaded in development
+
+      # check if login is globally required to access the application
+      def check_if_login_required
+        # no check needed if user is already logged in
+        return true if User.current.logged?
+        
+        # Pull up the attachmet, & verify if we have a valid token for the Issue
+        attachment = Attachment.find(params[:id])
+        token = CustomerToken.where("token = ? and expires_at > ?", session[:token], Time.now)
+        token = token.first
+        unless token.nil?
+          return true if token.issue_id == attachment.container_id
+        end
+        
+        require_login if Setting.login_required?
+      end
       
-      skip_before_action :read_authorize
     end
+
   end
-      
-  module ClassMethods
-    
-  end
-  
-  module InstanceMethods
-  
-  end
-end
+
+end   
 
 # Add module to AttachmentsController
 AttachmentsController.send(:include, AttachmentsControllerPatch)
