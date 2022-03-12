@@ -99,7 +99,7 @@ module IssuePatch
   
   # Create a shareable link for a customer
   def share_token
-    CustomerToken.create(:expires_at => Time.now + 1.month, :issue_id => id)
+    CustomerToken.get_token self
   end
   
 end  

@@ -23,5 +23,23 @@ class CustomerToken < ActiveRecord::Base
   def remove_expired_tokens
     CustomerToken.where("expires_at < ?", Time.now).destroy_all
   end
+  
+  def expired?
+    self.expires_at < Time.now
+  end
+
+  # Getter convenience method for tokens
+  def self.get_token(issue)
+    # reuse existing tokens
+    token = find_by_issue_id issue.id
+    unless token.nil?
+      return token unless token.expired?
+      # remove expired tokens
+      token.destroy
+    end
+
+    # TODO add setting in pluging settings page
+    return create(:expires_at => Time.now + 1.month, :issue_id => issue.id)
+  end
 
 end
