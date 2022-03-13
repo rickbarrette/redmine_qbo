@@ -36,10 +36,12 @@ Use tags Version 1.0.0+ for Redmine 4+ and Version 0.8.1 for Redine 3
 
 ## The Install
 
-1. To install, clone this repo into your plugin folder
+1. To install, clone this repo into your plugin folder & checkout a tagged version
 
   `git clone git@github.com:rickbarrette/redmine_qbo.git` 
+  
   then
+  
   `git checkout <tag>`
   
 2. Migrate your database
@@ -61,8 +63,6 @@ Note: After the inital synchronization, this plugin will recieve push notificati
 ## TODO
   * Add Setting for Sandbox Mode
   * Seperate Vehicles into a seperate plugin (I use redmine for my automotive shop management 😉)
-  * Make HTML Pretty (It's ugly right now but it works)
-  * Intergrate Customer Search into Redmine Search
   * MORE Stuff as I make it up...
 
 ## License
