@@ -19,7 +19,11 @@ class IssuesSaveHookListener < Redmine::Hook::ViewListener
   # Called After Issue Saved
   def controller_issues_edit_after_save(context={})
     issue = context[:issue]
-    issue.bill_time if issue.status.is_closed?
+    begin
+      issue.bill_time if issue.status.is_closed?
+    rescue
+      # TODO flash[:error] = "Unable to bill, check QBO Auth"
+    end
   end
 
 end
