@@ -12,7 +12,8 @@ class EstimateController < ApplicationController
   
   include AuthHelper
   
-  before_action :require_user
+  before_action :require_user, :unless => proc {|c| session[:token].nil? }
+  skip_before_action :verify_authenticity_token, :check_if_login_required, :unless => proc {|c| session[:token].nil? }
   
   #
   # Downloads and forwards the estimate pdf
