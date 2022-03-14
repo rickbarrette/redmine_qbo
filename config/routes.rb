@@ -20,7 +20,7 @@ post 'qbo/webhook', :to => 'qbo#webhook'
 
 # Estimate & Invoice PDF
 get 'estimates/:id', :to => 'estimate#show', as: :estimate
-get 'estimates/doc/:id', :to => 'estimate#doc', as: :estimate_doc
+get 'estimates/doc/', :to => 'estimate#doc', as: :estimate_doc
 get 'invoices/:id', :to => 'invoice#show', as: :invoice
 
 #manual billing
