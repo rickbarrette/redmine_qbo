@@ -104,53 +104,38 @@ class Invoice < ActiveRecord::Base
   # this condions causes an infinite loop as the webhook is called when an invoice is updated
   # TODO maybe add a cf_sync_confict flag to invoices
   def self.compare_custom_fields(issue, invoice)
+
     logger.debug "Comparing custom fields"
     # TODO break if Invoice.find(invoice.id).cf_sync_confict
     is_changed = false
-    
-    # update the invoive custom fields with infomation from the issue if available
-    invoice.custom_fields.each { |cf|
-      
-      # VIN from the attached vehicle
-      # TODO move this into seperate plugin
-      # TODO create hook for seperate plugin 
-      begin
-        if cf.name.eql? "VIN"
-          # Only update if blank to prevent infite loops
-          # TODO check cf_sync_confict flag once implemented
-          if cf.string_value.to_s.blank?
-            logger.debug " VIN was blank, updating the invoice vin in quickbooks"
-            vin = Vehicle.find(issue.vehicles_id).vin
-            break if vin.nil?
-            if not cf.string_value.to_s.eql? vin
-              cf.string_value = vin.to_s
-              logger.debug "VIN has changed"
-              is_changed = true
-            end
 
-          end
-        end
-      rescue
-        #do nothing
-      end
+    logger.debug "Calling :process_invoice_custom_fields hook"
+    context = Redmine::Hook.call_hook :process_invoice_custom_fields, { issue: issue, invoice: invoice } 
+
+    unless context.nil?
+      logger.debug "We have a context!"
+      context= context.first
+      issue = context[:issue]
+      invoice = context[:invoice]
+      is_changed = context[:is_changed]
+    end
       
-      # Custom Values
-      begin
-        value = issue.custom_values.find_by(custom_field_id: CustomField.find_by_name(cf.name).id)
-        
-        # Check to see if the value is blank...
-        if not value.value.to_s.blank?
-          # Check to see if the value is diffrent
-          if not cf.string_value.to_s.eql? value.value.to_s
-            # update the custom field on the invoice
-            cf.string_value = value.value.to_s
-            is_changed = true
-          end
+    # Custom Values
+    begin
+      value = issue.custom_values.find_by(custom_field_id: CustomField.find_by_name(cf.name).id)
+      
+      # Check to see if the value is blank...
+      if not value.value.to_s.blank?
+        # Check to see if the value is diffrent
+        if not cf.string_value.to_s.eql? value.value.to_s
+          # update the custom field on the invoice
+          cf.string_value = value.value.to_s
+          is_changed = true
         end
-      rescue
-        # Nothing to do here, there is no match
       end
-    }
+    rescue
+      # Nothing to do here, there is no match
+    end
 
     # Push updates
     begin
