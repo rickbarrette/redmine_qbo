@@ -24,11 +24,7 @@
       </div>
         
       <div class="splitcontentleft">
-        <h4><%=t(:field_vehicles)%>:</h4>
-        <%= render :partial => 'vehicles/list' %>
-        <div style="float: right;">
-          <%= button_to "New Vehicle", new_customer_vehicle_path(@customer), method: :get %>
-        </div>
+        <%# call_hook here %>
       </div>
     </div>
 

@@ -11,6 +11,5 @@
 class UpdateProjects < ActiveRecord::Migration[5.1]
   def change
     add_reference :projects, :customer, index: true
-    add_reference :projects, :vehicle, index: true
   end
 end

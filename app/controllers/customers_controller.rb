@@ -39,12 +39,6 @@ class CustomersController < ApplicationController
     params.require(:customer).permit(:name, :email, :primary_phone, :mobile_phone, :phone_number)
   end
 
-  # getter method for a customer's vehicles
-  # used for customer autocomplete field / issue form
-  def filter_vehicles_by_customer
-    @filtered_vehicles = Vehicle.all.where(customer_id: params[:selected_customer])
-  end
-
   # getter method for a customer's invoices
   # used for customer autocomplete field / issue form
   def filter_invoices_by_customer
@@ -88,7 +82,6 @@ class CustomersController < ApplicationController
   def show
     begin
       @customer = Customer.find_by_id(params[:id])
-      @vehicles = @customer.vehicles.paginate(:page => params[:page])
       @issues = @customer.issues.order(id: :desc)
       @billing_address = address_to_s(@customer.billing_address)
       @shipping_address = address_to_s(@customer.shipping_address)

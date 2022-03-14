@@ -26,13 +26,11 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     # This is done to preload customer information if the entire project is dedicated to a customer
     if context[:project]
       selected_customer = context[:project].customer ? context[:project].customer.id : nil
-      selected_vehicle = context[:project].vehicle ? context[:project].vehicle.id : nil
     end
 
     # Check to see if the issue already belongs to a customer
     selected_customer = context[:issue].customer ? context[:issue].customer.id  : nil
     selected_estimate = context[:issue].estimate ? context[:issue].estimate.id  : nil
-    selected_vehicle = context[:issue].vehicles_id ? context[:issue].vehicles_id : nil
 
     # Load customer information
     customer = Customer.find_by_id(selected_customer) if selected_customer
@@ -52,22 +50,15 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
       :id => "issue_customer_id",
       :onchange => "updateIssueFrom('/issues/#{context[:issue].id}/edit.js', this)"
 
-    # Load estimates & vehicles
+    # Load estimates
     if context[:issue].customer
-      if customer.vehicles
-        vehicles = customer.vehicles.pluck(:name, :id)
-      else
-        vehicles = [nil].compact
-      end
       estimates = customer.estimates.pluck(:doc_number, :id).sort! {|x, y| y <=> x}
     else
-      vehicles = [nil].compact
       estimates = [nil].compact
     end
 
-    # Generate the drop down list of quickbooks estimates & vehicles
+    # Generate the drop down list of quickbooks estimates
     select_estimate = f.select :estimate_id, estimates, :selected => selected_estimate, include_blank: true
-    vehicle = f.select :vehicles_id, vehicles, :selected => selected_vehicle, include_blank: true
 
     # Pass all prebuilt form components to our partial
     context[:controller].send(:render_to_string, {
@@ -77,7 +68,6 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
 	        customer_id: customer_id, 
 	        context: context, 
 	        select_estimate: select_estimate,
-	        vehicle: vehicle
         } 
       }
     )

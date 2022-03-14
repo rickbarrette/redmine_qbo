@@ -16,21 +16,12 @@ class ProjectsFormHookListener < Redmine::Hook::ViewListener
  
     # Check to see if there is a quickbooks user attached to the issue
     selected_customer = context[:project].customer ? context[:project].customer : nil
-    selected_vehicle = context[:project].vehicle_id ? context[:project].vehicle_id : nil
     
     # Load customer information
     customer = Customer.find_by_id(selected_customer) if selected_customer
     search_customer = f.autocomplete_field :customer, autocomplete_customer_name_customers_path, :selected => selected_customer, :update_elements => {:id => '#project_customer_id', :value => '#project_customer'}
     customer_id = f.hidden_field :customer_id, :id => "project_customer_id"
     
-    if context[:project].customer
-      vehicles = customer.vehicles.pluck(:name, :id).sort!
-    else
-      vehicles = [nil].compact
-    end
-    
-    vehicle = f.select :vehicle_id, vehicles, :selected => selected_vehicle, include_blank: true
-    
-    return "<p><label for=\"project_customer\">Customer</label>#{search_customer} #{customer_id}</p> <p>#{vehicle}</p>"
+    return "<p><label for=\"project_customer\">Customer</label>#{search_customer} #{customer_id}</p>"
   end
 end
