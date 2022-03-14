@@ -14,16 +14,21 @@ class EstimateController < ApplicationController
   
   before_action :require_user, :unless => proc {|c| session[:token].nil? }
   skip_before_action :verify_authenticity_token, :check_if_login_required, :unless => proc {|c| session[:token].nil? }
+
+  def get_estimate
+    estimate = Estimate.find_by_id(params[:id]) if params[:id]
+    estimate = Estimate.find_by_doc_number(params[:search]) if params[:search]
+    return estimate
+  end
   
   #
   # Downloads and forwards the estimate pdf
   #
   def show
-    e = Estimate.find_by_id(params[:id]) if params[:id]
-    e = Estimate.find_by_doc_number(params[:search]) if params[:search]
+    estimate = get_estimate
 
     begin
-      send_data e.pdf, filename: "estimate #{e.doc_number}.pdf", :disposition => 'inline', :type => "application/pdf"
+      send_data estimate.pdf, filename: "estimate #{e.doc_number}.pdf", :disposition => 'inline', :type => "application/pdf"
     rescue
       redirect_to :back, :flash => { :error => "Estimate not found" }
     end
@@ -33,11 +38,10 @@ class EstimateController < ApplicationController
   # Downloads estimate by document number
   #
   def doc
-    e = Estimate.find_by_doc_number(params[:id]) if params[:id]
-    e = Estimate.find_by_doc_number(params[:search]) if params[:search]
+    estimate = get_estimate
     
     begin
-      send_data e.pdf, filename: "estimate #{e.doc_number}.pdf", :disposition => 'inline', :type => "application/pdf"
+      send_data estimate.pdf, filename: "estimate #{e.doc_number}.pdf", :disposition => 'inline', :type => "application/pdf"
     rescue
       redirect_to :back, :flash => { :error => "Estimate not found" }
     end
