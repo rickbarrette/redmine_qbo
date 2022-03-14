@@ -11,7 +11,7 @@
 # TODO move this into seperate plugin
 class QboHookListener < Redmine::Hook::Listener
 
-  # Load the javascript to support the autocomplete forms
+  # Check to see if the Invoice custom field VIN matches
   def process_invoice_custom_fields(context = {})
     Rails.logger.debug "QboHookListener.process_invoice_custom_fields"
     issue = context[:issue]
@@ -44,6 +44,29 @@ class QboHookListener < Redmine::Hook::Listener
     }
 
     return { issue: issue, invoice: invoice, is_changed: is_changed } 
+  end
+
+  # Add vehicle information to the left side of the pdf attribute block
+  def pdf_left(context = {})
+    left = []
+    issue = context[:issue]
+    v = Vehicle.find_by_id(issue.vehicles_id)
+    vehicle = v.to_s unless v.nil?
+    vin = v.vin.gsub(/(.{9})/, '\1 ') unless v.nil?
+    
+    left << [l(:field_vehicles), vehicle]
+    left << [l(:field_vin), vin]
+    return left
+  end
+
+  # Add vehicle information to the right side of the pdf attribute block
+  def pdf_right(context = {})
+    right = []
+    issue = context[:issue]
+    v = Vehicle.find_by_id(issue.vehicles_id)
+    notes = v unless v.nil?
+    right << [l(:field_notes), notes]
+    return right
   end
 
 end

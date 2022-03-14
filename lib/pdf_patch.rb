@@ -55,16 +55,10 @@ module IssuesPdfHelperPatch
       left << [l(:field_priority), issue.priority]
       left << [l(:field_customer), customer]
       left << [l(:field_assigned_to), issue.assigned_to] unless issue.disabled_core_fields.include?('assigned_to_id')
-      #left << [l(:field_category), issue.category] unless issue.disabled_core_fields.include?('category_id')
-      #left << [l(:field_fixed_version), issue.fixed_version] unless issue.disabled_core_fields.include?('fixed_version_id')
-      
-      v = Vehicle.find_by_id(issue.vehicles_id)
-      vehicle = v ? v.to_s : nil
-      vin = v ? v.vin : nil
-      notes = v ? v.notes : nil
-      left << [l(:field_vehicles), vehicle]
-      left << [l(:field_vin), vin ? vin.gsub(/(.{9})/, '\1 ') : nil]
-      #left << [l(:field_notes), notes]
+   
+      logger.debug "Calling :pdf_left hook"
+      context = Redmine::Hook.call_hook :pdf_left, { array: left, issue: issue }
+      left = left + context.first unless context.nil?
       
       right = []
       right << [l(:field_start_date), format_date(issue.start_date)] unless issue.disabled_core_fields.include?('start_date')
@@ -72,7 +66,10 @@ module IssuesPdfHelperPatch
       right << [l(:field_done_ratio), "#{issue.done_ratio}%"] unless issue.disabled_core_fields.include?('done_ratio')
       right << [l(:field_estimated_hours), l_hours(issue.estimated_hours)] unless issue.disabled_core_fields.include?('estimated_hours')
       right << [l(:label_spent_time), l_hours(issue.total_spent_hours)] if User.current.allowed_to?(:view_time_entries, issue.project)
-      right << [l(:field_notes), notes]
+   
+      logger.debug "Calling :pdf_right hook"
+      context = Redmine::Hook.call_hook :pdf_right, { array: right, issue: issue }
+      right = right + context.first unless context.nil?
 
       rows = left.size > right.size ? left.size : right.size
       while left.size < rows
