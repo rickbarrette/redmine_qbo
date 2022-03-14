@@ -55,7 +55,7 @@ class QboController < ApplicationController
         qbo.expire = 1.hour.from_now.utc
         
         if qbo.save!
-          redirect_to sync_path, :flash => { :notice => "Successfully connected to Quickbooks" }
+          redirect_to qbo_sync_path, :flash => { :notice => "Successfully connected to Quickbooks" }
         else
           redirect_to plugin_settings_path(:redmine_qbo), :flash => { :error => "Error" }
         end
