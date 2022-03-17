@@ -39,6 +39,7 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
     context[:controller].send(:render_to_string, {
       :partial => 'issues/show_details',
         locals: {
+          issue: issue,
           customer: customer, 
 	        estimate_link: estimate_link, 
 	        invoice_link: invoice_link

@@ -17,6 +17,6 @@
    </div>
       
   <div class="splitcontentleft">
-    <%# call_hook here %>
+    <%= call_hook :show_issue_view_right, {issue: issue, customer: @customer} %>
   </div>
 </div>
