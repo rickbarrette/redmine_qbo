@@ -70,26 +70,26 @@ class Invoice < ActiveRecord::Base
   end
   
   # processes the invoice into the database
-  def self.process_invoice(invoice)
-    logger.info "Processing invoice #{invoice.id}"
+  def self.process_invoice(i)
+    logger.info "Processing invoice #{i.id}"
 
     # Load the invoice into the database
-    invoice = Invoice.find_or_create_by(id: invoice.id)
-    invoice.doc_number = invoice.doc_number 
-    invoice.id = invoice.id
-    invoice.customer_id = invoice.customer_ref
-    invoice.txn_date = invoice.txn_date
+    invoice = Invoice.find_or_create_by(id: i.id)
+    invoice.doc_number = i.doc_number 
+    invoice.id = i.id
+    invoice.customer_id = i.customer_ref
+    invoice.txn_date = i.txn_date
     invoice.save!
 
     # Scan the private notes for hashtags and attach to the applicable issues
-    if not invoice.private_note.nil?
-      invoice.private_note.scan(/#(\w+)/).flatten.each { |issue|
+    if not i.private_note.nil?
+      i.private_note.scan(/#(\w+)/).flatten.each { |issue|
         attach_to_issue(Issue.find_by_id(issue.to_i), invoice)
       }
     end
     
     # Scan the line items for hashtags and attach to the applicable issues
-    invoice.line_items.each { |line|
+    i.line_items.each { |line|
       if line.description
         line.description.scan(/#(\w+)/).flatten.each { |issue|
           attach_to_issue(Issue.find_by_id(issue.to_i), invoice)
