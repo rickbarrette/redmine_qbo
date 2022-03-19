@@ -79,7 +79,7 @@ module IssuePatch
           next if item.nil?
           
           # Create the new billable time entry and upload it
-          time_entry.description = "#{tracker} ##{id} : #{subject} #{"(Partial @ #{done_ratio}%)" if not closed?}"
+          time_entry.description = "#{tracker} ##{id}: #{subject} #{"(Partial @ #{done_ratio}%)" if not closed?}"
           time_entry.employee_id = assigned_to.employee_id 
           time_entry.customer_id = customer_id
           time_entry.billable_status = "Billable"
