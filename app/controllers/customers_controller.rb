@@ -93,6 +93,10 @@ class CustomersController < ApplicationController
       @billing_address = address_to_s(@customer.billing_address)
       @shipping_address = address_to_s(@customer.shipping_address)
       @closed_issues = (@issues - @issues.open)
+      @hours = 0
+      @closed_hours = 0
+      @issues.open.each { |i| @hours+= i.total_spent_hours }
+      @closed_issues.each { |i| @closed_hours+= i.total_spent_hours }
     rescue 
       render_404
     end
