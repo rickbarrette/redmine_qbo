@@ -79,4 +79,5 @@ en:
   label_billed_success: "Successfully Billed "
   label_billing_error: "Cannot bill without a customer assigned"
   label_qbo_sync_success: "Successfully synced to Quickbooks"
+  label_hours: "Hours"
   
