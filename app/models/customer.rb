@@ -23,7 +23,7 @@ class Customer < ActiveRecord::Base
   
   # returns a human readable string
   def to_s
-    return name
+    return "#{self[:name]} - #{phone_number.split(//).last(4).join unless phone_number.nil?}"
   end
   
   # Convenience Method
