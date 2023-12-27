@@ -8,7 +8,10 @@ The goal of this project is to allow Redmine to connect with Quickbooks Online t
 
 Note: Although the core functionality is complete, this project is still under development & the master branch may be unstable. Tags should be stable and are recommended
 
-Use tags Version 1.0.0+ for Redmine 4+ and Version 0.8.1 for Redine 3
+Use tags for the following Redmine Versions
+* Version 2.0.0+ for Redmine 5+
+* Version 1.0.0+ for Redmine 4+ 
+* Version 0.8.1 for Redine 3
 
 #### Features
 * Issues can be assigned to a Customer via drop down in the edit Issue form
