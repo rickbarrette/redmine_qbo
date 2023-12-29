@@ -13,7 +13,7 @@ module AuthHelper
   def require_user
     return unless session[:token].nil?
     if !User.current.logged?
-      render :file => "public/401.html.erb", :status => :unauthorized, :layout =>true
+      render_403
     end
   end
   
@@ -27,14 +27,14 @@ module AuthHelper
   
   def check_permission(permission)
     if !allowed_to?(permission)
-      render :file => "public/401.html.erb", :status => :unauthorized, :layout =>true 
+      render_403
     end
   end
   
   
   def global_check_permission(permission)
     if !globaly_allowed_to?(permission)
-      render :file => "public/401.html.erb", :status => :unauthorized, :layout =>true 
+      render_403
     end
   end
   
