@@ -145,7 +145,6 @@ class QboController < ApplicationController
       if Qbo.exists?
         Customer.sync
         Invoice.sync
-        QboItem.sync
         Employee.sync
         Estimate.sync
         
