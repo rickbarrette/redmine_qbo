@@ -1,6 +1,6 @@
 #The MIT License (MIT)
 #
-#Copyright (c) 2022 rick barrette
+#Copyright (c) 2023 rick barrette
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -22,10 +22,11 @@ class Employee < ActiveRecord::Base
     
     transaction do
       # Update the item table
-      employees.each { |employee|
-        employee = 	find_or_create_by(id: employee.id)
-        employee.name = employee.display_name
-        employee.id = employee.id
+      employees.each { |e|
+        logger.info "Processing employee #{e.id}"
+        employee = 	find_or_create_by(id: e.id)
+        employee.name = e.display_name
+        employee.id = e.id
         employee.save!
       }
     end
