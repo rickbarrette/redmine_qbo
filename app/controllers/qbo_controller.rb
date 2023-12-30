@@ -1,6 +1,6 @@
 #The MIT License (MIT)
 #
-#Copyright (c) 2022 rick barrette
+#Copyright (c) 2023 rick barrette
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -26,7 +26,7 @@ class QboController < ApplicationController
   # Called when the user requests that Redmine to connect to QBO
   #
   def authenticate
-    oauth2_client = Qbo.get_client
+    oauth2_client = Qbo.construct_oauth2_client
     callback = Setting.host_name + "/qbo/oauth_callback/" 
     grant_url = oauth2_client.auth_code.authorize_url(redirect_uri: callback, response_type: "code", state: SecureRandom.hex(12), scope: "com.intuit.quickbooks.accounting")
     redirect_to grant_url
@@ -37,7 +37,7 @@ class QboController < ApplicationController
   #
   def oauth_callback
     if params[:state].present?
-      oauth2_client = Qbo.get_client
+      oauth2_client = Qbo.construct_oauth2_client
       # use the state value to retrieve from your backend any information you need to identify the customer in your system
       redirect_uri = Setting.host_name + "/qbo/oauth_callback/"
       if resp = oauth2_client.auth_code.get_token(params[:code], redirect_uri: redirect_uri)
@@ -47,12 +47,7 @@ class QboController < ApplicationController
         
         # Save the authentication information 
         qbo = Qbo.new
-        qbo.company_id = params[:realmId]
-        
-        # Generate Access Token & Serialize it into the database
-        access_token = OAuth2::AccessToken.new(oauth2_client, resp.token, refresh_token: resp.refresh_token)
-        qbo.token = access_token.to_hash
-        qbo.expire = 1.hour.from_now.utc
+        qbo.update(access_token: resp.token, refresh_token: resp.refresh_token, realm_id: params[:realmId])
         
         if qbo.save!
           redirect_to qbo_sync_path, :flash => { :notice => "Successfully connected to Quickbooks" }
@@ -154,6 +149,6 @@ class QboController < ApplicationController
       ActiveRecord::Base.connection.close
     end
 
-    redirect_to :home, :flash => { :notice => "Successfully synced to Quickbooks" }
+    redirect_to :home, :flash => { :notice => "Syncing Quickbooks" }
   end
 end
