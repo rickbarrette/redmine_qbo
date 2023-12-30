@@ -87,8 +87,10 @@ class Qbo < ActiveRecord::Base
   
   # Updates last sync time stamp
   def self.update_time_stamp
+    date = DateTime.now
+    logger.info "Updating QBO timestamp to #{date}"
     qbo = Qbo.first
-    qbo.last_sync = DateTime.now
+    qbo.last_sync = date
     qbo.save
   end
   
