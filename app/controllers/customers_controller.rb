@@ -115,7 +115,7 @@ class CustomersController < ApplicationController
   def update
     begin
       @customer = Customer.find_by_id(params[:id])
-      if @customer.update_attributes(allowed_params)
+      if @customer.update_attributes(params)
         flash[:notice] = "Customer updated"
         redirect_to @customer
       else
