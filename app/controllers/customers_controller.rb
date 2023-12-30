@@ -36,7 +36,7 @@ class CustomersController < ApplicationController
   autocomplete :customer, :name, :full => true, :extra_data => [:id]
 
   def allowed_params
-    params.require(:customer).permit(:name, :email, :primary_phone, :mobile_phone, :phone_number)
+    params.require(:customer).permit(:name, :email, :primary_phone, :mobile_phone, :phone_number, :notes)
   end
 
   # getter method for a customer's vehicles
