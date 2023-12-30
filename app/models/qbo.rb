@@ -18,28 +18,27 @@ class Qbo < ActiveRecord::Base
   # @params type of base
   #
   def self.get_base(type)
-    # lets getnourbold access token from the database
-    oauth2_client = construct_oauth2_client
     qbo = self.first
 
     qbo.perform_authenticated_request do |access_token|   
       # build the reqiested service
       case type
         when :time_activity
-          return Quickbooks::Service::TimeActivity.new(:company_id => qbo.company_id, :access_token => access_token)
+          base = Quickbooks::Service::TimeActivity.new(:company_id => qbo.company_id, :access_token => access_token)
         when :customer
           return Quickbooks::Service::Customer.new(:company_id => qbo.company_id, :access_token => access_token)
         when :invoice
-          return Quickbooks::Service::Invoice.new(:company_id => qbo.company_id, :access_token => access_token)
+          base = Quickbooks::Service::Invoice.new(:company_id => qbo.company_id, :access_token => access_token)
         when :estimate
-          return Quickbooks::Service::Estimate.new(:company_id => qbo.company_id, :access_token => access_token)
+          base = Quickbooks::Service::Estimate.new(:company_id => qbo.company_id, :access_token => access_token)
         when :employee
-          return Quickbooks::Service::Employee.new(:company_id => qbo.company_id, :access_token => access_token)
+          base = Quickbooks::Service::Employee.new(:company_id => qbo.company_id, :access_token => access_token)
       else
-        return access_token
+        base = access_token
       end
     end
    
+    return base
   end
   
   # Updates last sync time stamp
