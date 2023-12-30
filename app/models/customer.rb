@@ -147,16 +147,17 @@ class Customer < ActiveRecord::Base
     #  customers = service.query(query)
     #end
     
-    customers.each do |customer|
-      customer = Customer.find_or_create_by(id: customer.id)
-      if customer.active?
-        if not customer.name.eql? customer.display_name
-          customer.name = customer.display_name
-          customer.id = customer.id
+    customers.each do |c|
+      logger.info "Processing customer #{c.id}"
+      customer = Customer.find_or_create_by(id: c.id)
+      if c.active?
+        if not customer.name.eql? c.display_name
+          customer.name = c.display_name
+          customer.id = c.id
           customer.save_without_push
         end
       else
-        if not customer.new_record?
+        if not c.new_record?
           customer.delete
         end
       end
