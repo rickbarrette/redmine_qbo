@@ -1,6 +1,6 @@
 #The MIT License (MIT)
 #
-#Copyright (c) 2022 rick barrette
+#Copyright (c) 2023 rick barrette
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -16,15 +16,17 @@ class Estimate < ActiveRecord::Base
   validates_presence_of :doc_number, :id
   self.primary_key = :id
   
-  # return the QBO Estimate service
-  def self.get_base
-    Qbo.get_base(:estimate)
-  end
-  
   # sync all estimates
   def self.sync
     logger.debug "Syncing ALL estimates"
-    estimates = get_base.all
+    qbo = Qbo.first
+    estimates = qbo.perform_authenticated_request do |access_token|
+      service = Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
+      service.all
+    end
+
+    return unless estimates
+
     estimates.each { |estimate|
       process_estimate(estimate)
     }
@@ -36,17 +38,28 @@ class Estimate < ActiveRecord::Base
   # sync only one estimate
   def self.sync_by_id(id)
     logger.debug "Syncing estimate #{id}"
-    process_estimate(get_base.fetch_by_id(id))
+    qbo = Qbo.first
+    qbo.perform_authenticated_request do |access_token|
+      service = Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
+      process_estimate(service.fetch_by_id(id))
+    end
   end
   
   # update an estimate
   def self.update(id)
     # Update the item table
-    estimate = get_base.fetch_by_id(id)
-    estimate = find_or_create_by(id: id)
-    estimate.doc_number = estimate.doc_number
-    estimate.txn_date = estimate.txn_date
-    estimate.save!
+    qbo = Qbo.first
+    estimate = qbo.perform_authenticated_request do |access_token|
+      service = Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
+      service.fetch_by_id(id)
+    end
+
+    return unless estimate
+
+    e = find_or_create_by(id: id)
+    e.doc_number = estimate.doc_number
+    e.txn_date = estimate.txn_date
+    e.save!
   end
   
   # process an estimate into the database
@@ -62,9 +75,12 @@ class Estimate < ActiveRecord::Base
 
   # download the pdf from quickbooks
   def pdf
-    base = Estimate.get_base
-    estimate = base.fetch_by_id(id)
-    return base.pdf(estimate)
+    qbo = Qbo.first
+    qbo.perform_authenticated_request do |access_token|
+      service = Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
+      estimate = service.fetch_by_id(id)
+      service.pdf(estimate)
+    end
   end
 
   # Magic Method
@@ -91,7 +107,11 @@ class Estimate < ActiveRecord::Base
   def pull
     begin
       raise Exception unless self.id
-      @details = Qbo.get_base(:estimate).fetch_by_id(self.id)
+      qbo = Qbo.first
+      @details = qbo.perform_authenticated_request do |access_token|
+        service = Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
+        service(:estimate).fetch_by_id(self.id)
+      end
     rescue Exception => e
       @details = Quickbooks::Model::Estimate.new
     end

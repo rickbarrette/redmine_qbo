@@ -1,6 +1,6 @@
 #The MIT License (MIT)
 #
-#Copyright (c) 2022 rick barrette
+#Copyright (c) 2023 rick barrette
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -12,34 +12,6 @@ class Qbo < ActiveRecord::Base
   unloadable
     
   include QuickbooksOauth
-
-  # 
-  # Get a quickbooks base service object for type
-  # @params type of base
-  #
-  def self.get_base(type)
-    qbo = self.first
-
-    qbo.perform_authenticated_request do |access_token|   
-      # build the reqiested service
-      case type
-        when :time_activity
-          return Quickbooks::Service::TimeActivity.new(:company_id => qbo.realm_id, :access_token => access_token)
-        when :customer
-          return Quickbooks::Service::Customer.new(:company_id => qbo.realm_id, :access_token => access_token)
-        when :invoice
-          return Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
-        when :estimate
-          return Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
-        when :employee
-          return Quickbooks::Service::Employee.new(:company_id => qbo.realm_id, :access_token => access_token)
-        when :item
-          return Quickbooks::Service::Item.new(:company_id => qbo.realm_id, :access_token => access_token)
-      else
-        return nil
-      end
-    end
-  end
   
   # Updates last sync time stamp
   def self.update_time_stamp

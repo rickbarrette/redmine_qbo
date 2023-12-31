@@ -1,6 +1,6 @@
 #The MIT License (MIT)
 #
-#Copyright (c) 2022 rick barrette
+#Copyright (c) 2023 rick barrette
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -26,7 +26,13 @@ class AddTxnDates < ActiveRecord::Migration[5.1]
 
         say "Sync Invoices"
 
-        invoices = QboInvoice.get_base.all
+        qbo = Qbo.first
+        invoices = qbo.perform_authenticated_request do |access_token|
+          service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
+          service.all
+        end
+
+        return unless invoices
 
         invoices.each { |invoice|
             # Load the invoice into the database

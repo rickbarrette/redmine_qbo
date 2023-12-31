@@ -13,12 +13,14 @@ class Employee < ActiveRecord::Base
   has_many :users
   validates_presence_of :id, :name
   
-  def self.get_base
-    Qbo.get_base(:employee)
-  end
-  
   def self.sync 
-    employees = get_base.all
+    qbo = Qbo.first
+    employees = qbo.perform_authenticated_request do |access_token|
+      service = Quickbooks::Service::Employee.new(:company_id => qbo.realm_id, :access_token => access_token)
+      service.all
+    end
+
+    return unless employees
     
     transaction do
       # Update the item table
@@ -33,7 +35,13 @@ class Employee < ActiveRecord::Base
   end
 
   def self.sync_by_id(id)
-    employee = get_base.fetch_by_id(id)
+    qbo = Qbo.first
+    employee = qbo.perform_authenticated_request do |access_token|
+      service = Quickbooks::Service::Employee.new(:company_id => qbo.realm_id, :access_token => access_token)
+      service.fetch_by_id(id)
+    end
+
+    return unless employee
     employee = find_or_create_by(id: employee.id)
     employee.name = employee.display_name
     employee.id = employee.id
