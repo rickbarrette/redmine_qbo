@@ -205,7 +205,7 @@ class Customer < ActiveRecord::Base
       qbo = Qbo.first
       @details = qbo.perform_authenticated_request do |access_token|
         service = Quickbooks::Service::Customer.new(:company_id => qbo.realm_id, :access_token => access_token)
-        serivce.update(@details)
+        service.update(@details)
       end
       #raise "QBO Fault" if @details.fault?
       self.id = @details.id
