@@ -1,6 +1,6 @@
 #The MIT License (MIT)
 #
-#Copyright (c) 2022 rick barrette
+#Copyright (c) 2023 rick barrette
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -20,9 +20,15 @@ class InvoiceController < ApplicationController
   #
   def show
     begin
-      base = Invoice.get_base
-      invoice = base.fetch_by_id(params[:id])
-      @pdf = base.pdf(invoice)
+      qbo = Qbo.first
+      qbo.perform_authenticated_request do |access_token|
+        service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
+        invoice = service.fetch_by_id(params[:id])
+        @pdf = service.pdf(invoice)
+      end
+      
+      return unless @pdf
+
       send_data @pdf, filename: "invoice #{invoice.doc_number}.pdf", :disposition => 'inline', :type => "application/pdf"
     rescue
       redirect_to :back, :flash => { :error => "Invoice not found" }
