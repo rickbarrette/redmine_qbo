@@ -15,5 +15,8 @@ class UpdateQboToken < ActiveRecord::Migration[5.1]
     add_column :qbos, :oauth2_refresh_token, :text
     add_column :qbos, :oauth2_refresh_token_expires_at, :datetime
     add_column :qbos, :realm_id, :text
+    remove_column :qbos, :company_id
+    remove_column :qbos, :token
+    remove_column :qbos, :expire
   end
 end
