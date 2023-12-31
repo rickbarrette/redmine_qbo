@@ -87,6 +87,13 @@ class Customer < ActiveRecord::Base
     #update our locally stored number too
     update_mobile_phone_number
   end
+
+  # Convenience Method
+  # Sets the notes
+  def notes=(s)
+    pull unless @details
+    @details.notes = s
+  end
   
   # update the localy stored phone number as a plain string with no special chars
   def update_phone_number
