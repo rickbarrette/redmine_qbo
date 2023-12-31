@@ -15,8 +15,7 @@ class Customer < ActiveRecord::Base
   has_many :purchases
   has_many :invoices
   has_many :estimates
-  has_many :vehicles
-  
+ 
   validates_presence_of :id, :name
   
   self.primary_key = :id

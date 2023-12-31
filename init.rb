@@ -33,12 +33,10 @@ Redmine::Plugin.register :redmine_qbo do
   Issue.safe_attributes 'item_id'
   Issue.safe_attributes 'estimate_id'
   Issue.safe_attributes 'invoice_id'
-  Issue.safe_attributes 'vehicles_id'
   User.safe_attributes 'employee_id'
   TimeEntry.safe_attributes 'billed'
   Project.safe_attributes 'customer_id'
-  Project.safe_attributes 'vehicle_id'
-
+  
   # We are playing in the sandbox 
   #Quickbooks.sandbox_mode = true
 
@@ -48,10 +46,8 @@ Redmine::Plugin.register :redmine_qbo do
   # Permissions for security
   permission :view_customers, :customers => :index, :public => false
   permission :add_customers, :customers => :new, :public => false
-  permission :view_vehicles, :vehicles => :new, :public => false
-
+  
   # Register top menu items
   menu :top_menu, :customers, { :controller => :customers, :action => :index }, :caption => 'Customers', :if => Proc.new {User.current.logged?}
-  menu :top_menu, :vehicles, { :controller => :vehicles, :action => :index }, :caption => 'Vehicles', :if => Proc.new { User.current.logged? }
     
 end

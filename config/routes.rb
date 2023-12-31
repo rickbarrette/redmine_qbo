@@ -31,15 +31,9 @@ get 'customers/view/:token', :to => 'customers#view', as: :view
 get 'customers/share/:id', :to => 'customers#share', as: :share
 
 #java script routes
-get 'filter_vehicles_by_customer' => 'customers#filter_vehicles_by_customer'
 get 'filter_estimates_by_customer' => 'customers#filter_estimates_by_customer'
 get 'filter_invoices_by_customer' => 'customers#filter_invoices_by_customer'
 
-# Nest Vehicles under customers
 resources :customers do
-  resources :vehicles
   get :autocomplete_customer_name, :on => :collection
 end
-
-#allow for just vehicles too
-resources :vehicles

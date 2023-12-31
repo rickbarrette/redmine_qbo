@@ -65,7 +65,6 @@ Note: After the inital synchronization, this plugin will recieve push notificati
 
 ## TODO
   * Add Setting for Sandbox Mode
-  * Seperate Vehicles into a seperate plugin (I use redmine for my automotive shop management 😉)
   * MORE Stuff as I make it up...
 
 ## License

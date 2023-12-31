@@ -26,7 +26,6 @@ module IssuePatch
       belongs_to :customer_token, primary_key: :id
       belongs_to :estimate, primary_key: :id
       has_and_belongs_to_many :invoices
-      belongs_to :vehicle, primary_key: :id
     end
     
   end

@@ -35,27 +35,13 @@ class IssuesShowHookListener < Redmine::Hook::ViewListener
 	      invoice_link = invoice_link.html_safe
       end
     end
-    
-    begin
-      v = Vehicle.find(issue.vehicles_id)
-      vehicle = link_to v.to_s, vehicle_path( v.id )
-      vin = v.vin 
-      notes = v.notes
-    rescue
-      #do nothing
-    end
-    
-    split_vin = vin.scan(/.{1,9}/) if vin
 
     context[:controller].send(:render_to_string, {
       :partial => 'issues/show_details',
         locals: {
           customer: customer, 
 	        estimate_link: estimate_link, 
-	        invoice_link: invoice_link, 
-	        vehicle: vehicle, 
-	        split_vin: split_vin,
-	        notes: notes
+	        invoice_link: invoice_link
         } 
       })
   end

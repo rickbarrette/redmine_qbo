@@ -17,19 +17,6 @@
    </div>
       
   <div class="splitcontentleft">
-    <div class="vehicle attribute">
-      <div class="label"><span><%=t(:field_vehicle)%></span>:</div>
-      <div class="value"><%= vehicle %></div>
-    </div>
-       
-    <div class="vehicle_vin attribute">
-      <div class="label"><span><%=t(:field_vin)%></span>:</div>
-      <div class="value"><%=split_vin[0] if split_vin%><b><%=split_vin[1] if split_vin%></b></div>
-    </div>
-       
-    <div class="vehicle_notes attribute">
-      <div class="label"><span><%=t(:field_notes)%></span>:</div>
-      <div class="value"><%=notes%></div>
-    </div>
+    <%# call_hook here %>
   </div>
 </div>
