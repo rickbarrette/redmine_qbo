@@ -33,6 +33,8 @@ class Qbo < ActiveRecord::Base
           base = Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
         when :employee
           base = Quickbooks::Service::Employee.new(:company_id => qbo.realm_id, :access_token => access_token)
+        when :item
+          base = Quickbooks::Service::Item.new(:company_id => qbo.realm_id, :access_token => access_token)
       else
         base = access_token
       end
