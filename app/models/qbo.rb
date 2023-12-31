@@ -24,15 +24,15 @@ class Qbo < ActiveRecord::Base
       # build the reqiested service
       case type
         when :time_activity
-          base = Quickbooks::Service::TimeActivity.new(:company_id => qbo.company_id, :access_token => access_token)
+          base = Quickbooks::Service::TimeActivity.new(:company_id => qbo.realm_id, :access_token => access_token)
         when :customer
-          return Quickbooks::Service::Customer.new(:company_id => qbo.company_id, :access_token => access_token)
+          return Quickbooks::Service::Customer.new(:company_id => qbo.realm_id, :access_token => access_token)
         when :invoice
-          base = Quickbooks::Service::Invoice.new(:company_id => qbo.company_id, :access_token => access_token)
+          base = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
         when :estimate
-          base = Quickbooks::Service::Estimate.new(:company_id => qbo.company_id, :access_token => access_token)
+          base = Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
         when :employee
-          base = Quickbooks::Service::Employee.new(:company_id => qbo.company_id, :access_token => access_token)
+          base = Quickbooks::Service::Employee.new(:company_id => qbo.realm_id, :access_token => access_token)
       else
         base = access_token
       end
