@@ -227,7 +227,7 @@ class Customer < ActiveRecord::Base
       qbo = Qbo.first
       @details = qbo.perform_authenticated_request do |access_token|
         service = Quickbooks::Service::Customer.new(:company_id => qbo.realm_id, :access_token => access_token)
-        bservice.ase.fetch_by_id(self.id)
+        service.fetch_by_id(self.id)
       end
     rescue Exception => e
       @details = Quickbooks::Model::Customer.new
