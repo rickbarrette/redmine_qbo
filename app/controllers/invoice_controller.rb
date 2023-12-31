@@ -21,15 +21,12 @@ class InvoiceController < ApplicationController
   def show
     begin
       qbo = Qbo.first
-      @pdf = qbo.perform_authenticated_request do |access_token|
+        qbo.perform_authenticated_request do |access_token|
         service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
         invoice = service.fetch_by_id(params[:id])
-        service.pdf(invoice)
+        @pdf = service.pdf(invoice)
+        send_data @pdf, filename: "invoice #{invoice.doc_number}.pdf", :disposition => 'inline', :type => "application/pdf"
       end
-      
-      return unless @pdf
-
-      send_data @pdf, filename: "invoice #{invoice.doc_number}.pdf", :disposition => 'inline', :type => "application/pdf"
     rescue
       redirect_to :back, :flash => { :error => "Invoice not found" }
     end
