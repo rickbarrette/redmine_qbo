@@ -24,23 +24,21 @@ class Qbo < ActiveRecord::Base
       # build the reqiested service
       case type
         when :time_activity
-          base = Quickbooks::Service::TimeActivity.new(:company_id => qbo.realm_id, :access_token => access_token)
+          return Quickbooks::Service::TimeActivity.new(:company_id => qbo.realm_id, :access_token => access_token)
         when :customer
           return Quickbooks::Service::Customer.new(:company_id => qbo.realm_id, :access_token => access_token)
         when :invoice
-          base = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
+          return Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
         when :estimate
-          base = Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
+          return Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
         when :employee
-          base = Quickbooks::Service::Employee.new(:company_id => qbo.realm_id, :access_token => access_token)
+          return Quickbooks::Service::Employee.new(:company_id => qbo.realm_id, :access_token => access_token)
         when :item
-          base = Quickbooks::Service::Item.new(:company_id => qbo.realm_id, :access_token => access_token)
+          return Quickbooks::Service::Item.new(:company_id => qbo.realm_id, :access_token => access_token)
       else
-        base = access_token
+        return nil
       end
     end
-   
-    return base
   end
   
   # Updates last sync time stamp
