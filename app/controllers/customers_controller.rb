@@ -36,7 +36,7 @@ class CustomersController < ApplicationController
   autocomplete :customer, :name, :full => true, :extra_data => [:id]
 
   def allowed_params
-    params.require(:customer).permit(:name, :email, :primary_phone, :mobile_phone, :phone_number)
+    params.require(:customer).permit(:name, :email, :primary_phone, :mobile_phone, :phone_number, :notes)
   end
 
   # getter method for a customer's vehicles
@@ -93,6 +93,10 @@ class CustomersController < ApplicationController
       @billing_address = address_to_s(@customer.billing_address)
       @shipping_address = address_to_s(@customer.shipping_address)
       @closed_issues = (@issues - @issues.open)
+      @hours = 0
+      @closed_hours = 0
+      @issues.open.each { |i| @hours+= i.total_spent_hours }
+      @closed_issues.each { |i| @closed_hours+= i.total_spent_hours }
     rescue 
       render_404
     end
@@ -111,7 +115,7 @@ class CustomersController < ApplicationController
   def update
     begin
       @customer = Customer.find_by_id(params[:id])
-      if @customer.update_attributes(allowed_params)
+      if @customer.update(allowed_params)
         flash[:notice] = "Customer updated"
         redirect_to @customer
       else
@@ -214,14 +218,14 @@ class CustomersController < ApplicationController
   # format a quickbooks address to a human readable string
   def address_to_s (address)
     return if address.nil?
-    string = address.line1
+    string = address.line1 if address.line1
     string << "\n" + address.line2 if address.line2
     string << "\n" + address.line3 if address.line3
     string << "\n" + address.line4 if address.line4
     string << "\n" + address.line5 if address.line5
-    string << " " + address.city
-    string << ", " + address.country_sub_division_code
-    string << " " + address.postal_code
+    string << " " + address.city if address.city
+    string << ", " + address.country_sub_division_code if address.country_sub_division_code
+    string << " " + address.postal_code if address.postal_code
     return string
   end
 

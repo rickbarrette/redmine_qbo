@@ -10,85 +10,43 @@
 
 class Qbo < ActiveRecord::Base
   unloadable
-  validates_presence_of :token, :company_id, :expire
-  serialize :token
-
-  OAUTH_CONSUMER_KEY = Setting.plugin_redmine_qbo['settingsOAuthConsumerKey']
-  OAUTH_CONSUMER_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
-  
-  #
-  # Getter for quickbooks OAuth2 client
-  #
-  def self.get_client
-    oauth_params = {
-     site: "https://appcenter.intuit.com/connect/oauth2",
-     authorize_url: "https://appcenter.intuit.com/connect/oauth2",
-     token_url: "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer"
-    }
-    return OAuth2::Client.new(OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET, oauth_params)
-  end
-  
-  #
-  # Getter for oauth consumer
-  #
-  def self.get_oauth_consumer
-    # Quickbooks Config Info
-    return $qb_oauth_consumer
-  end
+    
+  include QuickbooksOauth
 
   # 
   # Get a quickbooks base service object for type
   # @params type of base
   #
   def self.get_base(type)
-    # lets getnourbold access token from the database
-    oauth2_client = get_client
     qbo = self.first
-    access_token = OAuth2::AccessToken.from_hash(oauth2_client, qbo.token)
 
-    # check to see if we need to refresh the acesstoken
-    if qbo.expire.to_time.utc.past?
-      puts "Updating access token"
-      new_access_token_object = access_token.refresh!
-      qbo.token = new_access_token_object.to_hash
-      qbo.expire = 1.hour.from_now.utc
-      qbo.save!
-      access_token = new_access_token_object
-    else
-      puts "Using current token"
+    qbo.perform_authenticated_request do |access_token|   
+      # build the reqiested service
+      case type
+        when :time_activity
+          return Quickbooks::Service::TimeActivity.new(:company_id => qbo.realm_id, :access_token => access_token)
+        when :customer
+          return Quickbooks::Service::Customer.new(:company_id => qbo.realm_id, :access_token => access_token)
+        when :invoice
+          return Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
+        when :estimate
+          return Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
+        when :employee
+          return Quickbooks::Service::Employee.new(:company_id => qbo.realm_id, :access_token => access_token)
+        when :item
+          return Quickbooks::Service::Item.new(:company_id => qbo.realm_id, :access_token => access_token)
+      else
+        return nil
+      end
     end
-    
-    # build the reqiested service
-    case type
-      when :item
-        return Quickbooks::Service::Item.new(:company_id => qbo.company_id, :access_token => access_token)
-      when :time_activity
-       return Quickbooks::Service::TimeActivity.new(:company_id => qbo.company_id, :access_token => access_token)
-      when :customer
-        return Quickbooks::Service::Customer.new(:company_id => qbo.company_id, :access_token => access_token)
-      when :invoice
-        return Quickbooks::Service::Invoice.new(:company_id => qbo.company_id, :access_token => access_token)
-      when :estimate
-        return Quickbooks::Service::Estimate.new(:company_id => qbo.company_id, :access_token => access_token)
-      when :account
-        return Quickbooks::Service::Account.new(:company_id => qbo.company_id, :access_token => access_token)
-      when :employee
-        return Quickbooks::Service::Employee.new(:company_id => qbo.company_id, :access_token => access_token)
-    else
-      return access_token
-    end
-   
-  end
-   
-   # Get the QBO account
-  def self.get_account
-    first
   end
   
   # Updates last sync time stamp
   def self.update_time_stamp
+    date = DateTime.now
+    logger.info "Updating QBO timestamp to #{date}"
     qbo = Qbo.first
-    qbo.last_sync = DateTime.now
+    qbo.last_sync = date
     qbo.save
   end
   

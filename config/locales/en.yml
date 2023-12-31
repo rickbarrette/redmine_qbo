@@ -25,7 +25,6 @@ en:
   label_search_estimates: "Search Estimates"
   label_search: "Search"
   label_estimates: "Estimates"
-  label_401: "Not Authorized"
   warn_ru_sure: "You sure?"
   label_delete: "Delete"
   label_edit: "Edit"
@@ -87,4 +86,6 @@ en:
   label_billed_success: "Successfully Billed "
   label_billing_error: "Cannot bill without a customer assigned"
   label_qbo_sync_success: "Successfully synced to Quickbooks"
+  label_hours: "Hours"
+  label_oauth2_refresh_token_expires_at: "Refresh Token Expires At"
   

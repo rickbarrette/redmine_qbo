@@ -50,13 +50,13 @@ class Estimate < ActiveRecord::Base
   end
   
   # process an estimate into the database
-  def self.process_estimate(estimate)
-    logger.info "Processing estimate #{estimate.id}"
-    estimate = find_or_create_by(id: estimate.id)
-    estimate.doc_number = estimate.doc_number
-    estimate.customer_id = estimate.customer_ref.value
-    estimate.id = estimate.id
-    estimate.txn_date = estimate.txn_date
+  def self.process_estimate(qbo_estimate)
+    logger.info "Processing estimate #{qbo_estimate.id}"
+    estimate = find_or_create_by(id: qbo_estimate.id)
+    estimate.doc_number = qbo_estimate.doc_number
+    estimate.customer_id = qbo_estimate.customer_ref.value
+    estimate.id = qbo_estimate.id
+    estimate.txn_date = qbo_estimate.txn_date
     estimate.save!
   end
 
