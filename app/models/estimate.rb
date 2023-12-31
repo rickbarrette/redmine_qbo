@@ -49,9 +49,9 @@ class Estimate < ActiveRecord::Base
   def self.update(id)
     # Update the item table
     qbo = Qbo.first
-    qbo.perform_authenticated_request do |access_token|
+    estimate = qbo.perform_authenticated_request do |access_token|
       service = Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
-      estimate = service.fetch_by_id(id)
+      service.fetch_by_id(id)
     end
 
     return unless estimate
