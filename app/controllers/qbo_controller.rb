@@ -48,6 +48,7 @@ class QboController < ApplicationController
         # Save the authentication information 
         qbo = Qbo.new
         qbo.update(oauth2_access_token: resp.token, oauth2_refresh_token: resp.refresh_token, realm_id: params[:realmId])
+        qbo.refresh_token!
         
         if qbo.save!
           redirect_to qbo_sync_path, :flash => { :notice => "Successfully connected to Quickbooks" }
