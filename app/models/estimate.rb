@@ -20,9 +20,9 @@ class Estimate < ActiveRecord::Base
   def self.sync
     logger.debug "Syncing ALL estimates"
     qbo = Qbo.first
-    qbo.perform_authenticated_request do |access_token|
+    estimates = qbo.perform_authenticated_request do |access_token|
       service = Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
-      estimates = service.all
+      service.all
     end
 
     return unless estimates
@@ -79,7 +79,7 @@ class Estimate < ActiveRecord::Base
     qbo.perform_authenticated_request do |access_token|
       service = Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
       estimate = service.fetch_by_id(id)
-      return service.pdf(estimate)
+      service.pdf(estimate)
     end
   end
 
@@ -108,9 +108,9 @@ class Estimate < ActiveRecord::Base
     begin
       raise Exception unless self.id
       qbo = Qbo.first
-      qbo.perform_authenticated_request do |access_token|
+      @details = qbo.perform_authenticated_request do |access_token|
         service = Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
-        @details = service(:estimate).fetch_by_id(self.id)
+        service(:estimate).fetch_by_id(self.id)
       end
     rescue Exception => e
       @details = Quickbooks::Model::Estimate.new

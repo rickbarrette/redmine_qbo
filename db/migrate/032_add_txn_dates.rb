@@ -27,9 +27,9 @@ class AddTxnDates < ActiveRecord::Migration[5.1]
         say "Sync Invoices"
 
         qbo = Qbo.first
-        qbo.perform_authenticated_request do |access_token|
+        invoices = qbo.perform_authenticated_request do |access_token|
           service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
-          invoices = service.all
+          service.all
         end
 
         return unless invoices

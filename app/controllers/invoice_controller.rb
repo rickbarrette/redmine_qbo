@@ -21,10 +21,10 @@ class InvoiceController < ApplicationController
   def show
     begin
       qbo = Qbo.first
-      qbo.perform_authenticated_request do |access_token|
+      @pdf = qbo.perform_authenticated_request do |access_token|
         service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
         invoice = service.fetch_by_id(params[:id])
-        @pdf = service.pdf(invoice)
+        service.pdf(invoice)
       end
       
       return unless @pdf

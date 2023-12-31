@@ -26,13 +26,9 @@ class Invoice < ActiveRecord::Base
     # TODO actually do something with the above query
     # .all() is never called since count is never initialized
     qbo = Qbo.first
-    qbo.perform_authenticated_request do |access_token|
+    invoices = qbo.perform_authenticated_request do |access_token|
       service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
-      if count == 0
-        invoices = service.all 
-      else
-        invoices = service.query()
-      end
+      service.all 
     end
 
     return unless invoices
@@ -197,9 +193,9 @@ class Invoice < ActiveRecord::Base
     begin
       raise Exception unless self.id
       qbo = Qbo.first
-      qbo.perform_authenticated_request do |access_token|
+      @details = qbo.perform_authenticated_request do |access_token|
         service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
-        @details = service.fetch_by_id(self.id)
+        service.fetch_by_id(self.id)
       end
     rescue Exception => e
       @details = Quickbooks::Model::Invoice.new

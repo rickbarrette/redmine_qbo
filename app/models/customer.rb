@@ -144,9 +144,9 @@ class Customer < ActiveRecord::Base
   def self.sync 
     # Sync ALL customers if the database is empty
     qbo = Qbo.first
-    qbo.perform_authenticated_request do |access_token|
+    customers = qbo.perform_authenticated_request do |access_token|
       service = Quickbooks::Service::Customer.new(:company_id => qbo.realm_id, :access_token => access_token)
-      customers = service.all
+      service.all
     end
     
     return unless customers
@@ -178,9 +178,9 @@ class Customer < ActiveRecord::Base
   # This needs to be simplified
   def self.sync_by_id(id) 
     qbo = Qbo.first
-    qbo.perform_authenticated_request do |access_token|
+    customer = qbo.perform_authenticated_request do |access_token|
       service = Quickbooks::Service::Customer.new(:company_id => qbo.realm_id, :access_token => access_token)
-      customer = service.fetch_by_id(id)
+      service.fetch_by_id(id)
     end
 
     return unless customer
@@ -203,9 +203,9 @@ class Customer < ActiveRecord::Base
   def save_with_push
     begin
       qbo = Qbo.first
-      qbo.perform_authenticated_request do |access_token|
+      @details = qbo.perform_authenticated_request do |access_token|
         service = Quickbooks::Service::Customer.new(:company_id => qbo.realm_id, :access_token => access_token)
-        @details = serivce.update(@details)
+        serivce.update(@details)
       end
       #raise "QBO Fault" if @details.fault?
       self.id = @details.id
@@ -225,9 +225,9 @@ class Customer < ActiveRecord::Base
     begin
       raise Exception unless self.id
       qbo = Qbo.first
-      qbo.perform_authenticated_request do |access_token|
+      @details = qbo.perform_authenticated_request do |access_token|
         service = Quickbooks::Service::Customer.new(:company_id => qbo.realm_id, :access_token => access_token)
-        @details = bservice.ase.fetch_by_id(self.id)
+        bservice.ase.fetch_by_id(self.id)
       end
     rescue Exception => e
       @details = Quickbooks::Model::Customer.new

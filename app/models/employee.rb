@@ -15,9 +15,9 @@ class Employee < ActiveRecord::Base
   
   def self.sync 
     qbo = Qbo.first
-    qbo.perform_authenticated_request do |access_token|
+    employees = qbo.perform_authenticated_request do |access_token|
       service = Quickbooks::Service::Employee.new(:company_id => qbo.realm_id, :access_token => access_token)
-      employees = service.all
+      service.all
     end
 
     return unless employees
@@ -36,9 +36,9 @@ class Employee < ActiveRecord::Base
 
   def self.sync_by_id(id)
     qbo = Qbo.first
-    qbo.perform_authenticated_request do |access_token|
+    employee = qbo.perform_authenticated_request do |access_token|
       service = Quickbooks::Service::Employee.new(:company_id => qbo.realm_id, :access_token => access_token)
-      employee = service.fetch_by_id(id)
+      service.fetch_by_id(id)
     end
 
     return unless employee
