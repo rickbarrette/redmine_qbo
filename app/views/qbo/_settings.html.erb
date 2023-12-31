@@ -58,8 +58,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     </tr>
 
      <tr>
-       <th><%=t(:label_oauth_expires)%></th>
-       <td><%= if Qbo.exists? then Qbo.first.expire end %>
+        <th><%=t(:label_oauth_expires)%></th>
+        <td><%= if Qbo.exists? then Qbo.first.oauth2_access_token_expires_at end %>
+        <th><%=t(:label_oauth2_refresh_token_expires_at)%></th>
+        <td><%= if Qbo.exists? then Qbo.first.oauth2_refresh_token_expires_at end %>
      </tr>
 
   </tbody>
