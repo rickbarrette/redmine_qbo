@@ -22,7 +22,7 @@ Redmine::Plugin.register :redmine_qbo do
   name 'Redmine Quickbooks Online plugin'
   author 'Rick Barrette'
   description 'This is a plugin for Redmine to intergrate with Quickbooks Online to allow for seamless intergration CRM and invoicing of completed issues'
-  version '2.0.3'
+  version '2.0.4'
   url 'https://github.com/rickbarrette/redmine_qbo'
   author_url 'https://barrettefabrication.com'
   settings :default => {'empty' => true}, :partial => 'qbo/settings'
