@@ -84,7 +84,7 @@ class VehiclesController < ApplicationController
     @customer = params[:customer]
     begin
       @vehicle = Vehicle.find_by_id(params[:id])
-      if @vehicle.update_attributes(allowed_params)
+      if @vehicle.update(allowed_params)
         flash[:notice] = "Vehicle updated"
         redirect_to @vehicle
       else
