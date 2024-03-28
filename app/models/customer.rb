@@ -155,11 +155,13 @@ class Customer < ActiveRecord::Base
       logger.info "Processing customer #{c.id}"
       customer = Customer.find_or_create_by(id: c.id)
       if c.active?
-        if not customer.name.eql? c.display_name
+        #if not customer.name.eql? c.display_name
           customer.name = c.display_name
           customer.id = c.id
+          customer.phone_number = c.primary_phone.tr('^0-9', '')
+          customer.mobile_phone_number = c.mobile_phone.tr('^0-9', '')
           customer.save_without_push
-        end
+        #end
       else
         if not c.new_record?
           customer.delete
@@ -178,20 +180,22 @@ class Customer < ActiveRecord::Base
   # This needs to be simplified
   def self.sync_by_id(id) 
     qbo = Qbo.first
-    customer = qbo.perform_authenticated_request do |access_token|
+    c = qbo.perform_authenticated_request do |access_token|
       service = Quickbooks::Service::Customer.new(:company_id => qbo.realm_id, :access_token => access_token)
       service.fetch_by_id(id)
     end
 
-    return unless customer
+    return unless c
 
-    customer = Customer.find_or_create_by(id: customer.id)
-    if customer.active?
-      if not customer.name.eql? customer.display_name
-        customer.name = customer.display_name
-        customer.id = customer.id
+    customer = Customer.find_or_create_by(id: c.id)
+    if c.active?
+      #if not customer.name.eql? c.display_name
+        customer.name = c.display_name
+        customer.id = c.id
+        customer.phone_number = c.primary_phone.tr('^0-9', '')
+        customer.mobile_phone_number = c.mobile_phone.tr('^0-9', '')
         customer.save_without_push
-      end
+      #end
     else
       if not customer.new_record?
         customer.delete
