@@ -158,8 +158,8 @@ class Customer < ActiveRecord::Base
         #if not customer.name.eql? c.display_name
           customer.name = c.display_name
           customer.id = c.id
-          customer.phone_number = c.primary_phone.tr('^0-9', '') unless c.primary_phone.nil?
-          customer.mobile_phone_number = c.mobile_phone.tr('^0-9', '') unless c.mobile_phone.nil?
+          customer.phone_number = c.primary_phone.free_form_number.tr('^0-9', '') unless c.primary_phone.nil?
+          customer.mobile_phone_number = c.mobile_phone.free_form_number.tr('^0-9', '') unless c.mobile_phone.nil?
           customer.save_without_push
         #end
       else
@@ -192,8 +192,8 @@ class Customer < ActiveRecord::Base
       #if not customer.name.eql? c.display_name
         customer.name = c.display_name
         customer.id = c.id
-        customer.phone_number = c.primary_phone.tr('^0-9', '') unless c.primary_phone.nil?
-        customer.mobile_phone_number = c.mobile_phone.tr('^0-9', '') unless c.mobile_phone.nil?
+        customer.phone_number = c.primary_phone.free_form_number.tr('^0-9', '') unless c.primary_phone.nil?
+        customer.mobile_phone_number = c.mobile_phone.free_form_number.tr('^0-9', '') unless c.mobile_phone.nil?
         customer.save_without_push
       #end
     else
