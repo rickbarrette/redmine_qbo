@@ -88,4 +88,5 @@ en:
   label_qbo_sync_success: "Successfully synced to Quickbooks"
   label_hours: "Hours"
   label_oauth2_refresh_token_expires_at: "Refresh Token Expires At"
+  label_name: "Name"
   
