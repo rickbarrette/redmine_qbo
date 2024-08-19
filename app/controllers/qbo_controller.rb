@@ -27,8 +27,7 @@ class QboController < ApplicationController
   #
   def authenticate
     oauth2_client = Qbo.construct_oauth2_client
-    callback = Setting.host_name + "/qbo/oauth_callback/" 
-    grant_url = oauth2_client.auth_code.authorize_url(redirect_uri: callback, response_type: "code", state: SecureRandom.hex(12), scope: "com.intuit.quickbooks.accounting")
+    grant_url = oauth2_client.auth_code.authorize_url(redirect_uri: qbo_oauth_callback_path, response_type: "code", state: SecureRandom.hex(12), scope: "com.intuit.quickbooks.accounting")
     redirect_to grant_url
   end
   
