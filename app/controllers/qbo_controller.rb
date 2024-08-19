@@ -27,7 +27,7 @@ class QboController < ApplicationController
   #
   def authenticate
     oauth2_client = Qbo.construct_oauth2_client
-    grant_url = oauth2_client.auth_code.authorize_url(redirect_uri: qbo_oauth_callback_path, response_type: "code", state: SecureRandom.hex(12), scope: "com.intuit.quickbooks.accounting")
+    grant_url = oauth2_client.auth_code.authorize_url(redirect_uri: Setting.host_name + qbo_oauth_callback_path, response_type: "code", state: SecureRandom.hex(12), scope: "com.intuit.quickbooks.accounting")
     redirect_to grant_url
   end
   
@@ -38,7 +38,7 @@ class QboController < ApplicationController
     if params[:state].present?
       oauth2_client = Qbo.construct_oauth2_client
       # use the state value to retrieve from your backend any information you need to identify the customer in your system
-      redirect_uri = Setting.host_name + "/qbo/oauth_callback/"
+      redirect_uri = Setting.host_name + qbo_oauth_callback_path
       if resp = oauth2_client.auth_code.get_token(params[:code], redirect_uri: redirect_uri)
         
         # Remove the last authentication information
