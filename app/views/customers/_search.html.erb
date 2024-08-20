@@ -3,4 +3,3 @@
     <%= submit_tag t(:label_search) %>
 <% end %>
 <%= button_to t(:label_new_customer), new_customer_path, method: :get%>
-<%= button_to(t(:label_sync), qbo_sync_path, method: :get) if User.current.admin?%>
