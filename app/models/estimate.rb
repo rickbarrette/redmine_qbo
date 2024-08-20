@@ -51,7 +51,7 @@ class Estimate < ActiveRecord::Base
     qbo = Qbo.first
     qbo.perform_authenticated_request do |access_token|
       service = Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
-      process_estimate(service.find_by :doc_number, number)
+      process_estimate(service.find_by( :doc_number, number).first)
     end
   end
   
