@@ -121,11 +121,10 @@ class QboController < ApplicationController
           end
         end
         
-      # Record that last time we updated
-       Qbo.update_time_stamp
-      ActiveRecord::Base.connection.close
-    end
-      
+        # Record that last time we updated
+        Qbo.update_time_stamp
+        ActiveRecord::Base.connection.close
+      end
       # The webhook doesn't require a response but let's make sure we don't send anything
       render :nothing => true, status: 200
     else
