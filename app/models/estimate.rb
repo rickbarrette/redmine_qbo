@@ -18,7 +18,7 @@ class Estimate < ActiveRecord::Base
   
   # sync all estimates
   def self.sync
-    logger.debug "Syncing ALL estimates"
+    logger.info "Syncing ALL estimates"
     qbo = Qbo.first
     estimates = qbo.perform_authenticated_request do |access_token|
       service = Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
@@ -37,11 +37,21 @@ class Estimate < ActiveRecord::Base
   
   # sync only one estimate
   def self.sync_by_id(id)
-    logger.debug "Syncing estimate #{id}"
+    logger.info "Syncing estimate #{id}"
     qbo = Qbo.first
     qbo.perform_authenticated_request do |access_token|
       service = Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
       process_estimate(service.fetch_by_id(id))
+    end
+  end
+
+  # sync only one estimate
+  def self.sync_by_doc_number(number)
+    logger.info "Syncing estimate by doc number #{number}"
+    qbo = Qbo.first
+    qbo.perform_authenticated_request do |access_token|
+      service = Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
+      process_estimate(service.find_by( :doc_number, number))
     end
   end
   
