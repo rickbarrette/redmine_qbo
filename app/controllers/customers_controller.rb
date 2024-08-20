@@ -142,7 +142,7 @@ class CustomersController < ApplicationController
   def share
 
     Thread.new do
-      logger.debug "Removing expired customer tokens"
+      logger.info "Removing expired customer tokens"
       CustomerToken.remove_expired_tokens
       ActiveRecord::Base.connection.close
     end

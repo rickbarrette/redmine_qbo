@@ -97,7 +97,7 @@ class QboController < ApplicationController
         id = entity['id'].to_i
         name = entity['name']
        
-        logger.debug "Casting #{name.constantize} to obj"
+        logger.info "Casting #{name.constantize} to obj"
 
         # Magicly initialize the correct class
         obj = name.constantize

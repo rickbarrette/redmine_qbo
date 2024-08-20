@@ -17,7 +17,7 @@ class Invoice < ActiveRecord::Base
   
   # sync ALL the invoices
   def self.sync
-    logger.debug "Syncing all invoices"
+    logger.info "Syncing all invoices"
     last = Qbo.first.last_sync
 
     query = "SELECT Id, DocNumber FROM Invoice"
@@ -40,7 +40,7 @@ class Invoice < ActiveRecord::Base
   
   #sync by invoice ID
   def self.sync_by_id(id)
-    logger.debug "Syncing invoice #{id}"
+    logger.info "Syncing invoice #{id}"
     qbo = Qbo.first
     qbo.perform_authenticated_request do |access_token|
       service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
@@ -58,7 +58,7 @@ class Invoice < ActiveRecord::Base
     # skip this issue if the issue customer is not the same as the invoice customer
     return if issue.customer_id != invoice.customer_ref.value.to_i
     
-    logger.debug "Attaching invoice #{invoice.id} to issue #{issue.id}"
+    logger.info "Attaching invoice #{invoice.id} to issue #{issue.id}"
     
     invoice = Invoice.find_or_create_by(id: invoice.id)
 
@@ -105,7 +105,7 @@ class Invoice < ActiveRecord::Base
   # this condions causes an infinite loop as the webhook is called when an invoice is updated
   # TODO maybe add a cf_sync_confict flag to invoices
   def self.compare_custom_fields(issue, invoice)
-    logger.debug "Comparing custom fields"
+    logger.info "Comparing custom fields"
     # TODO break if Invoice.find(invoice.id).cf_sync_confict
     is_changed = false
     
@@ -120,12 +120,12 @@ class Invoice < ActiveRecord::Base
           # Only update if blank to prevent infite loops
           # TODO check cf_sync_confict flag once implemented
           if cf.string_value.to_s.blank?
-            logger.debug " VIN was blank, updating the invoice vin in quickbooks"
+            logger.info " VIN was blank, updating the invoice vin in quickbooks"
             vin = Vehicle.find(issue.vehicles_id).vin
             break if vin.nil?
             if not cf.string_value.to_s.eql? vin
               cf.string_value = vin.to_s
-              logger.debug "VIN has changed"
+              logger.info "VIN has changed"
               is_changed = true
             end
 
@@ -155,7 +155,7 @@ class Invoice < ActiveRecord::Base
 
     # Push updates
     begin
-      logger.debug "Trying to update invoice"
+      logger.info "Trying to update invoice"
       qbo = Qbo.first
       qbo.perform_authenticated_request do |access_token|
         service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
