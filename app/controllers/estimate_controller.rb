@@ -17,7 +17,7 @@ class EstimateController < ApplicationController
 
   def get_estimate
     # Force sync for estimate by doc number
-    Estimate.sync_by_doc_number if params[:search]
+    Estimate.sync_by_doc_number(params[:search]) if params[:search]
     estimate = Estimate.find_by_id(params[:id]) if params[:id]
     estimate = Estimate.find_by_doc_number(params[:search]) if params[:search]
     return estimate
