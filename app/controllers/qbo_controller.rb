@@ -124,7 +124,7 @@ class QboController < ApplicationController
       Qbo.update_time_stamp
       
       # The webhook doesn't require a response but let's make sure we don't send anything
-      render :nothing => true
+      render :nothing => true, status: 200
     else
       render nothing: true, status: 400
     end
