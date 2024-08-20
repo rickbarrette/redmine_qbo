@@ -108,7 +108,7 @@ class QboController < ApplicationController
           
           #Check to see if we are deleting a record
           if entity['operation'].eql? "Delete"
-              obj.destroy(id)
+            obj.destroy(id)
           #if not then update!
           else
             begin
@@ -121,10 +121,8 @@ class QboController < ApplicationController
           end
         end
         
-        # Record that last time we updated
-        Qbo.update_time_stamp
-
-      end
+      # Record that last time we updated
+       Qbo.update_time_stamp
       ActiveRecord::Base.connection.close
     end
       
