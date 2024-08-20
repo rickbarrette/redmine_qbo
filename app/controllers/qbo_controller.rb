@@ -40,7 +40,7 @@ class QboController < ApplicationController
     if params[:state].present?
       oauth2_client = Qbo.construct_oauth2_client
       # use the state value to retrieve from your backend any information you need to identify the customer in your system
-      redirect_uri = Setting.host_name + qbo_oauth_callback_path
+      redirect_uri = "https://" + Setting.host_name + qbo_oauth_callback_path
       if resp = oauth2_client.auth_code.get_token(params[:code], redirect_uri: redirect_uri)
         
         # Remove the last authentication information
