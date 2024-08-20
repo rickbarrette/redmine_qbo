@@ -85,43 +85,48 @@ class QboController < ApplicationController
     
     # proceed if the request is good
     if hash.eql? signature
-      if request.headers['content-type'] == 'application/json'
-        data = JSON.parse(data)
-      else
-        # application/x-www-form-urlencoded
-        data = params.as_json
-      end
-      # Process the information
-      entities = data['eventNotifications'][0]['dataChangeEvent']['entities']
-      entities.each do |entity|
-        id = entity['id'].to_i
-        name = entity['name']
-       
-        logger.info "Casting #{name.constantize} to obj"
-
-        # Magicly initialize the correct class
-        obj = name.constantize
-
-        # for merge events
-        obj.destroy(entity['deletedId']) if entity['deletedId']
-        
-        #Check to see if we are deleting a record
-        if entity['operation'].eql? "Delete"
-            obj.destroy(id)
-        #if not then update!
+      Thread.new do
+        if request.headers['content-type'] == 'application/json'
+          data = JSON.parse(data)
         else
-          begin
-            obj.sync_by_id(id)
-          rescue => e
-            logger.error "Failed to call sync_by_id on obj"
-            logger.error e.message
-            logger.error e.backtrace.join("\n")
+          # application/x-www-form-urlencoded
+          data = params.as_json
+        end
+        # Process the information
+        entities = data['eventNotifications'][0]['dataChangeEvent']['entities']
+        entities.each do |entity|
+          id = entity['id'].to_i
+          name = entity['name']
+        
+          logger.info "Casting #{name.constantize} to obj"
+
+          # Magicly initialize the correct class
+          obj = name.constantize
+
+          # for merge events
+          obj.destroy(entity['deletedId']) if entity['deletedId']
+          
+          #Check to see if we are deleting a record
+          if entity['operation'].eql? "Delete"
+              obj.destroy(id)
+          #if not then update!
+          else
+            begin
+              obj.sync_by_id(id)
+            rescue => e
+              logger.error "Failed to call sync_by_id on obj"
+              logger.error e.message
+              logger.error e.backtrace.join("\n")
+            end
           end
         end
+        
+        # Record that last time we updated
+        Qbo.update_time_stamp
+
       end
-      
-      # Record that last time we updated
-      Qbo.update_time_stamp
+      ActiveRecord::Base.connection.close
+    end
       
       # The webhook doesn't require a response but let's make sure we don't send anything
       render :nothing => true, status: 200
