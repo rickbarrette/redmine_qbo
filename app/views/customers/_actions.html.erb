@@ -1,0 +1,5 @@
+<%= link_to t(:label_appointment), "https://calendar.google.com/calendar/render?action=TEMPLATE&text=#{@customer.name}+-&details=#{@customer.primary_phone}&dates=#{Time.now.strftime("%Y%m%d")}T090000/#{Time.now.strftime("%Y%m%d")}T170000", target: :_blank %>
+
+<%= link_to t(:label_appointment), "https://qbo.intuit.com/app/estimate?nameId=#{@customer.id}", target: :_blank %>
+
+<%= button_to t(:label_edit_customer), edit_customer_path(@customer), method: :get%> 
