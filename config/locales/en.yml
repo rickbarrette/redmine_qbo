@@ -90,4 +90,5 @@ en:
   label_oauth2_refresh_token_expires_at: "Refresh Token Expires At"
   label_name: "Name"
   label_appointment: "Add Appointment"
+  label_actions: "Actions"
   
