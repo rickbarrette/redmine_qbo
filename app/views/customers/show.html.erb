@@ -5,9 +5,17 @@
 
       <div class="splitcontentleft">
 
-        <h4><%=t(:label_details)%>:</h4>
+        <div class="splitcontent">
+          <div class="splitcontentleft">
+            <h4><%=t(:label_details)%>:</h4>
+            <%= render :partial => 'customers/details', locals: {customer: @customer} %>
+          </div>
 
-        <%= render :partial => 'customers/details', locals: {customer: @customer} %>
+          <div class="splitcontentleft">
+            <h4><%=t(:label_actions)%>:</h4>
+            <%= render :partial => 'customers/actions', locals: {customer: @customer} %>
+          </div>
+        <div>
 
         <div class="splitcontent">
           <div class="splitcontentleft">
