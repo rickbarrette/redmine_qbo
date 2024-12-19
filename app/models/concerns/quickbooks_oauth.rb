@@ -36,6 +36,7 @@ module QuickbooksOauth
   end
 
   def refresh_token!
+    Rails.logger.info("QuickbooksOauth.refresh_token!")
     t = oauth_access_token
     refreshed = t.refresh!
 
@@ -44,6 +45,8 @@ module QuickbooksOauth
     else
       oauth2_refresh_token_expires_at = 100.days.from_now
     end
+
+    Rails.logger.info("QuickbooksOauth.refresh_token!: #{oauth2_refresh_token_expires_at}")
 
     update!(
       oauth2_access_token: refreshed.token,
