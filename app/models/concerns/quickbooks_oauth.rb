@@ -21,7 +21,7 @@ module QuickbooksOauth
     begin
       yield oauth_access_token
     rescue OAuth2::Error, Quickbooks::AuthorizationFailure => ex
-      Rails.logger.info("QuickbooksOauth.perform: #{ex.message}")
+      Rails.logger.error("QuickbooksOauth.perform: #{ex.message}")
 
       # to prevent an infinite loop here keep a counter and bail out after N times...
       attempts += 1
