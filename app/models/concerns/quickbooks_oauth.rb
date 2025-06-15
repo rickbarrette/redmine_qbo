@@ -21,7 +21,7 @@ module QuickbooksOauth
     begin
       yield oauth_access_token
     rescue OAuth2::Error, Quickbooks::AuthorizationFailure => ex
-      Rails.logger.info("QuickbooksOauth.perform: #{ex.message}")
+      Rails.logger.error("QuickbooksOauth.perform: #{ex.message}")
 
       # to prevent an infinite loop here keep a counter and bail out after N times...
       attempts += 1
@@ -36,6 +36,7 @@ module QuickbooksOauth
   end
 
   def refresh_token!
+    Rails.logger.info("QuickbooksOauth.refresh_token!")
     t = oauth_access_token
     refreshed = t.refresh!
 
@@ -44,6 +45,8 @@ module QuickbooksOauth
     else
       oauth2_refresh_token_expires_at = 100.days.from_now
     end
+
+    Rails.logger.info("QuickbooksOauth.refresh_token!: #{oauth2_refresh_token_expires_at}")
 
     update!(
       oauth2_access_token: refreshed.token,
