@@ -25,8 +25,8 @@ class QboController < ApplicationController
   # Called when the user requests that Redmine to connect to QBO
   #
   def authenticate
-    redirect_uri = "https://" + Setting.host_name + qbo_oauth_callback_path
-    logger.info "redirect_uri: " + redirect_uri
+    redirect_uri = "#{Setting.protocol}://#{Setting.host_name + qbo_oauth_callback_path}"
+    logger.info "redirect_uri: #{redirect_uri}"
     oauth2_client = Qbo.construct_oauth2_client
     grant_url = oauth2_client.auth_code.authorize_url(redirect_uri: redirect_uri, response_type: "code", state: SecureRandom.hex(12), scope: "com.intuit.quickbooks.accounting")
     redirect_to grant_url
