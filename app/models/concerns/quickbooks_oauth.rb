@@ -1,6 +1,6 @@
 #The MIT License (MIT)
 #
-#Copyright (c) 2023 rick barrette
+#Copyright (c) 2016 - 2025 rick barrette
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -10,9 +10,6 @@
 
 module QuickbooksOauth
   extend ActiveSupport::Concern
-
-  OAUTH_CONSUMER_KEY = Setting.plugin_redmine_qbo['settingsOAuthConsumerKey']
-  OAUTH_CONSUMER_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
 
   #== Instance Methods
 
@@ -71,12 +68,16 @@ module QuickbooksOauth
   module ClassMethods
 
     def construct_oauth2_client
+
+      oauth_consumer_key = Setting.plugin_redmine_qbo['settingsOAuthConsumerKey']
+      oauth_consumer_secret = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
+
       options = {
         site: "https://appcenter.intuit.com/connect/oauth2",
         authorize_url: "https://appcenter.intuit.com/connect/oauth2",
         token_url: "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer"
       }
-      OAuth2::Client.new(OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET, options)
+      OAuth2::Client.new(oauth_consumer_key, oauth_consumer_secret, options)
     end
 
   end
