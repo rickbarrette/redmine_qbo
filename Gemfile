@@ -7,6 +7,7 @@ gem 'nhtsa_vin'
 gem 'will_paginate'
 gem 'rails-jquery-autocomplete'
 gem 'jquery-ui-rails'
+gem 'rexml'
 
 group :assets do
   gem 'coffee-rails'
