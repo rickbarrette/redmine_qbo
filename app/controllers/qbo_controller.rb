@@ -51,9 +51,9 @@ class QboController < ApplicationController
         qbo.refresh_token!
         
         if qbo.save!
-          redirect_to qbo_sync_path, :flash => { :notice => "Successfully connected to Quickbooks" }
+          redirect_to qbo_sync_path, :flash => { :notice => I18n.t(:label_connected) }
         else
-          redirect_to plugin_settings_path(:redmine_qbo), :flash => { :error => "Error" }
+          redirect_to plugin_settings_path(:redmine_qbo), :flash => { :error => I18n.t(:label_error) }
         end
         
       end
@@ -65,9 +65,9 @@ class QboController < ApplicationController
     i = Issue.find_by_id params[:id]
     if i.customer
       i.bill_time
-      redirect_to i, :flash => { :notice => "Successfully Billed #{i.customer.name}" }
+      redirect_to i, :flash => { :notice => I18n.t(:label_billed_success) + i.customer.name }
     else
-      redirect_to i, :flash => { :error => "Cannot bill without a customer assigned" }
+      redirect_to i, :flash => { :error => I18n.t(:label_billing_error) }
     end
   end
   
@@ -152,6 +152,6 @@ class QboController < ApplicationController
       ActiveRecord::Base.connection.close
     end
 
-    redirect_to :home, :flash => { :notice => "Syncing Quickbooks" }
+    redirect_to :home, :flash => { :notice => I18n.t(:label_syncing) }
   end
 end
