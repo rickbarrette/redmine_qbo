@@ -19,14 +19,14 @@ end
 Redmine::Plugin.register :redmine_qbo do
   
   # About
-  name 'Redmine Quickbooks Online plugin'
+  name 'Redmine QBO DEVELOPMENT plugin'
   author 'Rick Barrette'
-  description 'This is a plugin for Redmine to intergrate with Quickbooks Online to allow for seamless intergration CRM and invoicing of completed issues'
+  description 'This is a plugin for Redmine to integrate with QuickBooks Online to allow for seamless integration CRM and invoicing of completed issues'
   version '1.1.6'
   url 'https://github.com/rickbarrette/redmine_qbo'
   author_url 'http://rickbarrette.org'
   settings :default => {'empty' => true}, :partial => 'qbo/settings'
-  requires_redmine :version_or_higher => '4.0.0'
+  requires_redmine :version_or_higher => '6.0.0'
   
   # Add safe attributes for core models
   Issue.safe_attributes 'customer_id'
@@ -38,7 +38,7 @@ Redmine::Plugin.register :redmine_qbo do
   Project.safe_attributes 'customer_id'
   
   # We are playing in the sandbox 
-  #Quickbooks.sandbox_mode = true
+  Quickbooks.sandbox_mode = true
 
   # set per_page globally
   WillPaginate.per_page = 20
