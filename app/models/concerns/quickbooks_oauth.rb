@@ -72,6 +72,10 @@ module QuickbooksOauth
       oauth_consumer_key = Setting.plugin_redmine_qbo['settingsOAuthConsumerKey']
       oauth_consumer_secret = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
 
+      # Are we are playing in the sandbox?
+      Quickbooks.sandbox_mode = Setting.plugin_redmine_qbo['sandbox'] ? true : false
+      logger.info "Sandbox mode: #{Quickbooks.sandbox_mode}"
+
       options = {
         site: "https://appcenter.intuit.com/connect/oauth2",
         authorize_url: "https://appcenter.intuit.com/connect/oauth2",

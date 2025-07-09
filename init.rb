@@ -39,9 +39,6 @@ Redmine::Plugin.register :redmine_qbo do
   Project.safe_attributes 'customer_id'
   Project.safe_attributes 'vehicle_id'
 
-  # We are playing in the sandbox 
-  #Quickbooks.sandbox_mode = true
-
   # set per_page globally
   WillPaginate.per_page = 20
 
