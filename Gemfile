@@ -8,6 +8,7 @@ gem 'will_paginate'
 gem 'rails-jquery-autocomplete'
 gem 'jquery-ui-rails'
 gem 'rexml'
+gem 'combine_pdf'
 
 group :assets do
   gem 'coffee-rails'
