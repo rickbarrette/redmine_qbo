@@ -8,14 +8,6 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-# Dynamically load all Hooks & Patches
-ActiveSupport::Reloader.to_prepare do
-  Dir::foreach(File.join(File.dirname(__FILE__), 'lib')) do |file|
-    next unless /\.rb$/ =~ file
-    require_dependency file
-  end
-end
-
 Redmine::Plugin.register :redmine_qbo do
   
   # About
@@ -26,7 +18,7 @@ Redmine::Plugin.register :redmine_qbo do
   url 'https://github.com/rickbarrette/redmine_qbo'
   author_url 'https://barrettefabrication.com'
   settings :default => {'empty' => true}, :partial => 'qbo/settings'
-  requires_redmine :version_or_higher => '6.0.0'
+  requires_redmine :version_or_higher => '6.1.0'
   
   # Add safe attributes for core models
   Issue.safe_attributes 'customer_id'
@@ -51,4 +43,10 @@ Redmine::Plugin.register :redmine_qbo do
   menu :top_menu, :customers, { :controller => :customers, :action => :index }, :caption => 'Customers', :if => Proc.new {User.current.logged?}
   menu :top_menu, :vehicles, { :controller => :vehicles, :action => :index }, :caption => 'Vehicles', :if => Proc.new { User.current.logged? }
     
+end
+
+# Dynamically load all Hooks & Patches
+Dir::foreach(File.join(File.dirname(__FILE__), 'lib')) do |file|
+  next unless file.end_with?('.rb')
+  require_relative "lib/#{file.delete_suffix(".rb") }"
 end
