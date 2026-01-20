@@ -8,11 +8,6 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 class HeaderFooterHookListener < Redmine::Hook::ViewListener
-
-  def view_layouts_base_html_head(context = {})
-    #nothing
-  end
-
   def view_layouts_base_body_bottom(context = {})
     return "<div id='footer' align='center'><b>#{I18n.translate(:label_last_sync)}: </b> #{Qbo.last_sync if Qbo.exists?}</div>"
   end
