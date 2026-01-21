@@ -2,7 +2,7 @@
     <label for="issue_customer"><%= t(:customer) %></label>
     <%= search_customer %> 
     <%= customer_id %> 
-    <%= link_to_function(t(:label_load_customer), "updateIssueFrom('/issues/#{context[:issue].id}/edit.js', this)") %>
+    <%= link_to t(:label_load_customer), '#', onclick: "updateIssueFrom('/issues/#{context[:issue].id}/edit.js', this); return false;" %>
 </p> 
 
 <p>
