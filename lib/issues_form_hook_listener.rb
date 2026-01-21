@@ -14,6 +14,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
   # Here we build the required form components before passing them to a partial view formatting. 
   def view_issues_form_details_bottom(context={})
     f = context[:form]
+    issue = context[:issue]
 
     # check project level customer ownership first
     # This is done to preload customer information if the entire project is dedicated to a customer
@@ -23,9 +24,12 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     end
 
     # Check to see if the issue already belongs to a customer
-    selected_customer = context[:issue].customer ? context[:issue].customer.id  : nil
-    selected_estimate = context[:issue].estimate ? context[:issue].estimate.id  : nil
-    selected_vehicle = context[:issue].vehicles_id ? context[:issue].vehicles_id : nil
+    selected_customer = issue.customer ? issue.customer.id  : nil
+    selected_estimate = issue.estimate ? issue.estimate.id  : nil
+    selected_vehicle = issue.vehicles_id ? issue.vehicles_id : nil
+
+    # Gernerate edit.js link
+    js_link = issue.new_record? ? "updateIssueFrom('/projects/rmt/issues/new.js', this)" : "updateIssueFrom('/issues/#{issue.id}/edit.js', this)"
 
     # Load customer information
     customer = Customer.find_by_id(selected_customer) if selected_customer
@@ -34,7 +38,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     search_customer = f.autocomplete_field :customer,
       autocomplete_customer_name_customers_path,
       :selected => selected_customer,
-      :onchange => "updateIssueFrom('/issues/#{context[:issue].id}/edit.js', this)",
+      :onchange => js_link,
       :update_elements => { 
         :id => '#issue_customer_id', 
         :value => '#issue_customer' 
@@ -43,10 +47,10 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
     # Customer ID - Hidden Field
     customer_id = f.hidden_field :customer_id,
       :id => "issue_customer_id",
-      :onchange => "updateIssueFrom('/issues/#{context[:issue].id}/edit.js', this)"
+      :onchange => js_link
 
     # Load estimates & vehicles
-    if context[:issue].customer
+    if issue.customer
       if customer.vehicles
         vehicles = customer.vehicles.pluck(:name, :id)
       else
@@ -68,7 +72,7 @@ class IssuesFormHookListener < Redmine::Hook::ViewListener
         locals: {
           search_customer: search_customer, 
 	        customer_id: customer_id, 
-	        context: context, 
+	        js_link: js_link, 
 	        select_estimate: select_estimate,
 	        vehicle: vehicle
         } 
