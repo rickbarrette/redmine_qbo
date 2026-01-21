@@ -1,23 +1,17 @@
-document.addEventListener("turbo:load", () => {
-  const selectAllBox = document.getElementById("select-all-batches");
-  const checkboxes = document.querySelectorAll(".item-checkbox");
+document.addEventListener('DOMContentLoaded', () => {
+  const select_all_invoice = document.getElementById('select-all-invoices');
+  const invoices = document.querySelectorAll('.invoice-checkbox');
 
-  if (selectAllBox) {
-    selectAllBox.addEventListener("change", function() {
-      checkboxes.forEach((checkbox) => {
-        checkbox.checked = this.checked;
-      });
-    });
-
-    // Optional: Uncheck "Select All" if an individual box is unchecked
-    checkboxes.forEach((checkbox) => {
-      checkbox.addEventListener("change", () => {
-        if (!checkbox.checked) {
-          selectAllBox.checked = false;
-        } else if (Array.from(checkboxes).every(c => c.checked)) {
-          selectAllBox.checked = true;
-        }
-      });
+  if (select_all_invoice) {
+    select_all_invoice.addEventListener('change', (e) => {
+      invoices.forEach(item => item.checked = e.target.checked);
     });
   }
+
+  invoices.forEach(item => {
+    item.addEventListener('change', () => {
+      const allChecked = Array.from(invoices).every(i => i.checked);
+      select_all_invoice.checked = allChecked;
+    });
+  });
 });

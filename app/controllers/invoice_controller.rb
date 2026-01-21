@@ -26,10 +26,10 @@ class InvoiceController < ApplicationController
         service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
         
         # If multiple id's then pull each pdf & combine them
-        if params[:item_ids]
-          logger.info("Grabbing pdfs for " + params[:item_ids].join(', '))
+        if params[:invoice_ids]
+          logger.info("Grabbing pdfs for " + params[:invoice_ids].join(', '))
           ref = ""
-          params[:item_ids].each do |i|
+          params[:invoice_ids].each do |i|
             logger.info("processing " + i)
             invoice = service.fetch_by_id(i)
             ref += " #{invoice.doc_number}"
