@@ -29,7 +29,11 @@
        
     <div class="vehicle_notes attribute">
       <div class="label"><span><%=t(:field_notes)%></span>:</div>
-      <div class="value"><%=notes%></div>
+      <div class="value">
+        <pre id="note-display" style="text-align: left; white-space: pre-wrap; font-family: inherit; ">
+          <%=notes%>
+        </pre>
+      </div>
     </div>
   </div>
 </div>

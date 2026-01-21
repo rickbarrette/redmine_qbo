@@ -32,8 +32,16 @@
     <div class="splitcontentleft">
 
       <h4><%=t(:field_notes)%>:</h4>
-        <td><%= vehicle.notes %></td>
+        <pre id="note-display" style="text-align: left; white-space: pre-wrap; font-family: inherit; ">
+          <td><%= vehicle.notes %></td>
+        </pre>
       </tr>
+
+      <script>
+        const preElement = document.getElementById('note-display');
+        // This takes the text, trims the edges, and puts it back
+        preElement.textContent = preElement.textContent.trim();
+      </script>
 
     </div>
   </div>
