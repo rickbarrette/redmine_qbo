@@ -91,8 +91,6 @@ To enable automatic Time Activity entries for an Issue, you simply need to assig
 **Note:** After the initial synchronization, this plugin will receive push notifications via Intuit's webhook service.
 
 ## TODO
-
-*   Add Setting for Sandbox Mode
     
 *   Separate Vehicles into a separate plugin (I use Redmine for my automotive shop management 😉)
     
