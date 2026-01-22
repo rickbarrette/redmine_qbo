@@ -170,6 +170,16 @@ class Invoice < ActiveRecord::Base
     end
   end
 
+  # download the pdf from quickbooks
+  def pdf
+    qbo = Qbo.first
+    qbo.perform_authenticated_request do |access_token|
+      service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
+      invoice = service.fetch_by_id(id)
+      return service.pdf(invoice)
+    end
+  end
+
   # Magic Method
   # Maps Get/Set methods to QBO invoice object
   def method_missing(sym, *arguments)
