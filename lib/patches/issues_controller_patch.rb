@@ -7,36 +7,32 @@
 #The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+require_dependency 'issues_controller'
 
-require_dependency 'attachments_controller'
+module Patches
 
-module AttachmentsControllerPatch
+  module IssuesControllerPatch
 
-  def self.included(base)
-
-    base.class_eval do
-
-      # check if login is globally required to access the application
-      def check_if_login_required
-        # no check needed if user is already logged in
-        return true if User.current.logged?
-        
-        # Pull up the attachmet, & verify if we have a valid token for the Issue
-        attachment = Attachment.find(params[:id])
-        token = CustomerToken.where("token = ? and expires_at > ?", session[:token], Time.now)
-        token = token.first
-        unless token.nil?
-          return true if token.issue_id == attachment.container_id
-        end
-        
-        require_login if Setting.login_required?
+    module Helper
+      def watcher_link(issue, user)
+        link = +''
+        link << link_to(I18n.t(:label_bill_time), bill_path( issue.id ), method: :get, class: 'icon icon-email-add') if user.admin?
+        link << link_to(I18n.t(:label_share), share_path( issue.id ), method: :get, target: :_blank, class: 'icon icon-shared') if user.logged?
+        link.html_safe + super
       end
-      
     end
 
-  end
+    def self.included(base)
 
-end   
+      base.class_eval do
+        helper Helper
+      end
 
-# Add module to AttachmentsController
-AttachmentsController.send(:include, AttachmentsControllerPatch)
+    end
+
+  end   
+
+  # Add module to IssuessController
+  IssuesController.send(:include, IssuesControllerPatch)
+
+end

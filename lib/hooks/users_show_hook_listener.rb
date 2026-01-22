@@ -8,18 +8,22 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class UsersShowHookListener < Redmine::Hook::ViewListener
+module Hooks
 
-  # View User
-  def view_users_form(context={})
-    
-    # Update the users
-    #Employee.update_all
- 
-    # Check to see if there is a quickbooks user attached to the issue
-    @selected = context[:user].employee.id if context[:user].employee
+  class UsersShowHookListener < Redmine::Hook::ViewListener
 
-    # Generate the drop down list of quickbooks contacts
-    return "<p>#{context[:form].select :employee_id, Employee.all.pluck(:name, :id), :selected => @selected, include_blank: true}</p>"
+    # View User
+    def view_users_form(context={})
+      
+      # Update the users
+      #Employee.update_all
+  
+      # Check to see if there is a quickbooks user attached to the issue
+      @selected = context[:user].employee.id if context[:user].employee
+
+      # Generate the drop down list of quickbooks contacts
+      return "<p>#{context[:form].select :employee_id, Employee.all.pluck(:name, :id), :selected => @selected, include_blank: true}</p>"
+    end
   end
+
 end

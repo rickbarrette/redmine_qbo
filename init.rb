@@ -45,8 +45,10 @@ Redmine::Plugin.register :redmine_qbo do
     
 end
 
-# Dynamically load all Hooks & Patches
-Dir::foreach(File.join(File.dirname(__FILE__), 'lib')) do |file|
-  next unless file.end_with?('.rb')
-  require_relative "lib/#{file.delete_suffix(".rb") }"
+# Dynamically load all Hooks & Patches recursively
+base_dir = File.join(File.dirname(__FILE__), 'lib')
+
+# '**' looks inside subdirectories, '*.rb' matches Ruby files
+Dir.glob(File.join(base_dir, '**', '*.rb')).sort.each do |file|
+  require file
 end

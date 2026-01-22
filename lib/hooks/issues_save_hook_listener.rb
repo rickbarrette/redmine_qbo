@@ -8,22 +8,26 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class IssuesSaveHookListener < Redmine::Hook::ViewListener
+module Hooks
 
-  # Called Before Issue Saved
-  def controller_issues_edit_before_save(context={})
-    issue = context[:issue]
-    issue.subject = issue.subject.titleize
-  end
+  class IssuesSaveHookListener < Redmine::Hook::ViewListener
 
-  # Called After Issue Saved
-  def controller_issues_edit_after_save(context={})
-    issue = context[:issue]
-    begin
-      issue.bill_time if issue.status.is_closed?
-    rescue
-      # TODO flash[:error] = "Unable to bill, check QBO Auth"
+    # Called Before Issue Saved
+    def controller_issues_edit_before_save(context={})
+      issue = context[:issue]
+      issue.subject = issue.subject.titleize
     end
+
+    # Called After Issue Saved
+    def controller_issues_edit_after_save(context={})
+      issue = context[:issue]
+      begin
+        issue.bill_time if issue.status.is_closed?
+      rescue
+        # TODO flash[:error] = "Unable to bill, check QBO Auth"
+      end
+    end
+
   end
 
 end
