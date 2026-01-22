@@ -94,3 +94,5 @@ en:
   label_create_estimate: "Create Estimate"
   label_syncing: "Syncing Quickbooks"
   label_sandbox: "Sandbox"
+  button_bulk_pdf: "Bulk PDF"
+  label_select_all: "Select All"

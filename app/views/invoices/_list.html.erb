@@ -4,7 +4,7 @@
 
     <div class="form-check">
       <%= check_box_tag "select-all-invoices", "1", false, id: "select-all-invoices" %>
-      <%= label_tag "select-all-invoices", "Select All Invioces" %>
+      <%= label_tag "select-all-invoices", t(:label_select_all) %>
     </div>
 
     <hr>
@@ -16,7 +16,7 @@
       </div>
     <% end %>
 
-    <%= form.submit "Bulk PDF" %>
+    <%= form.submit t(:button_bulk_pdf) %>
   <% end %>
 
 <% else %>
