@@ -1,6 +1,6 @@
 #The License
 #
-#Copyright (c) 2022 Rick Barrette - All Rights Reserved
+#Copyright (c) 2016 - 2026 Rick Barrette - All Rights Reserved
 # 
 #Unauthorized copying of this software and associated documentation files (the "Software"), via any medium is strictly prohibited.
 #
