@@ -250,7 +250,15 @@ module Patches
             pdf.ln
           end
         end
-        pdf.output
+
+        # Check to see if there is an estimate attached, then combine them
+        if issue.estimate
+          pdf = CombinePDF.parse(pdf.output, allow_optional_content: true)
+          pdf << CombinePDF.parse(issue.estimate.pdf)
+          return pdf.to_pdf
+        end
+
+        return pdf.output
       end
 
     end
