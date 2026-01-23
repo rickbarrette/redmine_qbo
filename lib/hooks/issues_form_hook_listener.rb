@@ -22,14 +22,12 @@ module Hooks
       # This is done to preload customer information if the entire project is dedicated to a customer
       if context[:project]
         selected_customer = context[:project].customer ? context[:project].customer.id : nil
-        selected_vehicle = context[:project].vehicle ? context[:project].vehicle.id : nil
       end
 
       # Check to see if the issue already belongs to a customer
       selected_customer = issue.customer ? issue.customer.id  : nil
       selected_estimate = issue.estimate ? issue.estimate.id  : nil
-      selected_vehicle = issue.vehicles_id ? issue.vehicles_id : nil
-
+      
       # Gernerate edit.js link
       js_link = issue.new_record? ? "updateIssueFrom('/projects/rmt/issues/new.js', this)" : "updateIssueFrom('/issues/#{issue.id}/edit.js', this)"
 
@@ -51,23 +49,16 @@ module Hooks
         :id => "issue_customer_id",
         :onchange => js_link
 
-      # Load estimates & vehicles
+      # Load estimates
       if issue.customer
-        if customer.vehicles
-          vehicles = customer.vehicles.pluck(:name, :id)
-        else
-          vehicles = [nil].compact
-        end
         estimates = customer.estimates.pluck(:doc_number, :id).sort! {|x, y| y <=> x}
       else
-        vehicles = [nil].compact
         estimates = [nil].compact
       end
 
-      # Generate the drop down list of quickbooks estimates & vehicles
+      # Generate the drop down list of quickbooks estimates
       select_estimate = f.select :estimate_id, estimates, :selected => selected_estimate, include_blank: true
-      vehicle = f.select :vehicles_id, vehicles, :selected => selected_vehicle, include_blank: true
-
+      
       # Pass all prebuilt form components to our partial
       context[:controller].send(:render_to_string, {
         :partial => 'issues/form_hook',
@@ -76,7 +67,6 @@ module Hooks
             customer_id: customer_id, 
             js_link: js_link, 
             select_estimate: select_estimate,
-            vehicle: vehicle
           } 
         }
       )

@@ -38,7 +38,6 @@ Redmine::Plugin.register :redmine_qbo do
   
   # Register top menu items
   menu :top_menu, :customers, { :controller => :customers, :action => :index }, :caption => 'Customers', :if => Proc.new {User.current.logged?}
-  menu :top_menu, :vehicles, { :controller => :vehicles, :action => :index }, :caption => 'Vehicles', :if => Proc.new { User.current.logged? }
     
 end
 

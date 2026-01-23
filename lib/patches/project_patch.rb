@@ -24,7 +24,6 @@ module Patches
       # Same as typing in the class 
       base.class_eval do
         belongs_to :customer, primary_key: :id
-        belongs_to :vehicle, primary_key: :id
       end
     end
     
