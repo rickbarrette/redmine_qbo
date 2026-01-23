@@ -91,7 +91,8 @@ To enable automatic Time Activity entries for an Issue, you simply need to assig
 **Note:** After the initial synchronization, this plugin will receive push notifications via Intuit's webhook service.
 
 ## TODO
-    
+
+*   Add hooks to intergrate other plugins, i.e. customer vehicles for example
 *   MORE Stuff as I make it up...
     
 
