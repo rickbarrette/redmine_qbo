@@ -1,6 +1,6 @@
 #The MIT License (MIT)
 #
-#Copyright (c) 2022 rick barrette
+#Copyright (c) 2016 - 2026 rick barrette
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -10,7 +10,6 @@
 
 # This controller class will handle map management
 class CustomersController < ApplicationController
-  unloadable
 
   include AuthHelper
   helper :issues
@@ -36,7 +35,7 @@ class CustomersController < ApplicationController
   autocomplete :customer, :name, :full => true, :extra_data => [:id]
 
   def allowed_params
-    params.require(:customer).permit(:name, :email, :primary_phone, :mobile_phone, :phone_number)
+    params.require(:customer).permit(:name, :email, :primary_phone, :mobile_phone, :phone_number, :notes)
   end
 
   # getter method for a customer's invoices
@@ -108,7 +107,7 @@ class CustomersController < ApplicationController
   def update
     begin
       @customer = Customer.find_by_id(params[:id])
-      if @customer.update_attributes(allowed_params)
+      if @customer.update(allowed_params)
         flash[:notice] = "Customer updated"
         redirect_to @customer
       else
@@ -135,7 +134,7 @@ class CustomersController < ApplicationController
   def share
 
     Thread.new do
-      logger.debug "Removing expired customer tokens"
+      logger.info "Removing expired customer tokens"
       CustomerToken.remove_expired_tokens
       ActiveRecord::Base.connection.close
     end
@@ -211,14 +210,14 @@ class CustomersController < ApplicationController
   # format a quickbooks address to a human readable string
   def address_to_s (address)
     return if address.nil?
-    string = address.line1
+    string = address.line1 if address.line1
     string << "\n" + address.line2 if address.line2
     string << "\n" + address.line3 if address.line3
     string << "\n" + address.line4 if address.line4
     string << "\n" + address.line5 if address.line5
-    string << " " + address.city
-    string << ", " + address.country_sub_division_code
-    string << " " + address.postal_code
+    string << " " + address.city if address.city
+    string << ", " + address.country_sub_division_code if address.country_sub_division_code
+    string << " " + address.postal_code if address.postal_code
     return string
   end
 

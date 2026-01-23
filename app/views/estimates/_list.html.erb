@@ -1,6 +1,6 @@
 <% if @customer.present? %>
 
-  <% @customer.estimates.order(doc_number: :desc).each do |estimate| %>
+  <% @customer.estimates.order(id: :desc).each do |estimate| %>
     <div class="row">
       <b><%= link_to "##{estimate.doc_number}", estimate_path(estimate), target: :_blank %></b> <%= estimate.txn_date %>
     </div>

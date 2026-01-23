@@ -1,6 +1,6 @@
 #The MIT License (MIT)
 #
-#Copyright (c) 2022 rick barrette
+#Copyright (c) 2016 - 2026 rick barrette
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -9,20 +9,15 @@
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class Invoice < ActiveRecord::Base
-  unloadable
+  
   has_and_belongs_to_many :issues
   belongs_to :customer 
   validates_presence_of :doc_number, :id, :customer_id, :txn_date
   self.primary_key = :id
   
-  # Get the quickbooks-ruby base for invoice
-  def self.get_base
-    Qbo.get_base(:invoice)
-  end
-  
   # sync ALL the invoices
   def self.sync
-    logger.debug "Syncing all invoices"
+    logger.info "Syncing all invoices"
     last = Qbo.first.last_sync
 
     query = "SELECT Id, DocNumber FROM Invoice"
@@ -30,11 +25,13 @@ class Invoice < ActiveRecord::Base
   
     # TODO actually do something with the above query
     # .all() is never called since count is never initialized
-    if count == 0
-      invoices = get_base.all 
-    else
-      invoices = get_base.query()
+    qbo = Qbo.first
+    invoices = qbo.perform_authenticated_request do |access_token|
+      service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
+      service.all 
     end
+
+    return unless invoices
      
     invoices.each { | invoice | 
       process_invoice invoice
@@ -43,9 +40,13 @@ class Invoice < ActiveRecord::Base
   
   #sync by invoice ID
   def self.sync_by_id(id)
-    logger.debug "Syncing invoice #{id}"
-    invoice = get_base.fetch_by_id(id) 
-    process_invoice invoice
+    logger.info "Syncing invoice #{id}"
+    qbo = Qbo.first
+    qbo.perform_authenticated_request do |access_token|
+      service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
+      invoice = service.fetch_by_id(id) 
+      process_invoice invoice
+    end
   end
   
   private
@@ -57,7 +58,7 @@ class Invoice < ActiveRecord::Base
     # skip this issue if the issue customer is not the same as the invoice customer
     return if issue.customer_id != invoice.customer_ref.value.to_i
     
-    logger.debug "Attaching invoice #{invoice.id} to issue #{issue.id}"
+    logger.info "Attaching invoice #{invoice.id} to issue #{issue.id}"
     
     invoice = Invoice.find_or_create_by(id: invoice.id)
 
@@ -104,8 +105,7 @@ class Invoice < ActiveRecord::Base
   # this condions causes an infinite loop as the webhook is called when an invoice is updated
   # TODO maybe add a cf_sync_confict flag to invoices
   def self.compare_custom_fields(issue, invoice)
-
-    logger.debug "Comparing custom fields"
+    logger.info "Comparing custom fields"
     # TODO break if Invoice.find(invoice.id).cf_sync_confict
     is_changed = false
 
@@ -139,14 +139,28 @@ class Invoice < ActiveRecord::Base
 
     # Push updates
     begin
-      logger.debug "Trying to update invoice"
-      get_base.update(invoice) if is_changed
+      logger.info "Trying to update invoice"
+      qbo = Qbo.first
+      qbo.perform_authenticated_request do |access_token|
+        service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
+        service.update(invoice) if is_changed
+      end
     rescue
       # Do nothing, probaly custome field sync confict on the invoice. 
       # This is a problem with how it's billed
       # TODO Add notes in memo area
       # TODO flag Invoice.cf_sync_confict here
       logger.error "Failed to update invoice"
+    end
+  end
+
+  # download the pdf from quickbooks
+  def pdf
+    qbo = Qbo.first
+    qbo.perform_authenticated_request do |access_token|
+      service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
+      invoice = service.fetch_by_id(id)
+      return service.pdf(invoice)
     end
   end
 
@@ -172,7 +186,11 @@ class Invoice < ActiveRecord::Base
   def pull
     begin
       raise Exception unless self.id
-      @details = Qbo.get_base(:invoice).fetch_by_id(self.id)
+      qbo = Qbo.first
+      @details = qbo.perform_authenticated_request do |access_token|
+        service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
+        service.fetch_by_id(self.id)
+      end
     rescue Exception => e
       @details = Quickbooks::Model::Invoice.new
     end

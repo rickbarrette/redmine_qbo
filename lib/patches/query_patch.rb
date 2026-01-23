@@ -1,6 +1,6 @@
 #The MIT License (MIT)
 #
-#Copyright (c) 2022 rick barrette
+#Copyright (c) 2016 - 2026 rick barrette
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -10,25 +10,29 @@
 
 require_dependency 'issue_query'
 
-module QueryPatch
-  
-  # Add qbo options to the aviable columns
-  def available_columns
-    unless @available_columns
-      @available_columns = self.class.available_columns.dup
-      @available_columns << QueryColumn.new(:customer, :sortable => "#{Issue.table_name}.customer_id", :groupable => true, :caption => :field_customer)
-      @available_columns << QueryColumn.new(:billed, :sortable => "#{TimeEntry.table_name}.billed", :groupable => true, :caption => :field_billed)
+module Patches
+
+  module QueryPatch
+    
+    # Add qbo options to the aviable columns
+    def available_columns
+      unless @available_columns
+        @available_columns = self.class.available_columns.dup
+        @available_columns << QueryColumn.new(:customer, :sortable => "#{Issue.table_name}.customer_id", :groupable => true, :caption => :field_customer)
+        @available_columns << QueryColumn.new(:billed, :sortable => "#{TimeEntry.table_name}.billed", :groupable => true, :caption => :field_billed)
+      end
+      super
     end
-    super
+    
+    # Add customers to filters
+    def initialize_available_filters
+      #add_available_filter "customer", :type => :text
+      super
+    end
+
   end
-  
-  # Add customers to filters
-  def initialize_available_filters
-    #add_available_filter "customer", :type => :text
-    super
-  end
+
+  # Add module to Issue
+  IssueQuery.send(:prepend, QueryPatch)
 
 end
-
-# Add module to Issue
-IssueQuery.send(:prepend, QueryPatch)

@@ -1,6 +1,6 @@
 #The MIT License (MIT)
 #
-#Copyright (c) 2022 rick barrette
+#Copyright (c) 2016 - 2026 rick barrette
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -9,7 +9,6 @@
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class QboController < ApplicationController
-  unloadable
   
   require 'openssl'
   
@@ -26,9 +25,10 @@ class QboController < ApplicationController
   # Called when the user requests that Redmine to connect to QBO
   #
   def authenticate
-    oauth2_client = Qbo.get_client
-    callback = Setting.host_name + "/qbo/oauth_callback/" 
-    grant_url = oauth2_client.auth_code.authorize_url(redirect_uri: callback, response_type: "code", state: SecureRandom.hex(12), scope: "com.intuit.quickbooks.accounting")
+    redirect_uri = "#{Setting.protocol}://#{Setting.host_name + qbo_oauth_callback_path}"
+    logger.info "redirect_uri: #{redirect_uri}"
+    oauth2_client = Qbo.construct_oauth2_client
+    grant_url = oauth2_client.auth_code.authorize_url(redirect_uri: redirect_uri, response_type: "code", state: SecureRandom.hex(12), scope: "com.intuit.quickbooks.accounting")
     redirect_to grant_url
   end
   
@@ -37,9 +37,9 @@ class QboController < ApplicationController
   #
   def oauth_callback
     if params[:state].present?
-      oauth2_client = Qbo.get_client
+      oauth2_client = Qbo.construct_oauth2_client
       # use the state value to retrieve from your backend any information you need to identify the customer in your system
-      redirect_uri = Setting.host_name + "/qbo/oauth_callback/"
+      redirect_uri = "#{Setting.protocol}://#{Setting.host_name + qbo_oauth_callback_path}"
       if resp = oauth2_client.auth_code.get_token(params[:code], redirect_uri: redirect_uri)
         
         # Remove the last authentication information
@@ -47,17 +47,13 @@ class QboController < ApplicationController
         
         # Save the authentication information 
         qbo = Qbo.new
-        qbo.company_id = params[:realmId]
-        
-        # Generate Access Token & Serialize it into the database
-        access_token = OAuth2::AccessToken.new(oauth2_client, resp.token, refresh_token: resp.refresh_token)
-        qbo.token = access_token.to_hash
-        qbo.expire = 1.hour.from_now.utc
+        qbo.update(oauth2_access_token: resp.token, oauth2_refresh_token: resp.refresh_token, realm_id: params[:realmId])
+        qbo.refresh_token!
         
         if qbo.save!
-          redirect_to qbo_sync_path, :flash => { :notice => "Successfully connected to Quickbooks" }
+          redirect_to qbo_sync_path, :flash => { :notice => I18n.t(:label_connected) }
         else
-          redirect_to plugin_settings_path(:redmine_qbo), :flash => { :error => "Error" }
+          redirect_to plugin_settings_path(:redmine_qbo), :flash => { :error => I18n.t(:label_error) }
         end
         
       end
@@ -69,9 +65,9 @@ class QboController < ApplicationController
     i = Issue.find_by_id params[:id]
     if i.customer
       i.bill_time
-      redirect_to i, :flash => { :notice => "Successfully Billed #{i.customer.name}" }
+      redirect_to i, :flash => { :notice => I18n.t(:label_billed_success) + i.customer.name }
     else
-      redirect_to i, :flash => { :error => "Cannot bill without a customer assigned" }
+      redirect_to i, :flash => { :error => I18n.t(:label_billing_error) }
     end
   end
   
@@ -88,46 +84,48 @@ class QboController < ApplicationController
     
     # proceed if the request is good
     if hash.eql? signature
-      if request.headers['content-type'] == 'application/json'
-        data = JSON.parse(data)
-      else
-        # application/x-www-form-urlencoded
-        data = params.as_json
-      end
-      # Process the information
-      entities = data['eventNotifications'][0]['dataChangeEvent']['entities']
-      entities.each do |entity|
-        id = entity['id'].to_i
-        name = entity['name']
-       
-        logger.debug "Casting #{name.constantize} to obj"
-
-        # Magicly initialize the correct class
-        obj = name.constantize
-
-        # for merge events
-        obj.destroy(entity['deletedId']) if entity['deletedId']
-        
-        #Check to see if we are deleting a record
-        if entity['operation'].eql? "Delete"
-            obj.destroy(id)
-        #if not then update!
+      Thread.new do
+        if request.headers['content-type'] == 'application/json'
+          data = JSON.parse(data)
         else
-          begin
-            obj.sync_by_id(id)
-          rescue => e
-            logger.error "Failed to call sync_by_id on obj"
-            logger.error e.message
-            logger.error e.backtrace.join("\n")
+          # application/x-www-form-urlencoded
+          data = params.as_json
+        end
+        # Process the information
+        entities = data['eventNotifications'][0]['dataChangeEvent']['entities']
+        entities.each do |entity|
+          id = entity['id'].to_i
+          name = entity['name']
+        
+          logger.info "Casting #{name.constantize} to obj"
+
+          # Magicly initialize the correct class
+          obj = name.constantize
+
+          # for merge events
+          obj.destroy(entity['deletedId']) if entity['deletedId']
+          
+          #Check to see if we are deleting a record
+          if entity['operation'].eql? "Delete"
+            obj.destroy(id)
+          #if not then update!
+          else
+            begin
+              obj.sync_by_id(id)
+            rescue => e
+              logger.error "Failed to call sync_by_id on obj"
+              logger.error e.message
+              logger.error e.backtrace.join("\n")
+            end
           end
         end
+        
+        # Record that last time we updated
+        Qbo.update_time_stamp
+        ActiveRecord::Base.connection.close
       end
-      
-      # Record that last time we updated
-      Qbo.update_time_stamp
-      
       # The webhook doesn't require a response but let's make sure we don't send anything
-      render :nothing => true
+      render :nothing => true, status: 200
     else
       render nothing: true, status: 400
     end
@@ -145,7 +143,6 @@ class QboController < ApplicationController
       if Qbo.exists?
         Customer.sync
         Invoice.sync
-        QboItem.sync
         Employee.sync
         Estimate.sync
         
@@ -155,6 +152,6 @@ class QboController < ApplicationController
       ActiveRecord::Base.connection.close
     end
 
-    redirect_to :home, :flash => { :notice => "Successfully synced to Quickbooks" }
+    redirect_to :home, :flash => { :notice => I18n.t(:label_syncing) }
   end
 end

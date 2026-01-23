@@ -1,6 +1,6 @@
 #The MIT License (MIT)
 #
-#Copyright (c) 2022 rick barrette
+#Copyright (c) 2016 - 2026 rick barrette
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -9,10 +9,8 @@
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class Customer < ActiveRecord::Base
-  unloadable
   
   has_many :issues
-  has_many :purchases
   has_many :invoices
   has_many :estimates
  
@@ -22,7 +20,7 @@ class Customer < ActiveRecord::Base
   
   # returns a human readable string
   def to_s
-    return name
+    return "#{self[:name]} - #{phone_number.split(//).last(4).join unless phone_number.nil?}"
   end
   
   # Convenience Method
@@ -86,6 +84,13 @@ class Customer < ActiveRecord::Base
     #update our locally stored number too
     update_mobile_phone_number
   end
+
+  # Convenience Method
+  # Sets the notes
+  def notes=(s)
+    pull unless @details
+    @details.notes = s
+  end
   
   # update the localy stored phone number as a plain string with no special chars
   def update_phone_number
@@ -134,28 +139,28 @@ class Customer < ActiveRecord::Base
   # proforms a bruteforce sync operation
   # This needs to be simplified
   def self.sync 
-    service = Qbo.get_base(:customer)
-
     # Sync ALL customers if the database is empty
-    #if count == 0
-      customers = service.all
-    #else
-    #  last = Qbo.first.last_sync
-    #  query = "Select Id, DisplayName From Customer"
-    #  query << " Where Metadata.LastUpdatedTime >= '#{last.iso8601}' " if last
-    #  customers = service.query(query)
-    #end
+    qbo = Qbo.first
+    customers = qbo.perform_authenticated_request do |access_token|
+      service = Quickbooks::Service::Customer.new(:company_id => qbo.realm_id, :access_token => access_token)
+      service.all
+    end
     
-    customers.each do |customer|
-      customer = Customer.find_or_create_by(id: customer.id)
-      if customer.active?
-        if not customer.name.eql? customer.display_name
-          customer.name = customer.display_name
-          customer.id = customer.id
+    return unless customers
+    
+    customers.each do |c|
+      logger.info "Processing customer #{c.id}"
+      customer = Customer.find_or_create_by(id: c.id)
+      if c.active?
+        #if not customer.name.eql? c.display_name
+          customer.name = c.display_name
+          customer.id = c.id
+          customer.phone_number = c.primary_phone.free_form_number.tr('^0-9', '') unless c.primary_phone.nil?
+          customer.mobile_phone_number = c.mobile_phone.free_form_number.tr('^0-9', '') unless c.mobile_phone.nil?
           customer.save_without_push
-        end
+        #end
       else
-        if not customer.new_record?
+        if not c.new_record?
           customer.delete
         end
       end
@@ -171,16 +176,23 @@ class Customer < ActiveRecord::Base
   # proforms a bruteforce sync operation
   # This needs to be simplified
   def self.sync_by_id(id) 
-    service = Qbo.get_base(:customer)
+    qbo = Qbo.first
+    c = qbo.perform_authenticated_request do |access_token|
+      service = Quickbooks::Service::Customer.new(:company_id => qbo.realm_id, :access_token => access_token)
+      service.fetch_by_id(id)
+    end
 
-    customer = service.fetch_by_id(id)
-    customer = Customer.find_or_create_by(id: customer.id)
-    if customer.active?
-      if not customer.name.eql? customer.display_name
-        customer.name = customer.display_name
-        customer.id = customer.id
+    return unless c
+
+    customer = Customer.find_or_create_by(id: c.id)
+    if c.active?
+      #if not customer.name.eql? c.display_name
+        customer.name = c.display_name
+        customer.id = c.id
+        customer.phone_number = c.primary_phone.free_form_number.tr('^0-9', '') unless c.primary_phone.nil?
+        customer.mobile_phone_number = c.mobile_phone.free_form_number.tr('^0-9', '') unless c.mobile_phone.nil?
         customer.save_without_push
-      end
+      #end
     else
       if not customer.new_record?
         customer.delete
@@ -191,7 +203,11 @@ class Customer < ActiveRecord::Base
   # Push the updates
   def save_with_push
     begin
-      @details = Qbo.get_base(:customer).update(@details)
+      qbo = Qbo.first
+      @details = qbo.perform_authenticated_request do |access_token|
+        service = Quickbooks::Service::Customer.new(:company_id => qbo.realm_id, :access_token => access_token)
+        service.update(@details)
+      end
       #raise "QBO Fault" if @details.fault?
       self.id = @details.id
     rescue Exception => e
@@ -209,7 +225,11 @@ class Customer < ActiveRecord::Base
   def pull
     begin
       raise Exception unless self.id
-      @details = Qbo.get_base(:customer).fetch_by_id(self.id)
+      qbo = Qbo.first
+      @details = qbo.perform_authenticated_request do |access_token|
+        service = Quickbooks::Service::Customer.new(:company_id => qbo.realm_id, :access_token => access_token)
+        service.fetch_by_id(self.id)
+      end
     rescue Exception => e
       @details = Quickbooks::Model::Customer.new
     end

@@ -1,4 +1,4 @@
-<h2><%=t(:field_customer)%> #<%= @customer.id %> - <%= @customer.name %> </h2>
+<h2><%=t(:field_customer)%> #<%= @customer.id %> - <%= link_to @customer.to_s, "https://app.qbo.intuit.com/app/customerdetail?nameId=#{@customer.id}", target: :_blank %> </h2>
   <div class="issue">
 
     <div class="splitcontent">
@@ -7,7 +7,22 @@
 
         <h4><%=t(:label_details)%>:</h4>
 
-        <%= render :partial => 'customers/details', locals: {customer: @customer} %>
+        <!-- Customer Info -->
+
+        <div class="splitcontent">
+          <div class="splitcontentleft">
+            <h4><%=t(:label_customer)%>:</h4>
+            <%= render :partial => 'customers/details', locals: {customer: @customer} %>
+          </div>
+
+          <div class="splitcontentleft">
+            <h4><%=t(:label_actions)%>:</h4>
+            <%= render :partial => 'customers/actions', locals: {customer: @customer} %>
+          </div>
+        </div>
+
+
+        <!-- QBO Info -->
 
         <div class="splitcontent">
           <div class="splitcontentleft">

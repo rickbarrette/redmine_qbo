@@ -1,6 +1,6 @@
 #The MIT License (MIT)
 #
-#Copyright (c) 2022 rick barrette
+#Copyright (c) 2016 - 2026 rick barrette
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -22,7 +22,6 @@ en:
   label_search_estimates: "Search Estimates"
   label_search: "Search"
   label_estimates: "Estimates"
-  label_401: "Not Authorized"
   warn_ru_sure: "You sure?"
   label_delete: "Delete"
   label_edit: "Edit"
@@ -80,4 +79,12 @@ en:
   label_billing_error: "Cannot bill without a customer assigned"
   label_qbo_sync_success: "Successfully synced to Quickbooks"
   label_hours: "Hours"
-  
+  label_oauth2_refresh_token_expires_at: "Refresh Token Expires At"
+  label_name: "Name"
+  label_appointment: "Add Appointment"
+  label_actions: "Actions"
+  label_create_estimate: "Create Estimate"
+  label_syncing: "Syncing Quickbooks"
+  label_sandbox: "Sandbox"
+  button_bulk_pdf: "Bulk PDF"
+  label_select_all: "Select All"

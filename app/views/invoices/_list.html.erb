@@ -1,9 +1,22 @@
 <% if @customer.present? %>
 
-  <% @customer.invoices.order(doc_number: :desc).each do |invoice| %>
-    <div class="row">
-      <b><%= link_to "##{invoice.doc_number}", invoice_path(invoice), target: :_blank %></b> <%= invoice.txn_date %>
+  <%= form_with(url: invoice_path, method: :get) do |form| %>
+
+    <div class="form-check">
+      <%= check_box_tag "select-all-invoices", "1", false, id: "select-all-invoices" %>
+      <%= label_tag "select-all-invoices", t(:label_select_all) %>
     </div>
+
+    <hr>
+
+    <% @customer.invoices.order(id: :desc).each do |invoice| %>
+      <div class="row">
+        <%= check_box_tag "invoice_ids[]", invoice.id, false, class: "invoice-checkbox"  %>
+        <b><%= link_to "##{invoice.doc_number}", invoice_path(invoice), target: :_blank %></b> <%= invoice.txn_date %>
+      </div>
+    <% end %>
+
+    <%= form.submit t(:button_bulk_pdf) %>
   <% end %>
 
 <% else %>

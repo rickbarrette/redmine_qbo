@@ -1,5 +1,11 @@
 <table>
   <tbody>
+
+    <tr>
+      <th><%=t(:label_name)%></th>
+      <td><%= customer.name %></td>
+    </tr>
+
     <tr>
       <th><%=t(:label_email)%></th>
       <td><%= customer.email %></td>
@@ -32,12 +38,20 @@
     
     <tr>
       <th><%=t(:field_notes)%></th>
-      <td><%= customer.notes %></td>
+      <td>
+       <pre id="note-display" style="text-align: left; white-space: pre-wrap; font-family: inherit;">
+          <%= customer.notes %>
+        </pre>
+      </td>
     </tr>
+
+    <script>
+        const preElement = document.getElementById('note-display');
+        // This takes the text, trims the edges, and puts it back
+        preElement.textContent = preElement.textContent.trim();
+      </script>
+
   </tbody>
-</table>
-<div style="float: right;">
-  <%= button_to t(:label_edit_customer), edit_customer_path(customer), method: :get%> 
-</div> 
+</table> 
 <br/>
 <br/>

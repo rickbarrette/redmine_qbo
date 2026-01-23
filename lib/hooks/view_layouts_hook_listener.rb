@@ -1,6 +1,6 @@
 #The MIT License (MIT)
 #
-#Copyright (c) 2017 rick barrette
+#Copyright (c) 2016 - 2026 rick barrette
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -8,32 +8,18 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require_dependency 'project'
+module Hooks
 
-# Patches Redmine's Projects dynamically.
-# Adds a relationships
-module ProjectPatch
+  class ViewLayoutsHookListener < Redmine::Hook::ViewListener
 
-  def self.included(base) # :nodoc:
-  base.extend(ClassMethods)
+    # Load the javascript to support the autocomplete forms
+    def view_layouts_base_html_head(context = {})
+      js = javascript_include_tag 'application.js', :plugin => 'redmine_qbo'
+      js += javascript_include_tag 'autocomplete-rails.js', :plugin => 'redmine_qbo'
+      js += javascript_include_tag 'checkbox_controller.js', :plugin => 'redmine_qbo'
+      return js
+    end
 
-  base.send(:include, InstanceMethods)
-
-  # Same as typing in the class 
-  base.class_eval do
-    unloadable # Send unloadable so it will not be unloaded in development
-    belongs_to :customer, primary_key: :id
   end
-  end
+
 end
-    
-module ClassMethods
-    
-end
-  
-module InstanceMethods
- 
-end
-  
-# Add module to Project
-Project.send(:include, ProjectPatch)

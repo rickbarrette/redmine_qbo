@@ -10,23 +10,4 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -->
 
-<h2>QboController#authenticate</h2>
-<body>
-    <!-- REPLACE THE BODY of the default application.html.erb with this -->
-
-    <% unless session[:token] %>
-      <ipp:connectToIntuit></ipp:connectToIntuit>
-    <% end %>
-
-    <% if notice %>
-      <div style="padding: 10px;background: gainsboro;font-weight: 900;width: 50%;"><%= notice %></div>
-    <% end %>
-
-    <%= yield %>
-
-    <script type="text/javascript" src="https://appcenter.intuit.com/Content/IA/intuit.ipp.anywhere.js"></script>
-
-    <script>
-        intuit.ipp.anywhere.setup({menuProxy: '/path/to/blue-dot', grantUrl: '<%= authenticate_vendors_url %>'});
-    </script>
-  </body>
+<h2>QboController#webhook</h2>

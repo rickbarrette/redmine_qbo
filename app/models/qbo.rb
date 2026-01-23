@@ -1,6 +1,6 @@
 #The MIT License (MIT)
 #
-#Copyright (c) 2022 rick barrette
+#Copyright (c) 2016 - 2026 rick barrette
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -9,86 +9,16 @@
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class Qbo < ActiveRecord::Base
-  unloadable
-  validates_presence_of :token, :company_id, :expire
-  serialize :token
-
-  OAUTH_CONSUMER_KEY = Setting.plugin_redmine_qbo['settingsOAuthConsumerKey']
-  OAUTH_CONSUMER_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
-  
-  #
-  # Getter for quickbooks OAuth2 client
-  #
-  def self.get_client
-    oauth_params = {
-     site: "https://appcenter.intuit.com/connect/oauth2",
-     authorize_url: "https://appcenter.intuit.com/connect/oauth2",
-     token_url: "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer"
-    }
-    return OAuth2::Client.new(OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET, oauth_params)
-  end
-  
-  #
-  # Getter for oauth consumer
-  #
-  def self.get_oauth_consumer
-    # Quickbooks Config Info
-    return $qb_oauth_consumer
-  end
-
-  # 
-  # Get a quickbooks base service object for type
-  # @params type of base
-  #
-  def self.get_base(type)
-    # lets getnourbold access token from the database
-    oauth2_client = get_client
-    qbo = self.first
-    access_token = OAuth2::AccessToken.from_hash(oauth2_client, qbo.token)
-
-    # check to see if we need to refresh the acesstoken
-    if qbo.expire.to_time.utc.past?
-      puts "Updating access token"
-      new_access_token_object = access_token.refresh!
-      qbo.token = new_access_token_object.to_hash
-      qbo.expire = 1.hour.from_now.utc
-      qbo.save!
-      access_token = new_access_token_object
-    else
-      puts "Using current token"
-    end
     
-    # build the reqiested service
-    case type
-      when :item
-        return Quickbooks::Service::Item.new(:company_id => qbo.company_id, :access_token => access_token)
-      when :time_activity
-       return Quickbooks::Service::TimeActivity.new(:company_id => qbo.company_id, :access_token => access_token)
-      when :customer
-        return Quickbooks::Service::Customer.new(:company_id => qbo.company_id, :access_token => access_token)
-      when :invoice
-        return Quickbooks::Service::Invoice.new(:company_id => qbo.company_id, :access_token => access_token)
-      when :estimate
-        return Quickbooks::Service::Estimate.new(:company_id => qbo.company_id, :access_token => access_token)
-      when :account
-        return Quickbooks::Service::Account.new(:company_id => qbo.company_id, :access_token => access_token)
-      when :employee
-        return Quickbooks::Service::Employee.new(:company_id => qbo.company_id, :access_token => access_token)
-    else
-      return access_token
-    end
-   
-  end
-   
-   # Get the QBO account
-  def self.get_account
-    first
-  end
+  include QuickbooksOauth
+  include Redmine::I18n
   
   # Updates last sync time stamp
   def self.update_time_stamp
+    date = DateTime.now
+    logger.info "Updating QBO timestamp to #{date}"
     qbo = Qbo.first
-    qbo.last_sync = DateTime.now
+    qbo.last_sync = date
     qbo.save
   end
   
