@@ -93,6 +93,7 @@ To enable automatic Time Activity entries for an Issue, you simply need to assig
 ## TODO
     
 *   Separate Vehicles into a separate plugin (I use Redmine for my automotive shop management 😉)
+    *   Checkout branch dev-6 for a stripped down version 
     
 *   MORE Stuff as I make it up...
     
