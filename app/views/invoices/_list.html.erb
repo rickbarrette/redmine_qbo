@@ -2,12 +2,14 @@
 
   <%= form_with(url: invoice_path, method: :get) do |form| %>
 
-    <div class="form-check">
-      <%= check_box_tag "select-all-invoices", "1", false, id: "select-all-invoices" %>
-      <%= label_tag "select-all-invoices", t(:label_select_all) %>
-    </div>
+    <% if @customer.invoices.count > 1 %>
+      <div class="form-check">
+        <%= check_box_tag "select-all-invoices", "1", false, id: "select-all-invoices" %>
+        <%= label_tag "select-all-invoices", t(:label_select_all) %>
+      </div>
 
-    <hr>
+      <hr>
+    <% end %>
 
     <% @customer.invoices.order(id: :desc).each do |invoice| %>
       <div class="row">
@@ -16,7 +18,9 @@
       </div>
     <% end %>
 
-    <%= form.submit t(:button_bulk_pdf) %>
+    <% if @customer.invoices.count > 1 %>
+      <%= form.submit t(:button_bulk_pdf) %>
+    <% end %>
   <% end %>
 
 <% else %>
