@@ -43,7 +43,8 @@ module Hooks
           locals: {
             customer: customer, 
             estimate_link: estimate_link, 
-            invoice_link: invoice_link
+            invoice_link: invoice_link,
+            issue: issue
           } 
         })
     end
