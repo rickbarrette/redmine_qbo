@@ -12,33 +12,33 @@ require_dependency 'project'
 
 module Patches
 
-# Patches Redmine's Projects dynamically.
-# Adds a relationships
-module ProjectPatch
+  # Patches Redmine's Projects dynamically.
+  # Adds a relationships
+  module ProjectPatch
 
-  def self.included(base) # :nodoc:
-  base.extend(ClassMethods)
+    def self.included(base) # :nodoc:
+      base.extend(ClassMethods)
 
-  base.send(:include, InstanceMethods)
+      base.send(:include, InstanceMethods)
 
-  # Same as typing in the class 
-  base.class_eval do
-    unloadable # Send unloadable so it will not be unloaded in development
-    belongs_to :customer, primary_key: :id
-    belongs_to :vehicle, primary_key: :id
-  end
-  end
-end
+      # Same as typing in the class 
+      base.class_eval do
+        belongs_to :customer, primary_key: :id
+        belongs_to :vehicle, primary_key: :id
+      end
+    end
     
-module ClassMethods
+  end
+      
+  module ClassMethods
+      
+  end
     
-end
+  module InstanceMethods
   
-module InstanceMethods
- 
-end
-  
-# Add module to Project
-Project.send(:include, ProjectPatch)
+  end
+    
+  # Add module to Project
+  Project.send(:include, ProjectPatch)
 
 end
