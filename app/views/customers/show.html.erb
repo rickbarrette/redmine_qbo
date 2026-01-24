@@ -1,4 +1,4 @@
-<h2><%=t(:field_customer)%> #<%= @customer.id %> - <%= link_to @customer.to_s, "https://app.qbo.intuit.com/app/customerdetail?nameId=#{@customer.id}", target: :_blank %> </h2>
+<h2><%=t(:field_customer)%> #<%= @customer.id %> - <%= link_to @customer.to_s, "https://#{Setting.plugin_redmine_qbo['sandbox'] ? "sandbox" : "app"}.qbo.intuit.com/app/customerdetail?nameId=#{@customer.id}", target: :_blank %> </h2>
   <div class="issue">
 
     <div class="splitcontent">
