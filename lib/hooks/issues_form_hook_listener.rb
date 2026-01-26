@@ -12,6 +12,8 @@ module Hooks
 
   class IssuesFormHookListener < Redmine::Hook::ViewListener
 
+   include IssuesHelper
+
     # Edit Issue Form
     # Here we build the required form components before passing them to a partial view formatting. 
     def view_issues_form_details_bottom(context={})
@@ -29,7 +31,7 @@ module Hooks
       selected_estimate = issue.estimate ? issue.estimate.id  : nil
       
       # Gernerate edit.js link
-      js_link = issue.new_record? ? "updateIssueFrom('/projects/rmt/issues/new.js', this)" : "updateIssueFrom('/issues/#{issue.id}/edit.js', this)"
+      js_link = "updateIssueFrom('#{escape_javascript update_issue_form_path(issue.project, issue)}', this)"
 
       # Load customer information
       customer = Customer.find_by_id(selected_customer) if selected_customer
