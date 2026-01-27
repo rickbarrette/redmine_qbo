@@ -27,7 +27,6 @@ Redmine::Plugin.register :redmine_qbo do
   Issue.safe_attributes 'invoice_id'
   User.safe_attributes 'employee_id'
   TimeEntry.safe_attributes 'billed'
-  Project.safe_attributes 'customer_id'
   
   # set per_page globally
   WillPaginate.per_page = 20

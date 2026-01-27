@@ -20,12 +20,6 @@ module Hooks
       f = context[:form]
       issue = context[:issue]
 
-      # check project level customer ownership first
-      # This is done to preload customer information if the entire project is dedicated to a customer
-      if context[:project]
-        selected_customer = context[:project].customer ? context[:project].customer.id : nil
-      end
-
       # Check to see if the issue already belongs to a customer
       selected_customer = issue.customer ? issue.customer.id  : nil
       selected_estimate = issue.estimate ? issue.estimate.id  : nil
