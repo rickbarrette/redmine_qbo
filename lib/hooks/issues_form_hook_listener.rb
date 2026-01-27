@@ -67,7 +67,6 @@ module Hooks
           locals: {
             search_customer: search_customer, 
             customer_id: customer_id, 
-            js_link: js_link, 
             select_estimate: select_estimate
           } 
         }
