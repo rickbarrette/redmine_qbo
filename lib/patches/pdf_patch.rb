@@ -59,8 +59,12 @@ module Patches
         #left << [l(:field_fixed_version), issue.fixed_version] unless issue.disabled_core_fields.include?('fixed_version_id')
         
         logger.debug "Calling :pdf_left hook"
-        context = Redmine::Hook.call_hook :pdf_left, { array: left, issue: issue }
-        left << context.first unless context.nil?
+        left_hook_output = Redmine::Hook.call_hook :pdf_left, { issue: issue }
+        unless left_hook_output.nil?
+          left_hook_output.each do |l|
+            left.concat l unless l.nil?
+          end
+        end
 
         right = []
         right << [l(:field_start_date), format_date(issue.start_date)] unless issue.disabled_core_fields.include?('start_date')
@@ -70,8 +74,12 @@ module Patches
         right << [l(:label_spent_time), l_hours(issue.total_spent_hours)] if User.current.allowed_to?(:view_time_entries, issue.project)
         
         logger.debug "Calling :pdf_right hook"
-        context = Redmine::Hook.call_hook :pdf_right, { array: right, issue: issue }
-        right << context.first unless context.nil?
+        right_hook_output = Redmine::Hook.call_hook :pdf_right, { issue: issue }
+        unless right_hook_output.nil?
+          right_hook_output.each do |r|
+            right.concat r unless r.nil?
+          end
+        end
 
         rows = left.size > right.size ? left.size : right.size
         while left.size < rows
