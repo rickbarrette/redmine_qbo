@@ -91,6 +91,12 @@ To enable automatic Time Activity entries for an Issue, you simply need to assig
 
 **Note:** After the initial synchronization, this plugin will receive push notifications via Intuit's webhook service.   
 
+## Comainion Plugin Hooks
+* :pdf_left, { issue: issue }
+* :pdf_right, { issue: issue }
+* :process_invoice_custom_fields, { issue: issue, invoice: invoice } 
+* :show_customer_view_right, {customer: @customer}
+
 ## License
 
 > The MIT License (MIT)
