@@ -112,15 +112,15 @@ class Invoice < ActiveRecord::Base
     logger.debug "Calling :process_invoice_custom_fields hook"
     context = Redmine::Hook.call_hook :process_invoice_custom_fields, { issue: issue, invoice: invoice } 
 
-    unless context.nil?
-      logger.debug "We have a context!"
-      context= context.first
-      issue = context[:issue]
-      invoice = context[:invoice]
-      is_changed = context[:is_changed]
+    # Process updates from the hooks
+    context.each do |c|
+      unless c.nil?
+        logger.debug "Invoice.compare_custom_fields: We have a responce from a hook"
+        push_updates  c[:invoice] if c[:is_changed]
+      end
     end
       
-    # Custom Values
+    # Process Issue Custom Values
     begin
       value = issue.custom_values.find_by(custom_field_id: CustomField.find_by_name(cf.name).id)
       
@@ -137,13 +137,17 @@ class Invoice < ActiveRecord::Base
       # Nothing to do here, there is no match
     end
 
-    # Push updates
+    push_updates invoice if is_changed
+  end
+
+  # pushes invoice updates
+  def self.push_updates(invoice)
     begin
-      logger.info "Trying to update invoice"
+      logger.info "Invoice.push_updates"
       qbo = Qbo.first
       qbo.perform_authenticated_request do |access_token|
         service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
-        service.update(invoice) if is_changed
+        service.update invoice
       end
     rescue
       # Do nothing, probaly custome field sync confict on the invoice. 
