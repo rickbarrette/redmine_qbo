@@ -35,7 +35,7 @@ The goal of this project is to allow Redmine to connect with QuickBooks Online t
     * **Invoices:** Automatically attached to an Issue if a line item contains a hashtag number (e.g., `#123`).
     * **Custom Fields:** Invoice Custom Fields are matched to Issue Custom Fields and are automatically updated in QuickBooks. (Useful for extracting Mileage In/Out from the Issue to update the Invoice).
     * **Sync:** Customers are automatically updated in the local database.
-* **Plugin View Hooks** Allows intergration of other features supported by capainion plugins, for example [redmine_qbo_vehicles](https://github.com/rickbarrette/redmine_qbo_vehicles) adds customer vehicle interation
+* **Plugin View Hooks** Allows intergration of other features supported by companion plugins, for example [redmine_qbo_vehicles](https://github.com/rickbarrette/redmine_qbo_vehicles) adds customer vehicle interation
 
 ## Prerequisites
 
