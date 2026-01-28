@@ -34,7 +34,6 @@ module Hooks
       search_customer = f.autocomplete_field :customer,
         autocomplete_customer_name_customers_path,
         :selected => selected_customer,
-        :onchange => js_link,
         :update_elements => { 
           :id => '#issue_customer_id', 
           :value => '#issue_customer' 
