@@ -11,7 +11,7 @@
 Redmine::Plugin.register :redmine_qbo do
   
   # About
-  name 'Redmine QBO DEVELOPMENT plugin'
+  name 'Redmine QBO plugin'
   author 'Rick Barrette'
   description 'This is a plugin for Redmine to intergrate with Quickbooks Online to allow for seamless intergration CRM and invoicing of completed issues'
   version '2026.1.3'
