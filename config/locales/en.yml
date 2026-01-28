@@ -12,7 +12,6 @@
 # Usage I18n.t(:label)
 en:
   field_customer: "Customer"
-  field_item: "Item"
   field_employee: "Employee"
   field_invoice: "Invoice"
   field_estimate: "Estimate" 
@@ -54,7 +53,6 @@ en:
   label_customer_count: "Customer Count"
   label_invoice_count: "Invoice Count"
   label_estimate_count: "Estimate Count"
-  label_item_count: "Item Count"
   label_employee_count: "Employee Count"
   label_client_id: "Intuit QBO OAuth2 Client ID"
   label_client_secret: "Intuit QBO OAuth2 Client Secret"

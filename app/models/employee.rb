@@ -23,7 +23,6 @@ class Employee < ActiveRecord::Base
     return unless employees
     
     transaction do
-      # Update the item table
       employees.each { |e|
         logger.info "Processing employee #{e.id}"
         employee = 	find_or_create_by(id: e.id)
