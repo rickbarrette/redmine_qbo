@@ -35,6 +35,7 @@ The goal of this project is to allow Redmine to connect with QuickBooks Online t
     * **Invoices:** Automatically attached to an Issue if a line item contains a hashtag number (e.g., `#123`).
     * **Custom Fields:** Invoice Custom Fields are matched to Issue Custom Fields and are automatically updated in QuickBooks. (Useful for extracting Mileage In/Out from the Issue to update the Invoice).
     * **Sync:** Customers are automatically updated in the local database.
+* **Plugin View Hooks** Allows intergration of other features supported by capainion plugins, for example [redmine_qbo_vehicles](https://github.com/rickbarrette/redmine_qbo_vehicles) adds customer vehicle interation
 
 ## Prerequisites
 
@@ -88,13 +89,7 @@ The goal of this project is to allow Redmine to connect with QuickBooks Online t
 
 To enable automatic Time Activity entries for an Issue, you simply need to assign a Customer to an Issue via the dropdowns in the issue creation/update form.
 
-**Note:** After the initial synchronization, this plugin will receive push notifications via Intuit's webhook service.
-
-## TODO
-
-*   Add hooks to intergrate other plugins, i.e. customer vehicles for example
-*   MORE Stuff as I make it up...
-    
+**Note:** After the initial synchronization, this plugin will receive push notifications via Intuit's webhook service.   
 
 ## License
 
