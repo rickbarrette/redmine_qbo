@@ -54,9 +54,9 @@ module Patches
         left << [l(:field_status), issue.status]
         left << [l(:field_priority), issue.priority]
         left << [l(:field_customer), customer]
-        left << [l(:field_assigned_to), issue.assigned_to] unless issue.disabled_core_fields.include?('assigned_to_id')
-        #left << [l(:field_category), issue.category] unless issue.disabled_core_fields.include?('category_id')
-        #left << [l(:field_fixed_version), issue.fixed_version] unless issue.disabled_core_fields.include?('fixed_version_id')
+        left << [l(:field_assigned_to), issue.assigned_to] unless issue.disabled_core_fields.include?(:assigned_to_id)
+        #left << [l(:field_category), issue.category] unless issue.disabled_core_fields.include?(:category_id)
+        #left << [l(:field_fixed_version), issue.fixed_version] unless issue.disabled_core_fields.include?(:fixed_version_id)
         
         logger.debug "Calling :pdf_left hook"
         left_hook_output = Redmine::Hook.call_hook :pdf_left, { issue: issue }
@@ -67,10 +67,10 @@ module Patches
         end
 
         right = []
-        right << [l(:field_start_date), format_date(issue.start_date)] unless issue.disabled_core_fields.include?('start_date')
-        right << [l(:field_due_date), format_date(issue.due_date)] unless issue.disabled_core_fields.include?('due_date')
-        right << [l(:field_done_ratio), "#{issue.done_ratio}%"] unless issue.disabled_core_fields.include?('done_ratio')
-        right << [l(:field_estimated_hours), l_hours(issue.estimated_hours)] unless issue.disabled_core_fields.include?('estimated_hours')
+        right << [l(:field_start_date), format_date(issue.start_date)] unless issue.disabled_core_fields.include?(:start_date)
+        right << [l(:field_due_date), format_date(issue.due_date)] unless issue.disabled_core_fields.include?(:due_date)
+        right << [l(:field_done_ratio), "#{issue.done_ratio}%"] unless issue.disabled_core_fields.include?(:done_ratio)
+        right << [l(:field_estimated_hours), l_hours(issue.estimated_hours)] unless issue.disabled_core_fields.include?(:estimated_hours)
         right << [l(:label_spent_time), l_hours(issue.total_spent_hours)] if User.current.allowed_to?(:view_time_entries, issue.project)
         
         logger.debug "Calling :pdf_right hook"

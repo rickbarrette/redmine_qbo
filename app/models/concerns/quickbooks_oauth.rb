@@ -73,7 +73,7 @@ module QuickbooksOauth
       oauth_consumer_secret = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
 
       # Are we are playing in the sandbox?
-      Quickbooks.sandbox_mode = Setting.plugin_redmine_qbo['sandbox'] ? true : false
+      Quickbooks.sandbox_mode = Setting.plugin_redmine_qbo[:sandbox] ? true : false
       logger.info "Sandbox mode: #{Quickbooks.sandbox_mode}"
 
       options = {

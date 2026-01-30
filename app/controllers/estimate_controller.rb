@@ -36,7 +36,7 @@ class EstimateController < ApplicationController
     estimate = get_estimate
 
     begin
-      send_data estimate.pdf, filename: "estimate #{estimate.doc_number}.pdf", disposition: 'inline', type: "application/pdf"
+      send_data estimate.pdf, filename: "estimate #{estimate.doc_number}.pdf", disposition: :inline, type: "application/pdf"
     rescue
       redirect_to :back, flash: { error: "Estimate not found" }
     end
@@ -49,7 +49,7 @@ class EstimateController < ApplicationController
     estimate = get_estimate
     
     begin
-      send_data estimate.pdf, filename: "estimate #{estimate.doc_number}.pdf", disposition: 'inline', type: "application/pdf"
+      send_data estimate.pdf, filename: "estimate #{estimate.doc_number}.pdf", disposition: :inline, type: "application/pdf"
     rescue
       redirect_to :back, flash: { error: "Estimate not found" }
     end

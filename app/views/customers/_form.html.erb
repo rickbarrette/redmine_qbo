@@ -36,7 +36,7 @@
           <%=t(:field_notes)%>: 
           <div class="input">
             <p>  
-              <%= content_tag 'span', id: "issue_description_and_toolbar" do %>
+              <%= content_tag :span, id: "issue_description_and_toolbar" do %>
               <%= f.text_area :notes,
                     cols: 60,
                     rows: 10,
@@ -45,7 +45,7 @@
                     no_label: true %>
               <% end %>
             </p>
-            <%= wikitoolbar_for 'issue_description' %>
+            <%= wikitoolbar_for :issue_description %>
           </div>
         </div>
         
