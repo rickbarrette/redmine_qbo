@@ -21,11 +21,11 @@ Redmine::Plugin.register :redmine_qbo do
   requires_redmine version_or_higher: '6.1.0'
   
   # Add safe attributes for core models
-  Issue.safe_attributes 'customer_id'
-  Issue.safe_attributes 'estimate_id'
-  Issue.safe_attributes 'invoice_id'
-  User.safe_attributes 'employee_id'
-  TimeEntry.safe_attributes 'billed'
+  Issue.safe_attributes :customer_id
+  Issue.safe_attributes :estimate_id
+  Issue.safe_attributes :invoice_id
+  User.safe_attributes :employee_id
+  TimeEntry.safe_attributes :billed
   
   # set per_page globally
   WillPaginate.per_page = 20
