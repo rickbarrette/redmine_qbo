@@ -39,7 +39,7 @@ module Hooks
       # Generate the drop down list of quickbooks estimates owned by the selected customer
       select_estimate = f.select :estimate_id, 
         issue.customer ? issue.customer.estimates.pluck(:doc_number, :id).sort! {|x, y| y <=> x} : [], 
-        selected: issue.estimate, 
+        selected: issue.estimate ? issue.estimate.id : nil, 
         include_blank: true
       
       # Pass all prebuilt form components to our partial
