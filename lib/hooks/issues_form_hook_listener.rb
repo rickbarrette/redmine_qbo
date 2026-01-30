@@ -20,39 +20,27 @@ module Hooks
       f = context[:form]
       issue = context[:issue]
 
-      # Check to see if the issue already belongs to a customer
-      selected_customer = issue.customer ? issue.customer.id  : nil
-      selected_estimate = issue.estimate ? issue.estimate.id  : nil
-      
-      # Gernerate edit.js link
-      js_link = "updateIssueFrom('#{escape_javascript update_issue_form_path(issue.project, issue)}', this)"
-
-      # Load customer information
-      customer = Customer.find_by_id(selected_customer) if selected_customer
-
       # Customer Name Text Box with database backed autocomplete
+      # onchange event will update the hidden customer_id field
       search_customer = f.autocomplete_field :customer,
         autocomplete_customer_name_customers_path,
-        :selected => selected_customer,
+        :selected => issue.customer,
         :update_elements => { 
           :id => '#issue_customer_id', 
           :value => '#issue_customer' 
         }
 
-      # Customer ID - Hidden Field
+      # This hidden field is used for the customer ID for the issue
+      # the onchange event will reload the issue form via ajax to update the available estimates
       customer_id = f.hidden_field :customer_id,
         :id => "issue_customer_id",
-        :onchange => js_link
+        :onchange => "updateIssueFrom('#{escape_javascript update_issue_form_path(issue.project, issue)}', this)".html_safe
 
-      # Load estimates
-      if issue.customer
-        estimates = customer.estimates.pluck(:doc_number, :id).sort! {|x, y| y <=> x}
-      else
-        estimates = [nil].compact
-      end
-
-      # Generate the drop down list of quickbooks estimates
-      select_estimate = f.select :estimate_id, estimates, :selected => selected_estimate, include_blank: true
+      # Generate the drop down list of quickbooks estimates owned by the selected customer
+      select_estimate = f.select :estimate_id, 
+        issue.customer ? issue.customer.estimates.pluck(:doc_number, :id).sort! {|x, y| y <=> x} : [], 
+        :selected => issue.estimate, 
+        include_blank: true
       
       # Pass all prebuilt form components to our partial
       context[:controller].send(:render_to_string, {
