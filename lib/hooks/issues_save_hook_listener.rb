@@ -14,8 +14,11 @@ module Hooks
 
     # Called Before Issue Saved
     def controller_issues_edit_before_save(context={})
-      issue = context[:issue]
-      issue.subject = issue.subject.titleize
+      return context[:issue].subject = context[:issue].subject.titleize
+    end
+
+    def controller_issues_new_before_save(context={})
+      return context[:issue].subject = context[:issue].subject.titleize
     end
 
     # Called After Issue Saved
