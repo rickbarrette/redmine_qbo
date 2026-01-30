@@ -35,7 +35,7 @@ Redmine::Plugin.register :redmine_qbo do
   permission :add_customers, customers: :new, public: false
   
   # Register top menu items
-  menu :top_menu, :customers, { controller: :customers, action: :index }, caption: 'Customers', if: Proc.new {User.current.logged?}
+  menu :top_menu, :customers, { controller: :customers, action: :index }, caption: :label_customers, if: Proc.new {User.current.logged?}
     
 end
 
