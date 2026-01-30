@@ -30,7 +30,7 @@ class AddTxnDates < ActiveRecord::Migration[5.1]
 
           qbo = Qbo.first
           invoices = qbo.perform_authenticated_request do |access_token|
-            service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
+            service = Quickbooks::Service::Invoice.new(company_id: qbo.realm_id, access_token: access_token)
             service.all
           end
 

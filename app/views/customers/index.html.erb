@@ -1,4 +1,4 @@
-<h2><%=t(:field_customers)%> <span style="float:right"> <%= render :partial => 'customers/search' %> </span> </h2>
+<h2><%=t(:field_customers)%> <span style="float:right"> <%= render partial: 'customers/search' %> </span> </h2>
 <% if @customers.present? %>
   <br/>
   <% @customers.each do |c| %>
@@ -20,5 +20,5 @@
 <% end %>
 
 <div>
-  <%= render :partial => 'qbo/stats' %>
+  <%= render partial: 'qbo/stats' %>
 </div>

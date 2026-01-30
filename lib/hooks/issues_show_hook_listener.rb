@@ -26,7 +26,7 @@ module Hooks
       end
       
       context[:controller].send(:render_to_string, {
-        :partial => 'issues/show_details',
+        partial: 'issues/show_details',
           locals: {
             customer: issue.customer ? link_to(issue.customer): nill, 
             estimate_link: issue.estimate ? link_to(issue.estimate, issue.estimate, target: :_blank) : nil, 

@@ -18,14 +18,14 @@ module Patches
     def available_columns
       unless @available_columns
         @available_columns = self.class.available_columns.dup
-        @available_columns << QueryColumn.new(:billed, :sortable => "#{TimeEntry.table_name}.name", :groupable => true, :caption => :field_billed)
+        @available_columns << QueryColumn.new(:billed, sortable: "#{TimeEntry.table_name}.name", groupable: true, caption: :field_billed)
       end
       super
     end
     
     # Add QBO options to the filter
     def initialize_available_filters
-      add_available_filter "billed", :type => :boolean
+      add_available_filter "billed", type: :boolean
       super
     end
 

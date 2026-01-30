@@ -14,9 +14,9 @@ module Hooks
 
     # Load the javascript to support the autocomplete forms
     def view_layouts_base_html_head(context = {})
-      js = javascript_include_tag 'application.js', :plugin => 'redmine_qbo'
-      js += javascript_include_tag 'autocomplete-rails.js', :plugin => 'redmine_qbo'
-      js += javascript_include_tag 'checkbox_controller.js', :plugin => 'redmine_qbo'
+      js = javascript_include_tag 'application.js', plugin: 'redmine_qbo'
+      js += javascript_include_tag 'autocomplete-rails.js', plugin: 'redmine_qbo'
+      js += javascript_include_tag 'checkbox_controller.js', plugin: 'redmine_qbo'
       return js
     end
 

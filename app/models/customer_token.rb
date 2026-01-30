@@ -55,7 +55,7 @@ class CustomerToken < ActiveRecord::Base
     end
 
     # only create new token if we have an issue to attach it to
-    return create(:issue_id => issue.id) if User.current.logged?
+    return create(issue_id: issue.id) if User.current.logged?
   end
 
 end

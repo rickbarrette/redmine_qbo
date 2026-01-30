@@ -11,8 +11,8 @@ class EstimateController < ApplicationController
   
   include AuthHelper
   
-  before_action :require_user, :unless => proc {|c| session[:token].nil? }
-  skip_before_action :verify_authenticity_token, :check_if_login_required, :unless => proc {|c| session[:token].nil? }
+  before_action :require_user, unless: proc {|c| session[:token].nil? }
+  skip_before_action :verify_authenticity_token, :check_if_login_required, unless: proc {|c| session[:token].nil? }
 
   def get_estimate
     # Force sync for estimate by doc number if not found
@@ -36,9 +36,9 @@ class EstimateController < ApplicationController
     estimate = get_estimate
 
     begin
-      send_data estimate.pdf, filename: "estimate #{estimate.doc_number}.pdf", :disposition => 'inline', :type => "application/pdf"
+      send_data estimate.pdf, filename: "estimate #{estimate.doc_number}.pdf", disposition: 'inline', type: "application/pdf"
     rescue
-      redirect_to :back, :flash => { :error => "Estimate not found" }
+      redirect_to :back, flash: { error: "Estimate not found" }
     end
   end
 
@@ -49,9 +49,9 @@ class EstimateController < ApplicationController
     estimate = get_estimate
     
     begin
-      send_data estimate.pdf, filename: "estimate #{estimate.doc_number}.pdf", :disposition => 'inline', :type => "application/pdf"
+      send_data estimate.pdf, filename: "estimate #{estimate.doc_number}.pdf", disposition: 'inline', type: "application/pdf"
     rescue
-      redirect_to :back, :flash => { :error => "Estimate not found" }
+      redirect_to :back, flash: { error: "Estimate not found" }
     end
   end
 

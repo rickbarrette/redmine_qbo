@@ -55,8 +55,8 @@ module Patches
           # Prepare to create a new Time Activity
           qbo = Qbo.first
           qbo.perform_authenticated_request do |access_token|
-            time_service = Quickbooks::Service::TimeActivity.new(:company_id => qbo.realm_id, :access_token => access_token)
-            item_service = Quickbooks::Service::Item.new(:company_id => qbo.realm_id, :access_token => access_token)
+            time_service = Quickbooks::Service::TimeActivity.new(company_id: qbo.realm_id, access_token: access_token)
+            item_service = Quickbooks::Service::Item.new(company_id: qbo.realm_id, access_token: access_token)
             time_entry = Quickbooks::Model::TimeActivity.new
     
             # Lets total up each activity before billing.

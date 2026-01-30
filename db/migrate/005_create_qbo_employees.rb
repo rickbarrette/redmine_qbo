@@ -11,7 +11,7 @@
 class CreateQboEmployees < ActiveRecord::Migration[5.1]
   def change
     create_table :qbo_employees, id: false do |t|
-      t.integer :id, :options => 'PRIMARY KEY'
+      t.integer :id, options: 'PRIMARY KEY'
       t.string :name
     end
   end

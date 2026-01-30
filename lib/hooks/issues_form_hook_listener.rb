@@ -24,27 +24,27 @@ module Hooks
       # onchange event will update the hidden customer_id field
       search_customer = f.autocomplete_field :customer,
         autocomplete_customer_name_customers_path,
-        :selected => issue.customer,
-        :update_elements => { 
-          :id => '#issue_customer_id', 
-          :value => '#issue_customer' 
+        selected: issue.customer,
+        update_elements: { 
+          id: '#issue_customer_id', 
+          value: '#issue_customer' 
         }
 
       # This hidden field is used for the customer ID for the issue
       # the onchange event will reload the issue form via ajax to update the available estimates
       customer_id = f.hidden_field :customer_id,
-        :id => "issue_customer_id",
-        :onchange => "updateIssueFrom('#{escape_javascript update_issue_form_path(issue.project, issue)}', this)".html_safe
+        id: "issue_customer_id",
+        onchange: "updateIssueFrom('#{escape_javascript update_issue_form_path(issue.project, issue)}', this)".html_safe
 
       # Generate the drop down list of quickbooks estimates owned by the selected customer
       select_estimate = f.select :estimate_id, 
         issue.customer ? issue.customer.estimates.pluck(:doc_number, :id).sort! {|x, y| y <=> x} : [], 
-        :selected => issue.estimate, 
+        selected: issue.estimate, 
         include_blank: true
       
       # Pass all prebuilt form components to our partial
       context[:controller].send(:render_to_string, {
-        :partial => 'issues/form_hook',
+        partial: 'issues/form_hook',
           locals: {
             search_customer: search_customer, 
             customer_id: customer_id, 

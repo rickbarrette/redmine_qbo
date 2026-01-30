@@ -25,7 +25,7 @@ class Estimate < ActiveRecord::Base
     logger.info "Syncing ALL estimates"
     qbo = Qbo.first
     estimates = qbo.perform_authenticated_request do |access_token|
-      service = Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
+      service = Quickbooks::Service::Estimate.new(company_id: qbo.realm_id, access_token: access_token)
       service.all
     end
 
@@ -44,7 +44,7 @@ class Estimate < ActiveRecord::Base
     logger.info "Syncing estimate #{id}"
     qbo = Qbo.first
     qbo.perform_authenticated_request do |access_token|
-      service = Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
+      service = Quickbooks::Service::Estimate.new(company_id: qbo.realm_id, access_token: access_token)
       process_estimate(service.fetch_by_id(id))
     end
   end
@@ -54,7 +54,7 @@ class Estimate < ActiveRecord::Base
     logger.info "Syncing estimate by doc number #{number}"
     qbo = Qbo.first
     qbo.perform_authenticated_request do |access_token|
-      service = Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
+      service = Quickbooks::Service::Estimate.new(company_id: qbo.realm_id, access_token: access_token)
       process_estimate(service.find_by( :doc_number, number).first)
     end
   end
@@ -63,7 +63,7 @@ class Estimate < ActiveRecord::Base
   def self.update(id)
     qbo = Qbo.first
     estimate = qbo.perform_authenticated_request do |access_token|
-      service = Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
+      service = Quickbooks::Service::Estimate.new(company_id: qbo.realm_id, access_token: access_token)
       service.fetch_by_id(id)
     end
 
@@ -90,7 +90,7 @@ class Estimate < ActiveRecord::Base
   def pdf
     qbo = Qbo.first
     qbo.perform_authenticated_request do |access_token|
-      service = Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
+      service = Quickbooks::Service::Estimate.new(company_id: qbo.realm_id, access_token: access_token)
       estimate = service.fetch_by_id(id)
       service.pdf(estimate)
     end
@@ -122,7 +122,7 @@ class Estimate < ActiveRecord::Base
       raise Exception unless self.id
       qbo = Qbo.first
       @details = qbo.perform_authenticated_request do |access_token|
-        service = Quickbooks::Service::Estimate.new(:company_id => qbo.realm_id, :access_token => access_token)
+        service = Quickbooks::Service::Estimate.new(company_id: qbo.realm_id, access_token: access_token)
         service(:estimate).fetch_by_id(self.id)
       end
     rescue Exception => e

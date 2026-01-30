@@ -143,10 +143,10 @@ module Patches
         # Set resize image scale
         pdf.set_image_scale(1.6)
         text = textilizable(issue, :description,
-                            :only_path => false,
-                            :edit_section_links => false,
-                            :headings => false,
-                            :inline_attachments => false
+                            only_path: false,
+                            edit_section_links: false,
+                            headings: false,
+                            inline_attachments: false
         )
         pdf.RDMwriteFormattedCell(35+155, 5, '', '', text, issue.attachments, "LRB")
 
@@ -233,10 +233,10 @@ module Patches
               pdf.ln unless journal.details.empty?
               pdf.SetFontStyle('',8)
               text = textilizable(journal, :notes,
-                                  :only_path => false,
-                                  :edit_section_links => false,
-                                  :headings => false,
-                                  :inline_attachments => false
+                                  only_path: false,
+                                  edit_section_links: false,
+                                  headings: false,
+                                  inline_attachments: false
               )
               pdf.RDMwriteFormattedCell(190,5,'','', text, issue.attachments, "")
             end

@@ -11,7 +11,7 @@
 class CreateQboPurchases< ActiveRecord::Migration[5.1]
   def change
     create_table :qbo_purchases, id: false do |t| 
-      t.integer :id, :options => 'PRIMARY KEY' 
+      t.integer :id, options: 'PRIMARY KEY' 
       t.integer :line_id
       t.string :description
       t.integer :customer_id

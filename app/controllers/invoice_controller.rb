@@ -12,8 +12,8 @@ class InvoiceController < ApplicationController
   include AuthHelper
   require 'combine_pdf'
 
-  before_action :require_user, :unless => proc {|c| session[:token].nil? }
-  skip_before_action :verify_authenticity_token, :check_if_login_required, :unless => proc {|c| session[:token].nil? }
+  before_action :require_user, unless: proc {|c| session[:token].nil? }
+  skip_before_action :verify_authenticity_token, :check_if_login_required, unless: proc {|c| session[:token].nil? }
   
   #
   # Downloads and forwards the invoice pdf
@@ -23,7 +23,7 @@ class InvoiceController < ApplicationController
     begin
       qbo = Qbo.first
         qbo.perform_authenticated_request do |access_token|
-        service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
+        service = Quickbooks::Service::Invoice.new(company_id: qbo.realm_id, access_token: access_token)
         
         # If multiple id's then pull each pdf & combine them
         if params[:invoice_ids]
@@ -45,10 +45,10 @@ class InvoiceController < ApplicationController
           ref = invoice.doc_number
         end
 
-        send_data @pdf, filename: "invoice #{ref}.pdf", :disposition => 'inline', :type => "application/pdf"
+        send_data @pdf, filename: "invoice #{ref}.pdf", disposition: 'inline', type: "application/pdf"
       end
     rescue
-      redirect_to :back, :flash => { :error => "Invoice not found" }
+      redirect_to :back, flash: { error: "Invoice not found" }
     end
   end
 end

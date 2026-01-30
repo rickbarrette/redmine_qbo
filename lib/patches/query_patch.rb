@@ -18,15 +18,15 @@ module Patches
     def available_columns
       unless @available_columns
         @available_columns = self.class.available_columns.dup
-        @available_columns << QueryColumn.new(:customer, :sortable => "#{Issue.table_name}.customer_id", :groupable => true, :caption => :field_customer)
-        @available_columns << QueryColumn.new(:billed, :sortable => "#{TimeEntry.table_name}.billed", :groupable => true, :caption => :field_billed)
+        @available_columns << QueryColumn.new(:customer, sortable: "#{Issue.table_name}.customer_id", groupable: true, caption: :field_customer)
+        @available_columns << QueryColumn.new(:billed, sortable: "#{TimeEntry.table_name}.billed", groupable: true, caption: :field_billed)
       end
       super
     end
     
     # Add customers to filters
     def initialize_available_filters
-      #add_available_filter "customer", :type => :text
+      #add_available_filter "customer", type: :text
       super
     end
 

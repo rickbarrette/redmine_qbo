@@ -32,7 +32,7 @@ class Invoice < ActiveRecord::Base
     # .all() is never called since count is never initialized
     qbo = Qbo.first
     invoices = qbo.perform_authenticated_request do |access_token|
-      service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
+      service = Quickbooks::Service::Invoice.new(company_id: qbo.realm_id, access_token: access_token)
       service.all 
     end
 
@@ -48,7 +48,7 @@ class Invoice < ActiveRecord::Base
     logger.info "Syncing invoice #{id}"
     qbo = Qbo.first
     qbo.perform_authenticated_request do |access_token|
-      service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
+      service = Quickbooks::Service::Invoice.new(company_id: qbo.realm_id, access_token: access_token)
       invoice = service.fetch_by_id(id) 
       process_invoice invoice
     end
@@ -151,7 +151,7 @@ class Invoice < ActiveRecord::Base
       logger.info "Invoice.push_updates"
       qbo = Qbo.first
       qbo.perform_authenticated_request do |access_token|
-        service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
+        service = Quickbooks::Service::Invoice.new(company_id: qbo.realm_id, access_token: access_token)
         service.update invoice
       end
     rescue
@@ -167,7 +167,7 @@ class Invoice < ActiveRecord::Base
   def pdf
     qbo = Qbo.first
     qbo.perform_authenticated_request do |access_token|
-      service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
+      service = Quickbooks::Service::Invoice.new(company_id: qbo.realm_id, access_token: access_token)
       invoice = service.fetch_by_id(id)
       return service.pdf(invoice)
     end
@@ -197,7 +197,7 @@ class Invoice < ActiveRecord::Base
       raise Exception unless self.id
       qbo = Qbo.first
       @details = qbo.perform_authenticated_request do |access_token|
-        service = Quickbooks::Service::Invoice.new(:company_id => qbo.realm_id, :access_token => access_token)
+        service = Quickbooks::Service::Invoice.new(company_id: qbo.realm_id, access_token: access_token)
         service.fetch_by_id(self.id)
       end
     rescue Exception => e

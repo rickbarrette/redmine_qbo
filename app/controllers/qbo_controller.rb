@@ -14,8 +14,8 @@ class QboController < ApplicationController
   
   include AuthHelper
   
-  before_action :require_user, :except => :webhook
-  skip_before_action :verify_authenticity_token, :check_if_login_required, :only => [:webhook]
+  before_action :require_user, except: :webhook
+  skip_before_action :verify_authenticity_token, :check_if_login_required, only: [:webhook]
 
   def allowed_params
     params.permit(:code, :state, :realmId, :id)
@@ -51,9 +51,9 @@ class QboController < ApplicationController
         qbo.refresh_token!
         
         if qbo.save!
-          redirect_to qbo_sync_path, :flash => { :notice => I18n.t(:label_connected) }
+          redirect_to qbo_sync_path, flash: { notice: I18n.t(:label_connected) }
         else
-          redirect_to plugin_settings_path(:redmine_qbo), :flash => { :error => I18n.t(:label_error) }
+          redirect_to plugin_settings_path(:redmine_qbo), flash: { error: I18n.t(:label_error) }
         end
         
       end
@@ -65,9 +65,9 @@ class QboController < ApplicationController
     i = Issue.find_by_id params[:id]
     if i.customer
       i.bill_time
-      redirect_to i, :flash => { :notice => I18n.t(:label_billed_success) + i.customer.name }
+      redirect_to i, flash: { notice: I18n.t(:label_billed_success) + i.customer.name }
     else
-      redirect_to i, :flash => { :error => I18n.t(:label_billing_error) }
+      redirect_to i, flash: { error: I18n.t(:label_billing_error) }
     end
   end
   
@@ -125,7 +125,7 @@ class QboController < ApplicationController
         ActiveRecord::Base.connection.close
       end
       # The webhook doesn't require a response but let's make sure we don't send anything
-      render :nothing => true, status: 200
+      render nothing: true, status: 200
     else
       render nothing: true, status: 400
     end
@@ -152,6 +152,6 @@ class QboController < ApplicationController
       ActiveRecord::Base.connection.close
     end
 
-    redirect_to :home, :flash => { :notice => I18n.t(:label_syncing) }
+    redirect_to :home, flash: { notice: I18n.t(:label_syncing) }
   end
 end

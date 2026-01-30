@@ -17,8 +17,8 @@ Redmine::Plugin.register :redmine_qbo do
   version '2026.1.4'
   url 'https://github.com/rickbarrette/redmine_qbo'
   author_url 'https://barrettefabrication.com'
-  settings :default => {'empty' => true}, :partial => 'qbo/settings'
-  requires_redmine :version_or_higher => '6.1.0'
+  settings default: {'empty' => true}, partial: 'qbo/settings'
+  requires_redmine version_or_higher: '6.1.0'
   
   # Add safe attributes for core models
   Issue.safe_attributes 'customer_id'
@@ -31,11 +31,11 @@ Redmine::Plugin.register :redmine_qbo do
   WillPaginate.per_page = 20
 
   # Permissions for security
-  permission :view_customers, :customers => :index, :public => false
-  permission :add_customers, :customers => :new, :public => false
+  permission :view_customers, customers: :index, public: false
+  permission :add_customers, customers: :new, public: false
   
   # Register top menu items
-  menu :top_menu, :customers, { :controller => :customers, :action => :index }, :caption => 'Customers', :if => Proc.new {User.current.logged?}
+  menu :top_menu, :customers, { controller: :customers, action: :index }, caption: 'Customers', if: Proc.new {User.current.logged?}
     
 end
 

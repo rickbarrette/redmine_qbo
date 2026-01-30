@@ -12,12 +12,12 @@
         <div class="splitcontent">
           <div class="splitcontentleft">
             <h4><%=t(:field_customer)%>:</h4>
-            <%= render :partial => 'customers/details', locals: {customer: @customer} %>
+            <%= render partial: 'customers/details', locals: {customer: @customer} %>
           </div>
 
           <div class="splitcontentleft">
             <h4><%=t(:label_actions)%>:</h4>
-            <%= render :partial => 'customers/actions', locals: {customer: @customer} %>
+            <%= render partial: 'customers/actions', locals: {customer: @customer} %>
           </div>
         </div>
 
@@ -27,12 +27,12 @@
         <div class="splitcontent">
           <div class="splitcontentleft">
             <h4><%=t(:estimates)%>:</h4>
-            <%= render :partial => 'estimates/list', locals: {customer: @customer} %>
+            <%= render partial: 'estimates/list', locals: {customer: @customer} %>
           </div>
 
           <div class="splitcontentleft">
             <h4><%=t(:label_invoices)%>:</h4>
-            <%= render :partial => 'invoices/list', locals: {customer: @customer} %>
+            <%= render partial: 'invoices/list', locals: {customer: @customer} %>
           </div>
         </div>
 
@@ -47,7 +47,7 @@
 
 <br/>
 <h3><%=@issues.open.count%> <%=t(:label_open_issues)%> - <%=@hours.round(1)%> <%=t(:label_hours)%></h3>
-<%= render :partial => 'issues/list_simple', locals: {issues: @issues.open} %>
+<%= render partial: 'issues/list_simple', locals: {issues: @issues.open} %>
 
 <h3><%=@closed_issues.count%> <%=t(:label_closed_issues)%> - <%= @closed_hours.round(1)%> <%=t(:label_hours)%></h3>
-<%= render :partial => 'issues/list_simple', locals: {issues: @closed_issues} %>
+<%= render partial: 'issues/list_simple', locals: {issues: @closed_issues} %>

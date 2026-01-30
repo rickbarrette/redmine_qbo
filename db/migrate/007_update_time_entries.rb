@@ -10,6 +10,6 @@
 
 class UpdateTimeEntries < ActiveRecord::Migration[5.1]
   def change
-    add_column :time_entries, :qbo_billed, :boolean, :default => false
+    add_column :time_entries, :qbo_billed, :boolean, default: false
   end
 end

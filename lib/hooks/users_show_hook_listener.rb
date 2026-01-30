@@ -22,7 +22,7 @@ module Hooks
       @selected = context[:user].employee.id if context[:user].employee
 
       # Generate the drop down list of quickbooks contacts
-      return "<p>#{context[:form].select :employee_id, Employee.all.pluck(:name, :id), :selected => @selected, include_blank: true}</p>"
+      return "<p>#{context[:form].select :employee_id, Employee.all.pluck(:name, :id), selected: @selected, include_blank: true}</p>"
     end
   end
 

@@ -3,12 +3,12 @@
   <div id="change-<%= journal.id %>" class="<%= journal.css_classes %>">
     <div id="note-<%= journal.indice %>">
     <div class="contextual">
-      <span class="journal-actions"><%= render_journal_actions(issue, journal, :reply_links => reply_links) %></span>
+      <span class="journal-actions"><%= render_journal_actions(issue, journal, reply_links: reply_links) %></span>
       <a href="#note-<%= journal.indice %>" class="journal-link">#<%= journal.indice %></a>
     </div>
     <h4>
-      <%= avatar(journal.user, :size => "24") %>
-      <%= authoring journal.created_on, journal.user, :label => :label_updated_time_by %>
+      <%= avatar(journal.user, size: "24") %>
+      <%= authoring journal.created_on, journal.user, label: :label_updated_time_by %>
       <%= render_private_notes_indicator(journal) %>
     </h4>
 
@@ -26,10 +26,10 @@
       </div>
     <% end %>
     <% end %>
-    <%= render_notes(issue, journal, :reply_links => reply_links) unless journal.notes.blank? %>
+    <%= render_notes(issue, journal, reply_links: reply_links) unless journal.notes.blank? %>
     </div>
   </div>
-  <%= call_hook(:view_issues_history_journal_bottom, { :journal => journal }) %>
+  <%= call_hook(:view_issues_history_journal_bottom, { journal: journal }) %>
 <% end %>
 
 <% heads_for_wiki_formatter if User.current.allowed_to?(:edit_issue_notes, issue.project) || User.current.allowed_to?(:edit_own_issue_notes, issue.project) %>
