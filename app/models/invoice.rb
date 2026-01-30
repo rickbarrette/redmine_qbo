@@ -14,6 +14,11 @@ class Invoice < ActiveRecord::Base
   belongs_to :customer 
   validates_presence_of :doc_number, :id, :customer_id, :txn_date
   self.primary_key = :id
+
+   # returns a human readable string
+  def to_s
+    return self[:doc_number]
+  end
   
   # sync ALL the invoices
   def self.sync

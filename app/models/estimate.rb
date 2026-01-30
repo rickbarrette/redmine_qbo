@@ -14,6 +14,11 @@ class Estimate < ActiveRecord::Base
   belongs_to :customer 
   validates_presence_of :doc_number, :id
   self.primary_key = :id
+
+  # returns a human readable string
+  def to_s
+    return self[:doc_number]
+  end
   
   # sync all estimates
   def self.sync
