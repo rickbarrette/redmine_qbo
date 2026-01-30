@@ -13,37 +13,24 @@ module Hooks
   class IssuesShowHookListener < Redmine::Hook::ViewListener
 
     # View Issue
-    # Display the quickbooks contact in the issue
+    # Displays the quickbooks customer, estimate, & invoices attached to the issue
     def view_issues_show_details_bottom(context={})
       issue = context[:issue]
       
-      # Check to see if there is a quickbooks user attached to the issue
-      if issue.customer
-        customer = link_to issue.customer.name, customer_path( issue.customer.id )
-      end
-      
-      # Estimate Number
-      if issue.estimate
-        estimate = issue.estimate.doc_number
-        estimate_link = link_to estimate, estimate_path( issue.estimate.id ), :target => "_blank"
-      end
-      
-      # Invoice Number
+      # Build a list of invoice links
       invoice_link = ""
-      if issue.invoice_ids
-        issue.invoice_ids.each do |i|
-          invoice = Invoice.find i
-          invoice_link = invoice_link + link_to( invoice.doc_number, invoice_path( i ), :target => "_blank").to_s + " "
-          invoice_link = invoice_link.html_safe
+      if issue.invoices
+        issue.invoices.each do |i|
+          invoice_link += "#{link_to i, i, target: :_blank}<br/>"
         end
       end
       
       context[:controller].send(:render_to_string, {
         :partial => 'issues/show_details',
           locals: {
-            customer: customer, 
-            estimate_link: estimate_link, 
-            invoice_link: invoice_link,
+            customer: issue.customer ? link_to(issue.customer): nill, 
+            estimate_link: issue.estimate ? link_to(issue.estimate, issue.estimate, target: :_blank) : nil, 
+            invoice_link: invoice_link.html_safe,
             issue: issue
           } 
         })
