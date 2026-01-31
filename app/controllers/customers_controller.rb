@@ -110,7 +110,7 @@ class CustomersController < ApplicationController
     begin
       @customer = Customer.find_by_id(params[:id])
       if @customer.update(allowed_params)
-        flash[:notice] = tv :notice_customer_updated
+        flash[:notice] = t :notice_customer_updated
         redirect_to @customer
       else
         redirect_to edit_customer_path
