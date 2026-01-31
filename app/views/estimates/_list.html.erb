@@ -1,4 +1,4 @@
-<% if estimates.empty? %>
+<% unless estimates.empty? %>
 
   <% estimates.sort.reverse.each do |estimate| %>
     <div class="row">

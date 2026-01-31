@@ -1,4 +1,4 @@
-<% if invoices.empty? %>
+<% unless invoices.empty? %>
 
   <%= form_with(url: invoice_path, method: :get) do |form| %>
 
