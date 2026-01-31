@@ -69,7 +69,7 @@ class CustomersController < ApplicationController
   def create
     @customer = Customer.new(allowed_params)
     if @customer.save
-      flash[:notice] = "New Customer Created"
+      flash[:notice] = t :notice_customer_created
       redirect_to @customer
     else
       flash[:error] = @customer.errors.full_messages.to_sentence
@@ -90,6 +90,7 @@ class CustomersController < ApplicationController
       @issues.open.each { |i| @hours+= i.total_spent_hours }
       @closed_issues.each { |i| @closed_hours+= i.total_spent_hours }
     rescue 
+      flash[:error] = t :notice_customer_not_found
       render_404
     end
   end
@@ -99,6 +100,7 @@ class CustomersController < ApplicationController
     begin
       @customer = Customer.find_by_id(params[:id])
     rescue 
+      flash[:error] = t :notice_customer_not_found
       render_404
     end
   end
@@ -108,13 +110,14 @@ class CustomersController < ApplicationController
     begin
       @customer = Customer.find_by_id(params[:id])
       if @customer.update(allowed_params)
-        flash[:notice] = "Customer updated"
+        flash[:notice] = tv :notice_customer_updated
         redirect_to @customer
       else
         redirect_to edit_customer_path
         flash[:error] = @customer.errors.full_messages.to_sentence if @customer.errors
       end
     rescue 
+      flash[:error] = t :notice_customer_not_found
       render_404
     end
   end
@@ -123,9 +126,10 @@ class CustomersController < ApplicationController
   def destroy
     begin
       Customer.find_by_id(params[:id]).destroy
-      flash[:notice] = "Customer deleted successfully"
+      flash[:notice] = t :notice_customer_deleted
       redirect_to action: :index
     rescue 
+      flash[:error] = t :notice_customer_not_deleted
       render_404
     end
   end
@@ -143,6 +147,7 @@ class CustomersController < ApplicationController
       issue = Issue.find_by_id(params[:id])
       redirect_to view_path issue.share_token.token
     rescue
+      flash[:error] = t :notice_issue_not_found
       render_404
     end
   end
@@ -178,6 +183,7 @@ class CustomersController < ApplicationController
       @time_entry = TimeEntry.new(issue: @issue, project: @issue.project)
       @relation = IssueRelation.new
     rescue
+      flash[:error] = t :notice_forbidden
       render_403
     end
   end

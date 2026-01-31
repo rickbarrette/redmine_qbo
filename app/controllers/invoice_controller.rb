@@ -48,7 +48,7 @@ class InvoiceController < ApplicationController
         send_data @pdf, filename: "invoice #{ref}.pdf", disposition: :inline, type: "application/pdf"
       end
     rescue
-      redirect_to :back, flash: { error: "Invoice not found" }
+      redirect_to :back, flash: { error: I18n.t(:notice_invoice_not_found) }
     end
   end
 end
