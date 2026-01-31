@@ -92,10 +92,10 @@ class QboController < ApplicationController
           data = params.as_json
         end
         # Process the information
-        entities = data['eventNotifications'][0]['dataChangeEvent'][:entities]
+        entities = data['eventNotifications'][0]['dataChangeEvent']['entities']
         entities.each do |entity|
-          id = entity[:id].to_i
-          name = entity[:name]
+          id = entity['id'].to_i
+          name = entity['name']
         
           logger.info "Casting #{name.constantize} to obj"
 
@@ -106,7 +106,7 @@ class QboController < ApplicationController
           obj.destroy(entity['deletedId']) if entity['deletedId']
           
           #Check to see if we are deleting a record
-          if entity[:operation].eql? "Delete"
+          if entity['operation'].eql? "Delete"
             obj.destroy(id)
           #if not then update!
           else
