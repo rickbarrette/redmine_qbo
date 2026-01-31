@@ -17,7 +17,7 @@ Redmine::Plugin.register :redmine_qbo do
   version '2026.1.7'
   url 'https://github.com/rickbarrette/redmine_qbo'
   author_url 'https://barrettefabrication.com'
-  settings default: {'empty' => true}, partial: 'qbo/settings'
+  settings default: {empty: true}, partial: 'qbo/settings'
   requires_redmine version_or_higher: '6.1.0'
   
   # Add safe attributes for core models
