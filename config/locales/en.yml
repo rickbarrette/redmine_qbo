@@ -99,3 +99,4 @@ en:
   notice_invoice_not_found: "Invoice not found"
   notice_forbidden: "You do not have permission to access this resource"
   notice_issue_not_found: "Issue not found"
+  customer_details: "Customer Details"
