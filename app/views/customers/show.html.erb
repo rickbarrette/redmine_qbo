@@ -27,12 +27,12 @@
         <div class="splitcontent">
           <div class="splitcontentleft">
             <h4><%=t(:estimates)%>:</h4>
-            <%= render partial: 'estimates/list', locals: {customer: @customer} %>
+            <%= render partial: 'estimates/list', locals: {estimates: @customer.estimates} %>
           </div>
 
           <div class="splitcontentleft">
             <h4><%=t(:label_invoices)%>:</h4>
-            <%= render partial: 'invoices/list', locals: {customer: @customer} %>
+            <%= render partial: 'invoices/list', locals: {invoices: @customer.invoices} %>
           </div>
         </div>
 
