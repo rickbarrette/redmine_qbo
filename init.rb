@@ -13,7 +13,7 @@ Redmine::Plugin.register :redmine_qbo do
   # About
   name 'Redmine QBO plugin'
   author 'Rick Barrette'
-  description 'This is a plugin for Redmine to intergrate with Quickbooks Online to allow for seamless intergration CRM and invoicing of completed issues'
+  description 'A pluging for Redmine to connect with QuickBooks Online to create Time Activity Entries for billable hours logged when an Issue is closed'
   version '2026.1.9'
   url 'https://github.com/rickbarrette/redmine_qbo'
   author_url 'https://barrettefabrication.com'
