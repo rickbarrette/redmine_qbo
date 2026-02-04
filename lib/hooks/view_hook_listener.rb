@@ -12,8 +12,16 @@ module Hooks
 
   class ViewHookListener < Redmine::Hook::ViewListener
 
+    # Load the javascript to support the autocomplete forms
+    def view_layouts_base_html_head(context = {})
+      js = javascript_include_tag 'application.js', plugin: :redmine_qbo
+      js += javascript_include_tag 'autocomplete-rails.js', plugin: :redmine_qbo
+      js += javascript_include_tag 'checkbox_controller.js', plugin: :redmine_qbo
+      return js
+    end
+
     render_on :view_layouts_base_sidebar, partial: "qbo/sidebar"
-    
+    render_on :view_layouts_base_body_bottom, partial: "qbo/footer"
   end
 
 end
