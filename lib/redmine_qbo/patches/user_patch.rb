@@ -8,31 +8,37 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require_dependency 'issue_query'
+require_dependency 'user'
 
-module Patches
+module RedmineQbo
+  module Patches
 
-  module QueryPatch
-    
-    # Add qbo options to the aviable columns
-    def available_columns
-      unless @available_columns
-        @available_columns = self.class.available_columns.dup
-        @available_columns << QueryColumn.new(:customer, sortable: "#{Issue.table_name}.customer_id", groupable: true, caption: :field_customer)
-        @available_columns << QueryColumn.new(:billed, sortable: "#{TimeEntry.table_name}.billed", groupable: true, caption: :field_billed)
+    # Patches Redmine's User dynamically.
+    # Adds a relationships
+    module UserPatch
+      def self.included(base) # :nodoc:
+        base.extend(ClassMethods)
+
+        base.send(:include, InstanceMethods)
+
+        # Same as typing in the class 
+        base.class_eval do
+          belongs_to :employee, primary_key: :id
+        end
       end
-      super
+        
+      module ClassMethods
+        
+      end
+      
+      module InstanceMethods
+      
+      end
+      
     end
-    
-    # Add customers to filters
-    def initialize_available_filters
-      #add_available_filter "customer", type: :text
-      super
-    end
+
+    # Add module to Issue
+    User.send(:include, UserPatch)
 
   end
-
-  # Add module to Issue
-  IssueQuery.send(:prepend, QueryPatch)
-
 end

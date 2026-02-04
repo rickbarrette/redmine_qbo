@@ -7,31 +7,33 @@
 #The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+require_dependency 'issues_controller'
 
-require_dependency 'time_entry_query'
+module RedmineQbo
+  module Patches
+    module IssuesControllerPatch
 
-module Patches
-
-  module TimeEntryQueryPatch
-
-    # Add QBO options to columns
-    def available_columns
-      unless @available_columns
-        @available_columns = self.class.available_columns.dup
-        @available_columns << QueryColumn.new(:billed, sortable: "#{TimeEntry.table_name}.name", groupable: true, caption: :field_billed)
+      module Helper
+        def watcher_link(issue, user)
+          link = +''
+          link << link_to(I18n.t(:label_bill_time), bill_path( issue.id ), method: :get, class: 'icon icon-email-add') if user.admin?
+          link << link_to(I18n.t(:label_share), share_path( issue.id ), method: :get, target: :_blank, class: 'icon icon-shared') if user.logged?
+          link.html_safe + super
+        end
       end
-      super
-    end
-    
-    # Add QBO options to the filter
-    def initialize_available_filters
-      add_available_filter "billed", type: :boolean
-      super
-    end
+
+      def self.included(base)
+
+        base.class_eval do
+          helper Helper
+        end
+
+      end
+
+    end   
+
+    # Add module to IssuessController
+    IssuesController.send(:include, IssuesControllerPatch)
 
   end
-
-  # Add module to TimeEntryQuery
-  TimeEntryQuery.send(:prepend, QueryPatch)
-
 end

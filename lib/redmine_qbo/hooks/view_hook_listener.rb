@@ -8,39 +8,22 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require_dependency 'attachments_controller'
+module RedmineQbo
+  module Hooks
 
-module Patches
+    class ViewHookListener < Redmine::Hook::ViewListener
 
-  module AttachmentsControllerPatch
-
-    def self.included(base)
-
-      base.class_eval do
-
-        # check if login is globally required to access the application
-        def check_if_login_required
-          # no check needed if user is already logged in
-          return true if User.current.logged?
-          
-          # Pull up the attachmet, & verify if we have a valid token for the Issue
-          attachment = Attachment.find(params[:id])
-          token = CustomerToken.where("token = ? and expires_at > ?", session[:token], Time.now)
-          token = token.first
-          unless token.nil?
-            return true if token.issue_id == attachment.container_id
-          end
-          
-          require_login if Setting.login_required?
-        end
-        
+      # Load the javascript to support the autocomplete forms
+      def view_layouts_base_html_head(context = {})
+        js = javascript_include_tag 'application.js', plugin: :redmine_qbo
+        js += javascript_include_tag 'autocomplete-rails.js', plugin: :redmine_qbo
+        js += javascript_include_tag 'checkbox_controller.js', plugin: :redmine_qbo
+        return js
       end
 
+      render_on :view_layouts_base_sidebar, partial: "qbo/sidebar"
+      render_on :view_layouts_base_body_bottom, partial: "qbo/footer"
     end
 
-  end   
-
-  # Add module to AttachmentsController
-  AttachmentsController.send(:include, AttachmentsControllerPatch)
-
+  end
 end

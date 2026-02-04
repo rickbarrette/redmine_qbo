@@ -8,35 +8,36 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require_dependency 'user'
+module RedmineQbo
+  module Hooks
 
-module Patches
+    class IssuesShowHookListener < Redmine::Hook::ViewListener
 
-  # Patches Redmine's User dynamically.
-  # Adds a relationships
-  module UserPatch
-    def self.included(base) # :nodoc:
-      base.extend(ClassMethods)
-
-      base.send(:include, InstanceMethods)
-
-      # Same as typing in the class 
-      base.class_eval do
-        belongs_to :employee, primary_key: :id
+      # View Issue
+      # Displays the quickbooks customer, estimate, & invoices attached to the issue
+      def view_issues_show_details_bottom(context={})
+        issue = context[:issue]
+        
+        # Build a list of invoice links
+        invoice_link = ""
+        if issue.invoices
+          issue.invoices.each do |i|
+            invoice_link += "#{link_to i, i, target: :_blank}<br/>"
+          end
+        end
+        
+        context[:controller].send(:render_to_string, {
+          partial: 'issues/show_details',
+            locals: {
+              customer: issue.customer ? link_to(issue.customer) : nil, 
+              estimate_link: issue.estimate ? link_to(issue.estimate, issue.estimate, target: :_blank) : nil, 
+              invoice_link: invoice_link.html_safe,
+              issue: issue
+            } 
+          })
       end
-    end
-      
-    module ClassMethods
       
     end
-    
-    module InstanceMethods
-    
-    end
-    
-  end
 
-  # Add module to Issue
-  User.send(:include, UserPatch)
-
+  end 
 end

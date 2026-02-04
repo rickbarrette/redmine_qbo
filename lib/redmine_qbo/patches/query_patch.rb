@@ -8,34 +8,32 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-module Hooks
+require_dependency 'issue_query'
 
-  class IssuesShowHookListener < Redmine::Hook::ViewListener
-
-    # View Issue
-    # Displays the quickbooks customer, estimate, & invoices attached to the issue
-    def view_issues_show_details_bottom(context={})
-      issue = context[:issue]
+module RedmineQbo
+  module Patches
+    module QueryPatch
       
-      # Build a list of invoice links
-      invoice_link = ""
-      if issue.invoices
-        issue.invoices.each do |i|
-          invoice_link += "#{link_to i, i, target: :_blank}<br/>"
+      # Add qbo options to the aviable columns
+      def available_columns
+        unless @available_columns
+          @available_columns = self.class.available_columns.dup
+          @available_columns << QueryColumn.new(:customer, sortable: "#{Issue.table_name}.customer_id", groupable: true, caption: :field_customer)
+          @available_columns << QueryColumn.new(:billed, sortable: "#{TimeEntry.table_name}.billed", groupable: true, caption: :field_billed)
         end
+        super
       end
       
-      context[:controller].send(:render_to_string, {
-        partial: 'issues/show_details',
-          locals: {
-            customer: issue.customer ? link_to(issue.customer) : nil, 
-            estimate_link: issue.estimate ? link_to(issue.estimate, issue.estimate, target: :_blank) : nil, 
-            invoice_link: invoice_link.html_safe,
-            issue: issue
-          } 
-        })
-    end
-    
-  end
+      # Add customers to filters
+      def initialize_available_filters
+        #add_available_filter "customer", type: :text
+        super
+      end
 
+    end
+
+    # Add module to Issue
+    IssueQuery.send(:prepend, QueryPatch)
+
+  end
 end
