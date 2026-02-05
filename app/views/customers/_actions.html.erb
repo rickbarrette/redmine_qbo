@@ -1,4 +1,4 @@
-<%= button_to t(:label_appointment), "https://calendar.google.com/calendar/render?action=TEMPLATE&text=#{@customer.name}+-&details=#{ link_to t(:customer_details), "https://#{Setting.host_name}#{customer_path @customer.id}"}%0A#{@customer.primary_phone}&dates=#{Time.now.strftime("%Y%m%d")}T090000/#{Time.now.strftime("%Y%m%d")}T170000", target: :_blank, method: :get %>
+<%= link_to t(:label_appointment), "https://calendar.google.com/calendar/render?action=TEMPLATE&text=#{@customer.name}+-&details=#{ link_to t(:customer_details), "https://#{Setting.host_name}#{customer_path @customer.id}"}%0A#{@customer.primary_phone}&dates=#{Time.now.strftime("%Y%m%d")}T090000/#{Time.now.strftime("%Y%m%d")}T170000", target: :_blank %>
 
 <br/>
 <br/>
