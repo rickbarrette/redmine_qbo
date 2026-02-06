@@ -110,11 +110,20 @@ module RedmineQbo
         CustomerToken.get_token self
       end
       
-      # Titleize the subject before save
+      # Titleize the subject before save , but keep words containing numbers mixed with letters capitalized
       def titlize_subject
-        self.subject = self.subject.titleize
+        self.subject = self.subject.split(/\s+/).map do |word|
+          # If word is NOT purely alphanumeric (contains special chars),
+          # or is all upper/lower, we can handle it.
+          # excluding alphanumeric strings with mixed case and numbers (e.g., "ID555ABC") from being altered.
+          if word =~ /[A-Z]/ && word =~ /[0-9]/
+            word
+          else
+            word.downcase
+            word.capitalize
+          end
+        end.join(' ')
       end
-      
     end  
 
     # Add module to Issue
