@@ -112,6 +112,7 @@ module RedmineQbo
       
       # Titleize the subject before save , but keep words containing numbers mixed with letters capitalized
       def titlize_subject
+        logger.debug "QBO: Titlizing subject for issue ##{self.id}"
         self.subject = self.subject.split(/\s+/).map do |word|
           # If word is NOT purely alphanumeric (contains special chars),
           # or is all upper/lower, we can handle it.
