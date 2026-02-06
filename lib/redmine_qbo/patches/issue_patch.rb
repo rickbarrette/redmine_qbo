@@ -43,7 +43,7 @@ module RedmineQbo
         
         # Create billable time entries
         def bill_time
-          logger.debug "QBO: Billing time for issue ##{id} - #{subject}"
+          logger.debug "QBO: Billing time for issue ##{id}"
           return unless  status.is_closed?
           return if assigned_to.nil?
           return unless Qbo.first 
