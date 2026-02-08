@@ -25,7 +25,6 @@ module RedmineQbo
         base.class_eval do
           helper Helper
           before_action :error_check, only: [:create]
-          before_action :reload_new_issue, only: [:new]
         end
       end
 
@@ -33,25 +32,18 @@ module RedmineQbo
       # If the project or tracker is not set, reload the new issue form with an error message.
       def error_check
         logger.info "Creating issue for: #{@issue.project}"
-        update_issue_from_params
+        
         if @issue.project.nil?
+          @issue.project = Project.first
           flash[:error] = t :notice_error_project_nil 
           render :new, status: :unprocessable_entity
         end
 
         if @issue.tracker.nil?
+          @issue.tracker = Tracker.first
           flash[:error] = t :notice_error_tracker_nil 
           render :new, status: :unprocessable_entity
         end
-      end
-
-      # Reload the new issue form with a default tracker and project if not set. 
-      # This is needed to prevent errors when creating an issue without selecting a project or tracker.
-      def reload_new_issue
-        logger.info "Reloading new #{@issue.tracker} issue for: #{@project}"
-        @issue.tracker ||= Tracker.first
-        @project ||= Project.first
-        logger.info "Reloaded new #{@issue.tracker} issue for: #{@project}"
       end
 
     end   
