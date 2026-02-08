@@ -39,7 +39,7 @@ module RedmineQbo
           render :new, status: :unprocessable_entity
         end
 
-        if @issue.project.nil?
+        if @issue.tracker.nil?
           flash[:error] = t :notice_error_tracker_nil 
           render :new, status: :unprocessable_entity
         end
