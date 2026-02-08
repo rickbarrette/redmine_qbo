@@ -100,5 +100,4 @@ en:
   notice_forbidden: "You do not have permission to access this resource"
   notice_issue_not_found: "Issue not found"
   customer_details: "Customer Details"
-  notice_error_project_nil: "The issue's project is nil."
-  notice_error_project_nil: "The issue's tracker is nil."
+  notice_error_project_nil: "The issue's project is nil, set project to: "

@@ -24,29 +24,9 @@ module RedmineQbo
       def self.included(base)
         base.class_eval do
           helper Helper
-          before_action :error_check, only: [:create]
         end
-      end
-
-      # Check for errors when creating an issue. 
-      # If the project or tracker is not set, reload the new issue form with an error message.
-      def error_check
-        logger.info "Creating issue for: #{@issue.project}"
-        
-        if @issue.project.nil?
-          @issue.project = Project.first
-          flash[:error] = t :notice_error_project_nil 
-          render :new, status: :unprocessable_entity
-        end
-
-        if @issue.tracker.nil?
-          @issue.tracker = Tracker.first
-          flash[:error] = t :notice_error_tracker_nil 
-          render :new, status: :unprocessable_entity
-        end
-      end
-
-    end   
+      end 
+    end
 
     # Add module to IssuessController
     IssuesController.send(:include, IssuesControllerPatch)

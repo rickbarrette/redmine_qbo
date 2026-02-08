@@ -10,10 +10,21 @@
 
 module RedmineQbo
   module Hooks
+    class IssuesHookListener < Redmine::Hook::ViewListener
 
-    class IssuesFormHookListener < Redmine::Hook::ViewListener
+      include IssuesHelper
 
-    include IssuesHelper
+      # Check the new issue form for a valid project.
+      # This is added to help prevent 422 unprocessable entity errors when creating an issue 
+      # See https://github.com/redmine/redmine/blob/84483d63828d0cb2efbf5bd786a2f0d22e34c93d/app/controllers/issues_controller.rb#L179
+      def controller_issues_new_before_save(context={})
+        if context[:issue].project.nil?
+          context[:issue].project = projects_for_select(context[:issue]).first
+          context[:controller].flash[:error] = I18n.t(:notice_error_project_nil) + context[:issue].project.to_s
+        end
+
+        return context
+      end
 
       # Edit Issue Form
       # Here we build the required form components before passing them to a partial view formatting. 
@@ -54,7 +65,31 @@ module RedmineQbo
           }
         )
       end
-    end
 
-  end
+      # View Issue
+      # Displays the quickbooks customer, estimate, & invoices attached to the issue
+      def view_issues_show_details_bottom(context={})
+        issue = context[:issue]
+        
+        # Build a list of invoice links
+        invoice_link = ""
+        if issue.invoices
+          issue.invoices.each do |i|
+            invoice_link += "#{link_to i, i, target: :_blank}<br/>"
+          end
+        end
+        
+        context[:controller].send(:render_to_string, {
+          partial: 'issues/show_details',
+            locals: {
+              customer: issue.customer ? link_to(issue.customer) : nil, 
+              estimate_link: issue.estimate ? link_to(issue.estimate, issue.estimate, target: :_blank) : nil, 
+              invoice_link: invoice_link.html_safe,
+              issue: issue
+            } 
+          })
+      end
+      
+    end
+  end 
 end
