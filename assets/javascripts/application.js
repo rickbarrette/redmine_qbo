@@ -24,7 +24,15 @@ function getSelectedInvoiceIds() {
 
   // Display the result (for demonstration)
   console.log(JSON.stringify(selectedIds));
+
+  let invoice_link = '';
+  let link = '';
+  for (const value of selectedIds) {
+    link = `<a href="${window.location.origin}/invoices/${value}">${value}</a>%0A`
+    console.log(link);
+    invoice_link += link;
+  }
   
   // You can return the array or use it as needed
-  return selectedIds;
+  return invoice_link;
 }
