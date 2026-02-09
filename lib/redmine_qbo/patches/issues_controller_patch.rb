@@ -26,6 +26,7 @@ module RedmineQbo
 
           if context[:issue].tracker.nil?
             context[:issue].tracker = trackers_for_select(context[:issue]).first
+             context[:issue].tracker = Tracker.first if context[:issue].tracker.nil?
             context[:controller].flash[:error] = I18n.t(:notice_error_tracker_nil) + context[:issue].tracker.to_s
           end
 
