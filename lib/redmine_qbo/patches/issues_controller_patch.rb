@@ -21,12 +21,14 @@ module RedmineQbo
         def controller_issues_new_before_save(context={})
           if context[:issue].project.nil?
             context[:issue].project = projects_for_select(context[:issue]).first
+            Rails.logger.error I18n.t(:notice_error_project_nil) + context[:issue].project.to_s
             context[:controller].flash[:error] = I18n.t(:notice_error_project_nil) + context[:issue].project.to_s
           end
 
           if context[:issue].tracker.nil?
             context[:issue].tracker = trackers_for_select(context[:issue]).first
              context[:issue].tracker = Tracker.first if context[:issue].tracker.nil?
+             Rails.logger.error I18n.t(:notice_error_tracker_nil) + context[:issue].tracker.to_s
             context[:controller].flash[:error] = I18n.t(:notice_error_tracker_nil) + context[:issue].tracker.to_s
           end
 
