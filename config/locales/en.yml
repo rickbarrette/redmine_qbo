@@ -101,3 +101,4 @@ en:
   notice_issue_not_found: "Issue not found"
   customer_details: "Customer Details"
   notice_error_project_nil: "The issue's project is nil, set project to: "
+  notice_error_tracker_nil: "The issue's tracker is nil, set tracker to: "
