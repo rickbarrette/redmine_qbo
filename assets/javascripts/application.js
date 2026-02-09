@@ -1,38 +1,32 @@
 function updateLink() {
-
-  const selectedIds = getSelectedInvoiceIds();
- 
-
-  const extra = `%0A${selectedIds}`; 
-
   const linkElement = document.getElementById("appointment_link");
-  const absoluteUrl = linkElement.href;
-  let result = absoluteUrl.replace(/&dates/g, `${extra}&dates`);
-
-  linkElement.href = result;
+  const regex = /((?:<br\/>|%3Cbr\/?%3E))([\s\S]*?)(&dates)/gi;
+  linkElement.href = linkElement.href.replace(regex, `$1${getSelectedDocs()}$3`);
   linkElement.textContent = "New Appointment Link";
 }
 
-function getSelectedInvoiceIds() {
-  // Select all checkboxes with the class 'invoice-checkbox'
-  const checkboxes = document.querySelectorAll('.invoice-checkbox');
+function getSelectedDocs() {
+  const invoices = document.querySelectorAll('.invoice-checkbox');
+  const estimates = document.querySelectorAll('.estimate-checkbox');
   
-  // Use Array.from to convert NodeList to an array and then filter and map
-  const selectedIds = Array.from(checkboxes)
-      .filter(checkbox => checkbox.checked) // Keep only checked checkboxes
-      .map(checkbox => checkbox.value);     // Extract the value (invoice ID)
+  const invoiceIds = Array.from(invoices)
+      .filter(checkbox => checkbox.checked)
+      .map(checkbox => checkbox.value);
 
-  // Display the result (for demonstration)
-  console.log(JSON.stringify(selectedIds));
+  const estimateIds = Array.from(estimates)
+      .filter(checkbox => checkbox.checked)
+      .map(checkbox => checkbox.value);
 
-  let invoice_link = '';
-  let link = '';
-  for (const value of selectedIds) {
-    link = `<a href="${window.location.origin}/invoices/${value}">${value}</a>%0A`
-    console.log(link);
-    invoice_link += link;
+  let output = '';
+
+  for (const value of invoiceIds) {
+    output += `%0A<a href="${window.location.origin}/invoices/${value}">Invoice:%20${value}</a>%0A`;
+  }
+
+  for (const value of estimateIds) {
+    output += `%0A<a href="${window.location.origin}/estimates/${value}">Estimate:%20${value}</a>%0A`;
   }
   
   // You can return the array or use it as needed
-  return invoice_link;
+  return output;
 }
