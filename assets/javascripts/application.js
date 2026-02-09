@@ -2,7 +2,6 @@ function updateLink() {
   const linkElement = document.getElementById("appointment_link");
   const regex = /((?:<br\/>|%3Cbr\/?%3E))([\s\S]*?)(&dates)/gi;
   linkElement.href = linkElement.href.replace(regex, `$1${getSelectedDocs()}$3`);
-  linkElement.textContent = "New Appointment Link";
 }
 
 function getSelectedDocs() {
