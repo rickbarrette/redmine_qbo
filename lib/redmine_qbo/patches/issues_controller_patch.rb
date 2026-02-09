@@ -15,6 +15,7 @@ module RedmineQbo
 
       module Helper
         def watcher_link(issue, user)
+          link = ''
           link = link_to(I18n.t(:label_bill_time), bill_path( issue.id ), method: :get, class: 'icon icon-email-add') if user.admin?
           link << link_to(I18n.t(:label_share), share_path( issue.id ), method: :get, target: :_blank, class: 'icon icon-shared') if user.logged?
           link.html_safe + super
