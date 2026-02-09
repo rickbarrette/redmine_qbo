@@ -188,21 +188,6 @@ class CustomersController < ApplicationController
     end
   end
 
-  def add_apointment
-    estimate = params[:estimate_id]
-    invoice = params[:invoice_id] 
-    output = ""
-    logger.debug "Calling :add_apointment hook"
-          results = Redmine::Hook.call_hook :add_apointment, { customer: customer }
-          unless results.nil?
-            results.each do |r|
-              output.concat "%0A" if output.length > 0
-              output.concat r unless r.nil?
-            end
-          end
-    redirect_to "https://calendar.google.com/calendar/render?action=TEMPLATE&text=#{@customer.name}+-&details=#{ link_to t(:customer_details), "https://#{Setting.host_name}#{customer_path @customer.id}"}%0A#{@customer.primary_phone}%0A#{output}&dates=#{Time.now.strftime("%Y%m%d")}T090000/#{Time.now.strftime("%Y%m%d")}T170000", target: :_blank
-  end
-
   private
 
   # redmine permission - add customers
