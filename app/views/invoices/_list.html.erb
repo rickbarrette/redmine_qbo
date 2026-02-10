@@ -12,7 +12,7 @@
 
     <% invoices.sort.reverse.each do |invoice| %>
       <div class="row">
-        <%= check_box_tag "invoice_ids[]", invoice.id, false,  onchange: "updateLink()", data: { id: invoice.id, doc: invoice.doc_number }, class: "invoice-checkbox" if invoices.count > 1 %>
+        <%= check_box_tag "invoice_ids[]", invoice.id, false,  onchange: "updateLink()", data: { url: invoice_path(invoice), text: "Invoice ##{invoice.to_s}" }, class: "invoice-checkbox appointment" if invoices.count > 1 %>
         <b><%= link_to "##{invoice.doc_number}", invoice_path(invoice), target: :_blank %></b> <%= invoice.txn_date %>
       </div>
     <% end %>
