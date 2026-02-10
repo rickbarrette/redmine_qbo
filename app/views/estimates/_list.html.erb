@@ -2,7 +2,7 @@
 
   <% estimates.sort.reverse.each do |estimate| %>
     <div class="row">
-      <%= check_box_tag "estimate_ids[]", estimate.id, false,  onchange: "updateLink()", class: "estimate-checkbox" %>
+      <%= check_box_tag "estimate_ids[]", estimate.id, false,  onchange: "updateLink()",  data: { id: estimate.id, doc: estimate.doc_number }, class: "estimate-checkbox" %>
       <b><%= link_to "##{estimate.doc_number}", estimate_path(estimate), target: :_blank %></b> <%= estimate.txn_date %>
     </div>
   <% end %>

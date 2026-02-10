@@ -7,23 +7,23 @@ function updateLink() {
 function getSelectedDocs() {
   const invoices = document.querySelectorAll('.invoice-checkbox');
   const estimates = document.querySelectorAll('.estimate-checkbox');
-  
-  const invoiceIds = Array.from(invoices)
-      .filter(checkbox => checkbox.checked)
-      .map(checkbox => checkbox.value);
-
-  const estimateIds = Array.from(estimates)
-      .filter(checkbox => checkbox.checked)
-      .map(checkbox => checkbox.value);
 
   let output = '';
 
-  for (const value of invoiceIds) {
-    output += `%0A<a href="${window.location.origin}/invoices/${value}">Invoice:%20${value}</a>%0A`;
+  for (const i of invoices) {
+    if (i.checked) {
+      console.log(i.value);
+      console.log(i.dataset.doc);
+      output += `%0A<a href="${window.location.origin}/invoices/${i.dataset.id}">Invoice:%20${i.dataset.doc}</a>%0A`;
+    }
   }
 
-  for (const value of estimateIds) {
-    output += `%0A<a href="${window.location.origin}/estimates/${value}">Estimate:%20${value}</a>%0A`;
+  for (const e of estimates) {
+    if (e.checked) {
+      console.log(e.value);
+      console.log(e.dataset.doc);
+      output += `%0A<a href="${window.location.origin}/estimates/${e.value}">Estimate:%20${e.dataset.doc}</a>%0A`;
+    }
   }
   
   // You can return the array or use it as needed
