@@ -14,27 +14,6 @@ module RedmineQbo
     module IssuesControllerPatch
 
       module Helper
-
-        # Check the new issue form for a valid project.
-        # This is added to help prevent 422 unprocessable entity errors when creating an issue 
-        # See https://github.com/redmine/redmine/blob/84483d63828d0cb2efbf5bd786a2f0d22e34c93d/app/controllers/issues_controller.rb#L179
-        def controller_issues_new_before_save(context={})
-          if context[:issue].project.nil?
-            context[:issue].project = projects_for_select(context[:issue]).first
-            Rails.logger.error I18n.t(:notice_error_project_nil) + context[:issue].project.to_s
-            context[:controller].flash[:error] = I18n.t(:notice_error_project_nil) + context[:issue].project.to_s
-          end
-
-          if context[:issue].tracker.nil?
-            context[:issue].tracker = trackers_for_select(context[:issue]).first
-             context[:issue].tracker = Tracker.first if context[:issue].tracker.nil?
-             Rails.logger.error I18n.t(:notice_error_tracker_nil) + context[:issue].tracker.to_s
-            context[:controller].flash[:error] = I18n.t(:notice_error_tracker_nil) + context[:issue].tracker.to_s
-          end
-
-          return context
-        end
-
         def watcher_link(issue, user)
           link = ''
           link = link_to(I18n.t(:label_bill_time), bill_path( issue.id ), method: :get, class: 'icon icon-email-add') if user.admin?
