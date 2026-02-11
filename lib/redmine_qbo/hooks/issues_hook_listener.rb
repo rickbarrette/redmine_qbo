@@ -62,11 +62,14 @@ module RedmineQbo
             value: '#issue_customer' 
           }
 
+
+        js_path = "updateIssueFrom('/issues/new.js', this)"
+        js_path = "updateIssueFrom('#{escape_javascript update_issue_form_path(issue.project, issue)}', this)" unless issue.new_record?
         # This hidden field is used for the customer ID for the issue
         # the onchange event will reload the issue form via ajax to update the available estimates
         customer_id = f.hidden_field :customer_id,
           id: "issue_customer_id",
-          onchange: "updateIssueFrom('#{escape_javascript update_issue_form_path(issue.project, issue)}', this)".html_safe
+          onchange: js_path.html_safe
 
         # Generate the drop down list of quickbooks estimates owned by the selected customer
         select_estimate = f.select :estimate_id, 
