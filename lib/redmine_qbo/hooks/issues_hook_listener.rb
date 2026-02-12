@@ -14,43 +14,15 @@ module RedmineQbo
 
       include IssuesHelper
 
-        # Check the new issue form for a valid project.
-        # This is added to help prevent 422 unprocessable entity errors when creating an issue 
-        # See https://github.com/redmine/redmine/blob/84483d63828d0cb2efbf5bd786a2f0d22e34c93d/app/controllers/issues_controller.rb#L179
-        def controller_issues_new_before_save(context={})
-
-          Rails.logger.debug "RedmineQbo::Hooks::IssuesHookListener.controller_issues_new_before_save: Checking for nil project or tracker"
-          Rails.logger.debug context[:params].inspect
-          Rails.logger.debug context[:issue].inspect
-          Rails.logger.debug context[:issue].project
-          Rails.logger.debug context[:issue].tracker
-          error = ""
-          if context[:issue].project.nil?
-            context[:issue].project ||= projects_for_select(context[:issue]).first
-            Rails.logger.error I18n.t(:notice_error_project_nil) + context[:issue].project.to_s
-            error = I18n.t(:notice_error_project_nil) + context[:issue].project.to_s
-          end
-
-          if context[:issue].tracker.nil?
-            context[:issue].tracker ||= trackers_for_select(context[:issue]).first
-            Rails.logger.error I18n.t(:notice_error_tracker_nil) + context[:issue].tracker.to_s
-            error << "\n" 
-            error << I18n.t(:notice_error_tracker_nil) + context[:issue].tracker.to_s
-          end
-
-          context[:controller].flash[:error] = error unless error.blank?
-          Rails.logger.debug error unless error.blank?
-
-          return context
-        end
-
       # Edit Issue Form
       # Here we build the required form components before passing them to a partial view formatting. 
       def view_issues_form_details_bottom(context={})
         Rails.logger.debug "RedmineQbo::Hooks::IssuesHookListener.view_issues_form_details_bottom: Building form components for quickbooks customer, estimate, and invoice data"
-        Rails.logger.debug context[:issue].inspect
         f = context[:form]
         issue = context[:issue]
+        project = context[:project]
+        Rails.logger.debug issue.inspect
+        Rails.logger.debug project.inspect
 
         # Customer Name Text Box with database backed autocomplete
         # onchange event will update the hidden customer_id field
@@ -62,9 +34,18 @@ module RedmineQbo
             value: '#issue_customer' 
           }
 
+        # We need to handle 3 cases for the onchange event of the customer name field:
+        # 1. New issue Withough project:  /issues/new.js
+        # 2. New issue With project:      /projects/rmt/issues/new.js
+        # 3. Existing issue:              /issues/<ID>/edit.js
+        # The built in helper update_issue_form_path requires a project object to determine the correct path for new vs existing issues, 
+        # but it doesn't work for issue.project when creating new issues not in a project i.e. http://redmine.domain.com/issues/new . 
+        # So we need to figure out how to get a the @project from the controller calling the hook.
+        #
+        # If this is not handled correctly, it leads to a 422 error when creating a new issue and selecting a customer.
+        js_path = "updateIssueFrom('#{escape_javascript update_issue_form_path(project, issue)}', this)"
+        Rails.logger.debug js_path
 
-        js_path = "updateIssueFrom('/issues/new.js', this)"
-        js_path = "updateIssueFrom('#{escape_javascript update_issue_form_path(issue.project, issue)}', this)" unless issue.new_record?
         # This hidden field is used for the customer ID for the issue
         # the onchange event will reload the issue form via ajax to update the available estimates
         customer_id = f.hidden_field :customer_id,
