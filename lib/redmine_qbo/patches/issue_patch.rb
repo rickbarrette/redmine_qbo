@@ -44,10 +44,9 @@ module RedmineQbo
         # Create billable time entries
         def bill_time
           logger.debug "QBO: Billing time for issue ##{id}"
-          return unless  status.is_closed?
-          return if assigned_to.nil?
-          return unless Qbo.first 
-          return unless customer 
+          return false if assigned_to.nil?
+          return false unless Qbo.first 
+          return false unless customer 
 
           Thread.new do
             spent_time = time_entries.where(billed: [false, nil])
@@ -102,6 +101,7 @@ module RedmineQbo
               end
             end
           end
+          return true
         end
       end
       

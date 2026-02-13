@@ -64,10 +64,15 @@ class QboController < ApplicationController
   def bill
     i = Issue.find_by_id params[:id]
     if i.customer
-      i.bill_time
-      redirect_to i, flash: { notice: I18n.t(:label_billed_success) + i.customer.name }
+      billed = i.bill_time
+
+      if i.bill_time
+        redirect_to i, flash: { notice: I18n.t( :label_billed_success ) + i.customer.name }
+      else
+        redirect_to i, flash: { error: I18n.t(:label_billing_error) }
+      end
     else
-      redirect_to i, flash: { error: I18n.t(:label_billing_error) }
+      redirect_to i, flash: { error: I18n.t(:label_billing_error_no_customer) }
     end
   end
   
