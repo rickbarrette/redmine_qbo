@@ -16,7 +16,5 @@ function getSelectedDocs() {
     }
   }
   
-
-  // You can return the array or use it as needed
   return output;
 }
