@@ -29,7 +29,7 @@ en:
   label_billing_address: "Billing Address"
   label_billing_error: "Customer could not be billed. Check for Customer or Assignee and try again."
   label_billing_error_no_customer: "Cannot bill without an assigned customer."
-  label_billed_success: "Successfully billed"
+  label_billed_success: "Successfully billed "
   label_client_id: "Intuit QBO OAuth2 Client ID"
   label_client_secret: "Intuit QBO OAuth2 Client Secret"
   label_closed_issues: "Closed Issues"
