@@ -15,18 +15,31 @@ class EstimateController < ApplicationController
   skip_before_action :verify_authenticity_token, :check_if_login_required, unless: proc {|c| session[:token].nil? }
 
   def get_estimate
+
+    e = Estimate.find_by_doc_number(params[:search]) if params[:search]
+    e = Estimate.find_by_id(params[:id]) if params[:id]
+
     # Force sync for estimate by doc number if not found
-    if  Estimate.find_by_doc_number(params[:search]).nil?
+    if  e.nil? && params[:search]
       begin
-        Estimate.sync_by_doc_number(params[:search]) if params[:search]
+        Estimate.sync_by_doc_number(params[:search])
+        e = Estimate.find_by_doc_number(params[:search])
       rescue
         logger.info "Estimate.find_by_doc_number failed"
       end
     end
 
-    estimate = Estimate.find_by_id(params[:id]) if params[:id]
-    estimate = Estimate.find_by_doc_number(params[:search]) if params[:search]
-    return estimate
+    # Force sync for estimate by id if not found
+    if  e.nil? && params[:id]
+      begin
+        Estimate.sync_by_id(params[:id])
+        e = Estimate.find_by_id(params[:id])
+      rescue
+        logger.info "Estimate.find_by_id failed"
+      end
+    end
+
+    return e
   end
   
   #
