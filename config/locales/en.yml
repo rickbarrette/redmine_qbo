@@ -34,6 +34,7 @@ en:
   label_client_secret: "Intuit QBO OAuth2 Client Secret"
   label_closed_issues: "Closed Issues"
   label_connected: "Successfully connected to QuickBooks"
+  label_create_estimate: "Create Estimate"
   label_customer_count: "Customer Count"
   label_customer_link_expires: "This customer link expires in"
   label_customers: "Customers"
