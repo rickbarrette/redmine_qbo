@@ -16,12 +16,17 @@ module RedmineQbo
 
       def base_scope
         scope = super
+
         if filters['customer_name'].present?
           scope = scope.left_outer_joins(:customer)
         end
+
+        if has_column?(:customer) || filters['customer_name'].present?
+          scope = scope.includes(:customer)
+        end
+
         scope
       end
-
       
       # Add qbo options to the aviable columns
       def available_columns
