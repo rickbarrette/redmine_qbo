@@ -13,6 +13,15 @@ require_dependency 'issue_query'
 module RedmineQbo
   module Patches
     module QueryPatch
+
+      def base_scope
+        scope = super
+        if filters['customer_name'].present?
+          scope = scope.left_outer_joins(:customer)
+        end
+        scope
+      end
+
       
       # Add qbo options to the aviable columns
       def available_columns
@@ -26,9 +35,26 @@ module RedmineQbo
       
       # Add customers to filters
       def initialize_available_filters
-        add_available_filter "customer_id", type: :list, name: l(:field_customer), :values => lambda {Customer.pluck(:name, :id).map {|name, id| [name, id.to_s]}}
+        #add_available_filter "customer_id", type: :list, name: l(:field_customer), :values => lambda {Customer.pluck(:name, :id).map {|name, id| [name, id.to_s]}}
+        add_available_filter( 'customer_name', type: :text, name: l(:field_customer))
         super
       end
+
+      def sql_for_customer_name_field(field, operator, value)
+        pattern = "%#{value.first}%"
+
+        sql = case operator
+              when '~'
+                "#{Customer.table_name}.name LIKE ?"
+              when '!~'
+                "#{Customer.table_name}.name NOT LIKE ?"
+              else
+                return nil
+              end
+
+        Issue.joins(:customer).sanitize_sql_for_conditions([sql, pattern])
+      end
+
 
     end
 

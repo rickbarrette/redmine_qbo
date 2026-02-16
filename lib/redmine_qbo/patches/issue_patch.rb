@@ -25,7 +25,7 @@ module RedmineQbo
 
         # Same as typing in the class 
         base.class_eval do
-          belongs_to :customer, primary_key: :id
+          belongs_to :customer, class_name: 'Customer', foreign_key: :customer_id, optional: true
           belongs_to :customer_token, primary_key: :id
           belongs_to :estimate, primary_key: :id
           has_and_belongs_to_many :invoices
