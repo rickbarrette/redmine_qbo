@@ -26,7 +26,7 @@ module RedmineQbo
       
       # Add customers to filters
       def initialize_available_filters
-        #add_available_filter "customer", type: :text
+        add_available_filter "customer_id", type: :list, name: l(:field_customer), :values => lambda {Customer.pluck(:name, :id).map {|name, id| [name, id.to_s]}}
         super
       end
 
