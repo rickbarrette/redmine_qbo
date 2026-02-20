@@ -43,14 +43,18 @@ module RedmineQbo
         
         # Create billable time entries
         def bill_time
-          logger.debug "QBO: Billing time for issue ##{id}"
-          return false if assigned_to.nil?
+          logger.debug "QBO: Billing time for issue ##{self.id}"
+          logger.debug "Issue is closed? #{self.closed?}"
+          
+          return false if self.assigned_to.nil?
           return false unless Qbo.first 
-          return false unless customer 
+          return false unless self.customer 
 
           Thread.new do
-            spent_time = time_entries.where(billed: [false, nil])
+            spent_time = self.time_entries.where(billed: [false, nil])
             spent_hours ||= spent_time.sum(:hours) || 0
+
+            logger.debug "Issue has spent hours: #{spent_hours}"
             
             if spent_hours > 0 then
               
@@ -73,20 +77,23 @@ module RedmineQbo
                 
                 # Now letes upload our totals for each activity as their own billable time entry
                 h.each do |key, val|
-                  
+                  logger.debug "Processing activity '#{key}' with #{val.to_i} hours for issue ##{self.id}"
+
                   # Convert float spent time to hours and minutes
                   hours = val.to_i
                   minutesDecimal = (( val - hours) * 60)
                   minutes = minutesDecimal.to_i
+
+                  logger.debug "Converted #{val.to_i} hours to #{hours} hours and #{minutes} minutes"
 
                   # Lets match the activity to an qbo item
                   item = item_service.query("SELECT * FROM Item WHERE Name = '#{key}' ").first
                   next if item.nil?
                   
                   # Create the new billable time entry and upload it
-                  time_entry.description = "#{tracker} ##{id}: #{subject} #{"(Partial @ #{done_ratio}%)" if not closed?}"
-                  time_entry.employee_id = assigned_to.employee_id 
-                  time_entry.customer_id = customer_id
+                  time_entry.description = "#{self.tracker} ##{self.id}: #{self.subject} #{"(Partial @ #{self.done_ratio}%)" unless self.closed?}"
+                  time_entry.employee_id = self.assigned_to.employee_id 
+                  time_entry.customer_id = self.customer_id
                   time_entry.billable_status = "Billable"
                   time_entry.hours = hours
                   time_entry.minutes = minutes
