@@ -37,6 +37,10 @@ Redmine::Plugin.register :redmine_qbo do
   # Register top menu items
   menu :top_menu, :customers, { controller: :customers, action: :index }, caption: :label_customers, if: Proc.new {User.current.logged?}
     
+  Redmine::Search.map do |search|
+    search.register :customers
+  end
+
 end
 
 # Dynamically load all Hooks & Patches recursively

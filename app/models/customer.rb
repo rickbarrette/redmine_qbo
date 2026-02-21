@@ -18,11 +18,6 @@ class Customer < ActiveRecord::Base
   
   self.primary_key = :id
   
-  # returns a human readable string
-  def to_s
-    return "#{self[:name]} - #{phone_number.split(//).last(4).join unless phone_number.nil?}"
-  end
-  
   # Convenience Method
   # returns the customer's email
   def email
@@ -41,6 +36,27 @@ class Customer < ActiveRecord::Base
     @details.email_address = s
   end
   
+  # Redmine Search Event Interface
+  def event_type
+    :customer
+  end
+
+  def event_title
+    to_s
+  end
+
+  def event_description
+    "#{I18n.t :label_primary_phone}: #{primary_phone} #{I18n.t:label_mobile_phone}: #{mobile_phone}"
+  end
+
+  def event_url
+    customer_path(self)
+  end
+
+  def event_datetime
+    updated_at || created_at
+  end
+
   # Convenience Method
   # returns the customer's primary phone
   def primary_phone
@@ -62,7 +78,12 @@ class Customer < ActiveRecord::Base
     #update our locally stored number too
     update_phone_number
   end
-  
+
+  # Customers are not bound by a project.
+  def project
+    nil
+  end
+
   # Convenience Method
   # returns the customer's mobile phone
   def mobile_phone
@@ -173,6 +194,41 @@ class Customer < ActiveRecord::Base
     customers = where("name LIKE ? OR phone_number LIKE ? OR mobile_phone_number LIKE ?", "%#{search}%", "%#{search}%", "%#{search}%")
     return customers.order(:name)
   end
+
+  def self.searchable_columns
+    ['name', 'phone_number', 'mobile_phone_number']
+  end
+
+  def self.searchable_options
+    {
+      columns: searchable_columns,
+      scope: self.all
+    }
+  end
+
+  def self.search_results_from_ids(ids, *args)
+    return [] if ids.blank?
+
+    ids = ids.map(&:to_i)
+    records = where(id: ids).index_by(&:id)
+    ids.map { |id| records[id] }.compact
+  end
+
+  def self.search_result_ranks_and_ids(tokens, user, project = nil, options = {})
+    return {} if tokens.blank?
+
+    scope = self.all
+
+    tokens.each do |token|
+      q = "%#{sanitize_sql_like(token)}%"
+      scope = where("name LIKE ? OR phone_number LIKE ? OR mobile_phone_number LIKE ?", "%#{q}%", "%#{q}%", "%#{q}%") 
+    end
+
+    ids = scope.distinct.limit(options[:limit] || 100).pluck(:id)
+
+    # Assign simple uniform ranking
+    ids.each_with_object({}) { |id, h| h[id] = id }
+  end
   
   # proforms a bruteforce sync operation
   # This needs to be simplified
@@ -201,24 +257,10 @@ class Customer < ActiveRecord::Base
     end
   end
   
-  # Push the updates
-  def save_with_push
-    begin
-      qbo = Qbo.first
-      @details = qbo.perform_authenticated_request do |access_token|
-        service = Quickbooks::Service::Customer.new(company_id: qbo.realm_id, access_token: access_token)
-        service.update(@details)
-      end
-      #raise "QBO Fault" if @details.fault?
-      self.id = @details.id
-    rescue Exception => e
-      errors.add(e.message)
-    end
-    save_without_push
+  # returns a human readable string
+  def to_s
+    return "#{self[:name]} - #{phone_number.split(//).last(4).join unless phone_number.nil?}"
   end
-  
-  alias_method :save_without_push, :save
-  alias_method :save, :save_with_push
   
   private
   
@@ -235,5 +277,24 @@ class Customer < ActiveRecord::Base
       @details = Quickbooks::Model::Customer.new
     end
   end
+
+  # Push the updates
+  def save_with_push
+    begin
+      qbo = Qbo.first
+      @details = qbo.perform_authenticated_request do |access_token|
+        service = Quickbooks::Service::Customer.new(company_id: qbo.realm_id, access_token: access_token)
+        service.update(@details)
+      end
+      #raise "QBO Fault" if @details.fault?
+      self.id = @details.id
+    rescue Exception => e
+      errors.add(e.message)
+    end
+    save_without_push
+  end
+
+  alias_method :save_without_push, :save
+  alias_method :save, :save_with_push
   
 end

@@ -30,8 +30,6 @@ class CustomersController < ApplicationController
   before_action :view_customer, except: [:new, :view]
   skip_before_action :verify_authenticity_token, :check_if_login_required, only: [:view]
 
-  default_search_scope :names
-
   autocomplete :customer, :name, full: true, extra_data: [:id]
 
   def allowed_params
