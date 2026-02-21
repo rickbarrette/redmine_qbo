@@ -50,7 +50,7 @@ class Customer < ActiveRecord::Base
   end
 
   def event_url
-    customer_path(self)
+    Rails.application.routes.url_helpers.customer_path(self)
   end
 
   def event_datetime
