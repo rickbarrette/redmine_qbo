@@ -169,6 +169,7 @@ class Customer < ActiveRecord::Base
   
   # Searchs the database for a customer by name or phone number with out special chars
   def self.search(search)
+    search = sanitize_sql_like(search)
     customers = where("name LIKE ? OR phone_number LIKE ? OR mobile_phone_number LIKE ?", "%#{search}%", "%#{search}%", "%#{search}%")
     return customers.order(:name)
   end
