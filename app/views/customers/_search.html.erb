@@ -1,4 +1,4 @@
-<%= form_tag(customers_path, method: "get", id: "search-form") do %>
+<%= form_tag(customers_path, method: "get", id: "customer-search-form") do %>
     <%= text_field_tag :search, params[:search], placeholder: t(:label_search_customers), autocomplete: "off" %>
     <%= submit_tag t(:label_search) %>
 <% end %>
