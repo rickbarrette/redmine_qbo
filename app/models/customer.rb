@@ -9,6 +9,9 @@
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class Customer < ActiveRecord::Base
+
+  include Redmine::Acts::Searchable
+  include Redmine::Acts::Event
   
   has_many :issues
   has_many :invoices
@@ -17,6 +20,16 @@ class Customer < ActiveRecord::Base
   validates_presence_of :id, :name
   
   self.primary_key = :id
+
+  acts_as_searchable columns: %w[name phone_number mobile_phone_number ],
+                     scope: ->(_context) { left_joins(:project) },
+                     date_column: :updated_at
+
+  acts_as_event :title => Proc.new {|o| "#{o}"},
+                :url => Proc.new {|o| { :controller => 'customers', :action => 'show', :id => o.id} },
+                :type => :to_s,
+                :description => Proc.new {|o| "#{I18n.t :label_primary_phone}: #{o.phone_number} #{I18n.t:label_mobile_phone}: #{o.mobile_phone_number}"},
+                :datetime => Proc.new {|o| o.updated_at || o.created_at}
   
   # Convenience Method
   # returns the customer's email
@@ -41,22 +54,6 @@ class Customer < ActiveRecord::Base
     :customer
   end
 
-  def event_title
-    to_s
-  end
-
-  def event_description
-    "#{I18n.t :label_primary_phone}: #{primary_phone} #{I18n.t:label_mobile_phone}: #{mobile_phone}"
-  end
-
-  def event_url
-    Rails.application.routes.url_helpers.customer_path(self)
-  end
-
-  def event_datetime
-    updated_at || created_at
-  end
-
   # Convenience Method
   # returns the customer's primary phone
   def primary_phone
@@ -79,7 +76,8 @@ class Customer < ActiveRecord::Base
     update_phone_number
   end
 
-  # Customers are not bound by a project.
+  # Customers are not bound by a project
+  # but we need to implement this method for the Redmine::Acts::Searchable interface
   def project
     nil
   end
@@ -187,33 +185,8 @@ class Customer < ActiveRecord::Base
       end
     end
   end
-  
-  # Searchs the database for a customer by name or phone number with out special chars
-  def self.search(search)
-    search = sanitize_sql_like(search)
-    customers = where("name LIKE ? OR phone_number LIKE ? OR mobile_phone_number LIKE ?", "%#{search}%", "%#{search}%", "%#{search}%")
-    return customers.order(:name)
-  end
 
-  def self.searchable_columns
-    ['name', 'phone_number', 'mobile_phone_number']
-  end
-
-  def self.searchable_options
-    {
-      columns: searchable_columns,
-      scope: self.all
-    }
-  end
-
-  def self.search_results_from_ids(ids, *args)
-    return [] if ids.blank?
-
-    ids = ids.map(&:to_i)
-    records = where(id: ids).index_by(&:id)
-    ids.map { |id| records[id] }.compact
-  end
-
+  # Override the defult redmine seach method to rank results by id
   def self.search_result_ranks_and_ids(tokens, user, project = nil, options = {})
     return {} if tokens.blank?
 
