@@ -48,11 +48,6 @@ class Customer < ActiveRecord::Base
     pull unless @details
     @details.email_address = s
   end
-  
-  # Redmine Search Event Interface
-  def event_type
-    :customer
-  end
 
   # Convenience Method
   # returns the customer's primary phone
