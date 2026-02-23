@@ -181,6 +181,26 @@ class Customer < ActiveRecord::Base
     end
   end
 
+  def self.search(search)
+    return all if search.blank?
+
+    # 1. Clean the input: Remove existing stars and special Boolean operators
+    # to prevent "red**" or syntax errors from hyphens/plus signs.
+    clean_search = search.gsub(/[*+\-><()~]/, '')
+    
+    # 2. Add a single trailing wildcard for partial matching
+    ft_query = "#{clean_search}*"
+    
+    # 3. Use the exact column list from your migration
+    # Using a hybrid approach to ensure "Jonh" still finds "John"
+    where(
+      "MATCH(name, phone_number, mobile_phone_number) AGAINST(? IN BOOLEAN MODE) OR 
+      SOUNDEX(SUBSTRING_INDEX(name, ' ', 1)) = SOUNDEX(?) OR 
+      name LIKE ?", 
+      ft_query, clean_search, "%#{sanitize_sql_like(clean_search)}%"
+    ).order(Arel.sql("MATCH(name, phone_number, mobile_phone_number) AGAINST(#{connection.quote(clean_search)}) DESC"))
+  end
+
   # Override the defult redmine seach method to rank results by id
   def self.search_result_ranks_and_ids(tokens, user, project = nil, options = {})
     return {} if tokens.blank?
