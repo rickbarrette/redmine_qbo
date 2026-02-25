@@ -235,6 +235,30 @@ class Customer < ActiveRecord::Base
   def to_s
     return "#{self[:name]} - #{phone_number.split(//).last(4).join unless phone_number.nil?}"
   end
+
+  # Push the updates
+  def save_with_push
+    begin
+      qbo = Qbo.first
+      @details = qbo.perform_authenticated_request do |access_token|
+        service = Quickbooks::Service::Customer.new(
+          company_id: qbo.realm_id,
+          access_token: access_token
+        )
+        service.update(@details)
+      end
+
+      self.id = @details.id
+    rescue => e
+      errors.add(:base, e.message)
+      return false
+    end
+
+    save_without_push
+  end
+
+  alias_method :save_without_push, :save
+  alias_method :save, :save_with_push
   
   private
   
@@ -251,24 +275,5 @@ class Customer < ActiveRecord::Base
       @details = Quickbooks::Model::Customer.new
     end
   end
-
-  # Push the updates
-  def save_with_push
-    begin
-      qbo = Qbo.first
-      @details = qbo.perform_authenticated_request do |access_token|
-        service = Quickbooks::Service::Customer.new(company_id: qbo.realm_id, access_token: access_token)
-        service.update(@details)
-      end
-      #raise "QBO Fault" if @details.fault?
-      self.id = @details.id
-    rescue Exception => e
-      errors.add(e.message)
-    end
-    save_without_push
-  end
-
-  alias_method :save_without_push, :save
-  alias_method :save, :save_with_push
   
 end
