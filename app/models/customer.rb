@@ -30,6 +30,8 @@ class Customer < ActiveRecord::Base
                 :type => :to_s,
                 :description => Proc.new {|o| "#{I18n.t :label_primary_phone}: #{o.phone_number} #{I18n.t:label_mobile_phone}: #{o.mobile_phone_number}"},
                 :datetime => Proc.new {|o| o.updated_at || o.created_at}
+
+  #default_scope { order(name: :asc) }
   
   # Convenience Method
   # returns the customer's email
@@ -181,10 +183,10 @@ class Customer < ActiveRecord::Base
     end
   end
 
+  # Seach for customers by name or phone number
   def self.search(search)
     search = sanitize_sql_like(search)
-    customers = where("name LIKE ? OR phone_number LIKE ? OR mobile_phone_number LIKE ?", "%#{search}%", "%#{search}%", "%#{search}%")
-    return customers.order(:name)
+    where("name LIKE ? OR phone_number LIKE ? OR mobile_phone_number LIKE ?", "%#{search}%", "%#{search}%", "%#{search}%")
   end
 
   # Override the defult redmine seach method to rank results by id
@@ -194,14 +196,11 @@ class Customer < ActiveRecord::Base
     scope = self.all
 
     tokens.each do |token|
-      q = "%#{sanitize_sql_like(token)}%"
-      scope = where("name LIKE ? OR phone_number LIKE ? OR mobile_phone_number LIKE ?", "%#{q}%", "%#{q}%", "%#{q}%") 
+      scope = scope.search(token)
     end
 
     ids = scope.distinct.limit(options[:limit] || 100).pluck(:id)
-
-    # Assign simple uniform ranking
-    ids.each_with_object({}) { |id, h| h[id] = id }
+    ids.index_with { |id| id }
   end
   
   # proforms a bruteforce sync operation
