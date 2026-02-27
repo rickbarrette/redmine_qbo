@@ -30,8 +30,6 @@ class Customer < ActiveRecord::Base
                 :type => :to_s,
                 :description => Proc.new {|o| "#{I18n.t :label_primary_phone}: #{o.phone_number} #{I18n.t:label_mobile_phone}: #{o.mobile_phone_number}"},
                 :datetime => Proc.new {|o| o.updated_at || o.created_at}
-
-  #default_scope { order(name: :asc) }
   
   # Convenience Method
   # returns the customer's email

@@ -12,130 +12,59 @@ require_dependency 'issue'
 
 module RedmineQbo
   module Patches
-
-    # Patches Redmine's Issues dynamically.
-    # Adds relationships for customers, estimates, invoices, customer_tokens
-    # Adds before and after save hooks
     module IssuePatch
 
-      def self.included(base) # :nodoc:
+      def self.included(base)
         base.extend(ClassMethods)
-
         base.send(:include, InstanceMethods)
 
-        # Same as typing in the class 
         base.class_eval do
           belongs_to :customer, class_name: 'Customer', foreign_key: :customer_id, optional: true
           belongs_to :customer_token, primary_key: :id
           belongs_to :estimate, primary_key: :id
           has_and_belongs_to_many :invoices
+
           before_save :titlize_subject
-          after_save :bill_time
+          after_commit :enqueue_billing, on: :update
         end
-        
       end
-        
+
       module ClassMethods
-        
+
       end
-      
+
       module InstanceMethods
-        
-        # Create billable time entries
-        def bill_time
-          logger.debug "QBO: Billing time for issue ##{self.id}"
-          logger.debug "Issue is closed? #{self.closed?}"
-          
-          return false if self.assigned_to.nil?
-          return false unless Qbo.first 
-          return false unless self.customer 
 
-          Thread.new do
-            spent_time = self.time_entries.where(billed: [false, nil])
-            spent_hours ||= spent_time.sum(:hours) || 0
+        def enqueue_billing
+          Rails.logger.debug "QBO: Checking if issue needs to be billed for issue ##{id}"
+          #return unless saved_change_to_status_id?
+          return unless closed?
+          return unless customer.present?
+          return unless assigned_to&.employee_id.present?
+          return unless Qbo.first
 
-            logger.debug "Issue has spent hours: #{spent_hours}"
-            
-            if spent_hours > 0 then
-              
-              # Prepare to create a new Time Activity
-              qbo = Qbo.first
-              qbo.perform_authenticated_request do |access_token|
-                time_service = Quickbooks::Service::TimeActivity.new(company_id: qbo.realm_id, access_token: access_token)
-                item_service = Quickbooks::Service::Item.new(company_id: qbo.realm_id, access_token: access_token)
-                time_entry = Quickbooks::Model::TimeActivity.new
-        
-                # Lets total up each activity before billing.
-                # This will simpify the invoicing with a single billable time entry per time activity
-                h = Hash.new(0)
-                spent_time.each do |entry|
-                  h[entry.activity.name] += entry.hours
-                  # update time entries billed status
-                  entry.billed = true
-                  entry.save
-                end
-                
-                # Now letes upload our totals for each activity as their own billable time entry
-                h.each do |key, val|
-                  logger.debug "Processing activity '#{key}' with #{val.to_i} hours for issue ##{self.id}"
+          Rails.logger.debug "QBO: Enqueuing billing for issue ##{id}"
+          BillIssueTimeJob.perform_later(id)
+        end
 
-                  # Convert float spent time to hours and minutes
-                  hours = val.to_i
-                  minutesDecimal = (( val - hours) * 60)
-                  minutes = minutesDecimal.to_i
+        def titlize_subject
+          Rails.logger.debug "QBO: Titlizing subject for issue ##{id}"
 
-                  logger.debug "Converted #{val.to_i} hours to #{hours} hours and #{minutes} minutes"
-
-                  # Lets match the activity to an qbo item
-                  item = item_service.query("SELECT * FROM Item WHERE Name = '#{key}' ").first
-                  next if item.nil?
-                  
-                  # Create the new billable time entry and upload it
-                  time_entry.description = "#{self.tracker} ##{self.id}: #{self.subject} #{"(Partial @ #{self.done_ratio}%)" unless self.closed?}"
-                  time_entry.employee_id = self.assigned_to.employee_id 
-                  time_entry.customer_id = self.customer_id
-                  time_entry.billable_status = "Billable"
-                  time_entry.hours = hours
-                  time_entry.minutes = minutes
-                  time_entry.name_of = "Employee"
-                  time_entry.txn_date = Date.today
-                  time_entry.hourly_rate = item.unit_price
-                  time_entry.item_id = item.id 
-                  time_entry.start_time = start_date
-                  time_entry.end_time = Time.now
-                  time_service.create(time_entry)
-                end
-              end
+          self.subject = subject.split(/\s+/).map do |word|
+            if word =~ /[A-Z]/ && word =~ /[0-9]/
+              word
+            else
+              word.capitalize
             end
-          end
-          return true
+          end.join(' ')
         end
       end
-      
-      # Create a shareable link for a customer
+
       def share_token
-        CustomerToken.get_token self
+        CustomerToken.get_token(self)
       end
-      
-      # Titleize the subject before save , but keep words containing numbers mixed with letters capitalized
-      def titlize_subject
-        logger.debug "QBO: Titlizing subject for issue ##{self.id}"
-        self.subject = self.subject.split(/\s+/).map do |word|
-          # If word is NOT purely alphanumeric (contains special chars),
-          # or is all upper/lower, we can handle it.
-          # excluding alphanumeric strings with mixed case and numbers (e.g., "ID555ABC") from being altered.
-          if word =~ /[A-Z]/ && word =~ /[0-9]/
-            word
-          else
-            word.downcase
-            word.capitalize
-          end
-        end.join(' ')
-      end
-    end  
+    end
 
-    # Add module to Issue
     Issue.send(:include, IssuePatch)
-
   end
 end

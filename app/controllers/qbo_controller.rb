@@ -62,18 +62,29 @@ class QboController < ApplicationController
   
   # Manual Billing
   def bill
-    i = Issue.find_by_id params[:id]
-    if i.customer
-      billed = i.bill_time
+    issue = Issue.find_by(id: params[:id])
+    return render_404 unless issue
 
-      if i.bill_time
-        redirect_to i, flash: { notice: I18n.t( :label_billed_success ) + i.customer.name }
-      else
-        redirect_to i, flash: { error: I18n.t(:label_billing_error) }
-      end
-    else
-      redirect_to i, flash: { error: I18n.t(:label_billing_error_no_customer) }
+    unless issue.customer
+      redirect_to issue, flash: { error: I18n.t(:label_billing_error_no_customer) }
+      return
     end
+
+    unless issue.assigned_to&.employee_id.present?
+      redirect_to issue, flash: { error: I18n.t(:label_billing_error_no_employee) }
+      return
+    end
+
+    unless Qbo.first
+      redirect_to issue, flash: { error: I18n.t(:label_billing_error_no_qbo) }
+      return
+    end
+
+    BillIssueTimeJob.perform_later(issue.id)
+
+    redirect_to issue, flash: {
+      notice: I18n.t(:label_billing_enqueued) + " #{issue.customer.name}"
+    }
   end
   
   # Quickbooks Webhook Callback
