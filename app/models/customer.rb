@@ -153,32 +153,7 @@ class Customer < ActiveRecord::Base
   # proforms a bruteforce sync operation
   # This needs to be simplified
   def self.sync 
-    # Sync ALL customers if the database is empty
-    qbo = Qbo.first
-    customers = qbo.perform_authenticated_request do |access_token|
-      service = Quickbooks::Service::Customer.new(company_id: qbo.realm_id, access_token: access_token)
-      service.all
-    end
-    
-    return unless customers
-    
-    customers.each do |c|
-      logger.info "Processing customer #{c.id}"
-      customer = Customer.find_or_create_by(id: c.id)
-      if c.active?
-        #if not customer.name.eql? c.display_name
-          customer.name = c.display_name
-          customer.id = c.id
-          customer.phone_number = c.primary_phone.free_form_number.tr('^0-9', '') unless c.primary_phone.nil?
-          customer.mobile_phone_number = c.mobile_phone.free_form_number.tr('^0-9', '') unless c.mobile_phone.nil?
-          customer.save_without_push
-        #end
-      else
-        if not c.new_record?
-          customer.delete
-        end
-      end
-    end
+    CustomerSyncJob.perform_later(full_sync: false)
   end
 
   # Seach for customers by name or phone number

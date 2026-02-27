@@ -92,10 +92,12 @@ class QboController < ApplicationController
   #
   def sync
     logger.info "Syncing EVERYTHING"
+
+    CustomerSyncJob.perform_later(full_sync: true)
+
     # Update info in background
     Thread.new do
       if Qbo.exists?
-        Customer.sync
         Invoice.sync
         Employee.sync
         Estimate.sync
