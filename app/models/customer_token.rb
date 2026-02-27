@@ -8,54 +8,44 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class CustomerToken < ActiveRecord::Base
-  
-  has_many :issues
-  validates_presence_of :issue_id
-  before_create :generate_token, :generate_expire_date
-  attr_accessor :destroyed
-  after_destroy :mark_as_destroyed
+class CustomerToken < ApplicationRecord
+  belongs_to :issue
 
-  OAUTH_CONSUMER_SECRET = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret'] || 'CONFIGURE__' + SecureRandom.uuid
-  
-  # generates a random token using the plugin setting settingsOAuthConsumerSecret for salt
-  def generate_token
-    self.token = SecureRandom.base64(15).tr('+/=lIO0', OAUTH_CONSUMER_SECRET)
-  end
+  validates :issue_id, presence: true
+  validates :token, presence: true, uniqueness: true
 
-  # generates an expiring date
-  def generate_expire_date
-    self.expires_at = Time.now + 1.month
-  end
+  before_validation :generate_token, on: :create
+  before_validation :generate_expire_date, on: :create
 
-  # set destroyed flag
-  def mark_as_destroyed
-    self.destroyed = true
-  end
+  scope :active, -> { where("expires_at > ?", Time.current) }
 
-  # purge expired tokens
-  def self.remove_expired_tokens
-    where("expires_at < ?", Time.now).destroy_all
-  end
-  
-  # has the token expired?
+  TOKEN_EXPIRATION = 1.month
+
   def expired?
-    self.expires_at < Time.now
+    expires_at.present? && expires_at <= Time.current
   end
 
-  # Getter convenience method for tokens
+  def self.remove_expired_tokens
+    where("expires_at <= ?", Time.current).delete_all
+  end
+
   def self.get_token(issue)
-    
-    # check to see if token exists & if it is expired
-    token = find_by_issue_id issue.id
-    unless token.nil?
-      return token unless token.expired?
-      # remove expired tokens
-      token.destroy
-    end
+    return unless issue
+    return unless User.current.allowed_to?(:view_issues, issue.project)
 
-    # only create new token if we have an issue to attach it to
-    return create(issue_id: issue.id) if User.current.logged?
+    token = active.find_by(issue_id: issue.id)
+    return token if token
+
+    create!(issue: issue)
   end
 
+  private
+
+  def generate_token
+    self.token ||= SecureRandom.urlsafe_base64(32)
+  end
+
+  def generate_expire_date
+    self.expires_at ||= Time.current + TOKEN_EXPIRATION
+  end
 end

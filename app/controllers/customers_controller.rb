@@ -134,59 +134,59 @@ class CustomersController < ApplicationController
 
   # creates new customer view tokens, removes expired tokens & redirects to newly created customer view with new token.
   def share
+    issue = Issue.find(params[:id])
 
-    Thread.new do
-      logger.info "Removing expired customer tokens"
-      CustomerToken.remove_expired_tokens
-      ActiveRecord::Base.connection.close
-    end
+    token = issue.share_token
+    redirect_to view_path(token.token)
 
-    begin
-      issue = Issue.find_by_id(params[:id])
-      redirect_to view_path issue.share_token.token
-    rescue
-      flash[:error] = t :notice_issue_not_found
-      render_404
-    end
+  rescue ActiveRecord::RecordNotFound
+    flash[:error] = t(:notice_issue_not_found)
+    render_404
   end
   
   # displays an issue for a customer with a provided security CustomerToken
   def view
+    User.current = User.anonymous
 
-    User.current = User.find_by lastname: 'Anonymous'
+    # Load only active, non-expired token
+    @token = CustomerToken.active.find_by(token: params[:token])
+    return render_403 unless @token
 
-    @token = CustomerToken.find_by token: params[:token]
-    begin
-      @token.destroy if @token.expired?
-      raise "Token Expired" if @token.destroyed
-      
-      session[:token] = @token.token
-      @issue = Issue.find @token.issue_id
-      @journals = @issue.journals.
-        preload(:details).
-        preload(user: :email_address).
-        reorder(:created_on, :id).to_a
-      @journals.each_with_index {|j,i| j.indice = i+1}
-      @journals.reject!(&:private_notes?) unless User.current.allowed_to?(:view_private_notes, @issue.project)
-      Journal.preload_journals_details_custom_fields(@journals)
-      @journals.select! {|journal| journal.notes? || journal.visible_details.any?}
-      @journals.reverse! if User.current.wants_comments_in_reverse_order?
+    # Load associated issue
+    @issue = @token.issue
+    return render_403 unless @issue
 
-      @changesets = @issue.changesets.visible.preload(:repository, :user).to_a
-      @changesets.reverse! if User.current.wants_comments_in_reverse_order?
+    # Optional: enforce token belongs to the issue's customer
+    return render_403 unless @issue.customer_id == @token.issue.customer_id
 
-      @relations = @issue.relations.select {|r| r.other_issue(@issue) && r.other_issue(@issue).visible? }
-      @allowed_statuses = @issue.new_statuses_allowed_to(User.current)
-      @priorities = IssuePriority.active
-      @time_entry = TimeEntry.new(issue: @issue, project: @issue.project)
-      @relation = IssueRelation.new
-    rescue
-      flash[:error] = t :notice_forbidden
-      render_403
-    end
+    # Store token in session for subsequent requests if needed
+    session[:token] = @token.token
+
+    load_issue_data
+  rescue ActiveRecord::RecordNotFound
+    render_403
   end
 
   private
+
+  def load_issue_data
+    @journals = @issue.journals.preload(:details).preload(user: :email_address).reorder(:created_on, :id).to_a
+
+    @journals.each_with_index { |j, i| j.indice = i + 1 }
+    @journals.reject!(&:private_notes?) unless User.current.allowed_to?(:view_private_notes, @issue.project)
+    Journal.preload_journals_details_custom_fields(@journals)
+    @journals.select! { |journal| journal.notes? || journal.visible_details.any? }
+    @journals.reverse! if User.current.wants_comments_in_reverse_order?
+
+    @changesets = @issue.changesets.visible.preload(:repository, :user).to_a
+    @changesets.reverse! if User.current.wants_comments_in_reverse_order?
+
+    @relations = @issue.relations.select { |r| r.other_issue(@issue)&.visible? }
+    @allowed_statuses = @issue.new_statuses_allowed_to(User.current)
+    @priorities = IssuePriority.active
+    @time_entry = TimeEntry.new(issue: @issue, project: @issue.project)
+    @relation   = IssueRelation.new
+  end
 
   # redmine permission - add customers
   def add_customer
