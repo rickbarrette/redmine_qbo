@@ -22,21 +22,7 @@ class Estimate < ActiveRecord::Base
   
   # sync all estimates
   def self.sync
-    logger.info "Syncing ALL estimates"
-    qbo = Qbo.first
-    estimates = qbo.perform_authenticated_request do |access_token|
-      service = Quickbooks::Service::Estimate.new(company_id: qbo.realm_id, access_token: access_token)
-      service.all
-    end
-
-    return unless estimates
-
-    estimates.each { |estimate|
-      process_estimate(estimate)
-    }
-
-    #remove deleted estimates
-    where.not(estimates.map(&:id)).destroy_all
+    EstimateSyncJob.perform_later(full_sync: false)
   end
   
   # sync only one estimate
