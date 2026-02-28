@@ -22,6 +22,7 @@ class Invoice < ActiveRecord::Base
     doc_number
   end
 
+  # Sync all invoices from QuickBooks, typically triggered by a scheduled task or manual sync request
   def self.sync
     InvoiceSyncJob.perform_later(full_sync: true)
   end
