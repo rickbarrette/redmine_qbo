@@ -39,11 +39,9 @@ module RedmineQbo
         # Enqueue a background job to bill the time spent on this issue to the associated customer in Quickbooks, if the issue is closed and has a customer assigned.
         def enqueue_billing
           log "Checking if issue needs to be billed for issue ##{id}"
-          #return unless saved_change_to_status_id?
           return unless closed?
           return unless customer.present?
           return unless assigned_to&.employee_id.present?
-          raise "No QBO configuration found" unless qbo.first
 
           log "Enqueuing billing for issue ##{id}"
           BillIssueTimeJob.perform_later(id)
