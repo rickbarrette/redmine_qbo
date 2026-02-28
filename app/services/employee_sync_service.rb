@@ -56,7 +56,7 @@ class EmployeeSyncService
     if full_sync
       service.query("SELECT * FROM Employee STARTPOSITION #{start_position} MAXRESULTS #{PAGE_SIZE}")
     else
-      last_update = Employee.maximum(:qbo_updated_at) || 1.year.ago
+      last_update = Employee.maximum(:updated_at) || 1.year.ago
       service.query(<<~SQL.squish)
         SELECT * FROM Employee
         WHERE MetaData.LastUpdatedTime > '#{last_update.utc.iso8601}'
