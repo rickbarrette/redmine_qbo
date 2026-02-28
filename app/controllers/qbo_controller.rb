@@ -96,17 +96,7 @@ class QboController < ApplicationController
     CustomerSyncJob.perform_later(full_sync: true)
     EstimateSyncJob.perform_later(full_sync: true)
     InvoiceSyncJob.perform_later(full_sync: true)
-
-    # Update info in background
-    Thread.new do
-      if Qbo.exists?
-        Employee.sync
-        
-        # Record the last sync time
-        Qbo.update_time_stamp
-      end
-      ActiveRecord::Base.connection.close
-    end
+    EmployeeSyncJob.perform_later(full_sync: true)
 
     redirect_to :home, flash: { notice: I18n.t(:label_syncing) }
   end

@@ -15,6 +15,7 @@ class WebhookProcessJob < ActiveJob::Base
     Customer
     Invoice
     Estimate
+    Employee
   ].freeze
 
   # Process incoming QBO webhook notifications and sync relevant data to Redmine

@@ -8,18 +8,28 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class Employee < ActiveRecord::Base
-  
-  has_many :users
-  validates_presence_of :id, :name
+class EmployeeSyncJob < ApplicationJob
+  queue_as :default
+  retry_on StandardError, wait: 5.minutes, attempts: 5
 
-  def self.sync
-    EmployeeSyncJob.perform_later(full_sync: true)
+  def perform(full_sync: false, id: nil)
+    qbo = Qbo.first
+    return unless qbo
+
+    log "Starting #{full_sync ? 'full' : 'incremental'} sync for employee ##{id || 'all'}..."
+
+    service = EmployeeSyncService.new(qbo: qbo)
+
+    if id.present?
+      service.sync_by_id(id)
+    else
+      service.sync(full_sync: full_sync)
+    end
   end
 
-  # Sync a single employee by ID, typically triggered by a webhook notification or manual sync request
-  def self.sync_by_id(id)
-    EmployeeSyncJob.perform_later(id: id)
+  private
+
+  def log(msg)
+    Rails.logger.info "[EmployeeSyncJob] #{msg}"
   end
-  
 end

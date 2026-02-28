@@ -8,18 +8,8 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class Employee < ActiveRecord::Base
-  
-  has_many :users
-  validates_presence_of :id, :name
-
-  def self.sync
-    EmployeeSyncJob.perform_later(full_sync: true)
+class AddEmployeeTimestamp < ActiveRecord::Migration[7.0]
+  def change
+    add_timestamps(:employees, null: true)
   end
-
-  # Sync a single employee by ID, typically triggered by a webhook notification or manual sync request
-  def self.sync_by_id(id)
-    EmployeeSyncJob.perform_later(id: id)
-  end
-  
 end
