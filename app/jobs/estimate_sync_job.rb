@@ -12,83 +12,24 @@ class EstimateSyncJob < ApplicationJob
   queue_as :default
   retry_on StandardError, wait: 5.minutes, attempts: 5
 
-  # Sync estimates from QuickBooks Online to local database
-  def perform(full_sync: false)
+  def perform(full_sync: false, id: nil, doc_number: nil)
     qbo = Qbo.first
     return unless qbo
 
-    log "Starting #{full_sync ? 'full' : 'incremental'} sync..."
+    log "Starting #{full_sync ? 'full' : 'incremental'} sync for estimate ##{id || doc_number || 'all'}..."
 
-    qbo = Qbo.first
-    qbo.perform_authenticated_request do |access_token|
-            
-        service = Quickbooks::Service::Estimate.new(company_id: qbo.realm_id, access_token: access_token)
+    service = EstimateSyncService.new(qbo: qbo)
 
-        page = 1
-        loop do
-          collection = fetch_estimates(service, page, full_sync)
-          entries = Array(collection&.entries)
-
-          break if entries.empty?
-
-          entries.each { |c| sync_estimates(c) }
-
-          page += 1
-          break if entries.size < 1000
-        end
-
-        log "Completed sync."
-        Qbo.update_time_stamp
+    if id.present?
+      service.sync_by_id(id)
+    elsif doc_number.present?
+      service.sync_by_doc(doc_number)
+    else
+      service.sync(full_sync: full_sync)
     end
-  rescue => e
-    log "Fatal error: #{e.message}"
-    log e.backtrace.join("\n")
-    raise # allows retry
   end
 
   private
-
-  # Fetch either all or incremental estimates
-  def fetch_estimates(service, page, full_sync)
-    start_position = (page - 1) * 1000 + 1
-
-    if full_sync
-      service.query("SELECT * FROM Estimate STARTPOSITION #{start_position} MAXRESULTS 1000")
-    else
-      last_update = Estimate.maximum(:updated_at) || 1.year.ago
-      service.query(<<~SQL.squish)
-        SELECT * FROM Estimate
-        WHERE MetaData.LastUpdatedTime > '#{last_update.utc.iso8601}'
-        STARTPOSITION #{start_position}
-        MAXRESULTS 1000
-      SQL
-    end
-  rescue => e
-    log "Failed to fetch page #{page}: #{e.message}"
-    nil
-  end
-
-  # Sync a single estimate record
-  def sync_estimates(e)
-    log "Processing estimate #{e.id} doc=#{e.doc_number} status=#{e.txn_status}"
-
-    estimate = Estimate.find_or_initialize_by(id: e.id)
-
-    estimate.doc_number = e.doc_number
-    estimate.estimate_id = e.estimate_ref.value
-    estimate.txn_date = e.txn_date
-
-    if estimate.changed?
-      estimate.save
-      log "Updated estimate #{e.id}"
-    end
-  end
-
-  # TODO remove deleted estimates
-  
-  rescue => error
-    log "Failed to sync estimate #{e.id}: #{error.message}"
-  end
 
   def log(msg)
     Rails.logger.info "[EstimateSyncJob] #{msg}"

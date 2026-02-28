@@ -32,43 +32,12 @@ class Estimate < ActiveRecord::Base
 
   # sync only one estimate
   def self.sync_by_doc_number(number)
-    log "Syncing estimate by doc number #{number}"
-    qbo = Qbo.first
-    qbo.perform_authenticated_request do |access_token|
-      service = Quickbooks::Service::Estimate.new(company_id: qbo.realm_id, access_token: access_token)
-      process_estimate(service.find_by( :doc_number, number).first)
-    end
-  end
-  
-  # update an estimate
-  def self.update(id)
-    qbo = Qbo.first
-    estimate = qbo.perform_authenticated_request do |access_token|
-      service = Quickbooks::Service::Estimate.new(company_id: qbo.realm_id, access_token: access_token)
-      service.fetch_by_id(id)
-    end
-
-    return unless estimate
-
-    e = find_or_create_by(id: id)
-    e.doc_number = estimate.doc_number
-    e.txn_date = estimate.txn_date
-    e.save!
-  end
-  
-  # process an estimate into the database
-  def self.process_estimate(qbo_estimate)
-    log "Processing estimate #{qbo_estimate.id}"
-    estimate = find_or_create_by(id: qbo_estimate.id)
-    estimate.doc_number = qbo_estimate.doc_number
-    estimate.customer_id = qbo_estimate.customer_ref.value
-    estimate.id = qbo_estimate.id
-    estimate.txn_date = qbo_estimate.txn_date
-    estimate.save!
+    EstimateSyncJob.perform_later(doc_number: number)
   end
 
   # download the pdf from quickbooks
   def pdf
+    log "Downloading PDF for estimate ##{self.id}..."
     qbo = Qbo.first
     qbo.perform_authenticated_request do |access_token|
       service = Quickbooks::Service::Estimate.new(company_id: qbo.realm_id, access_token: access_token)
@@ -99,6 +68,7 @@ class Estimate < ActiveRecord::Base
   
   # pull the details
   def pull
+    log "Pulling details for estimate ##{self.id}..."
     begin
       raise Exception unless self.id
       qbo = Qbo.first
