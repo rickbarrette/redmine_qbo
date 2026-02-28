@@ -48,12 +48,12 @@ class WebhookProcessJob < ActiveJob::Base
     return unless model
 
     if entity['deletedId']
-      model.destroy(entity['deletedId'])
+      model.delete(entity['deletedId'])
       return
     end
 
     if entity['operation'] == "Delete"
-      model.destroy(id)
+      model.delete(id)
     else
       model.sync_by_id(id)
     end
