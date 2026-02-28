@@ -56,7 +56,7 @@ class CustomerSyncService
     if full_sync
       service.query("SELECT * FROM Customer STARTPOSITION #{start_position} MAXRESULTS #{PAGE_SIZE}")
     else
-      last_update = Customer.maximum(:qbo_updated_at) || 1.year.ago
+      last_update = Customer.maximum(:updated_at) || 1.year.ago
       service.query(<<~SQL.squish)
         SELECT * FROM Customer
         WHERE MetaData.LastUpdatedTime > '#{last_update.utc.iso8601}'
