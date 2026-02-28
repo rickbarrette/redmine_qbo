@@ -27,12 +27,7 @@ class Estimate < ActiveRecord::Base
   
   # sync only one estimate
   def self.sync_by_id(id)
-    log "Syncing estimate #{id}"
-    qbo = Qbo.first
-    qbo.perform_authenticated_request do |access_token|
-      service = Quickbooks::Service::Estimate.new(company_id: qbo.realm_id, access_token: access_token)
-      process_estimate(service.fetch_by_id(id))
-    end
+    EstimateSyncJob.perform_later(id: id)
   end
 
   # sync only one estimate
