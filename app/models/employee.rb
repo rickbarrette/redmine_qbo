@@ -13,6 +13,7 @@ class Employee < ActiveRecord::Base
   has_many :users
   validates_presence_of :id, :name
 
+  # Sync all employees, typically triggered by a scheduled task or manual sync request
   def self.sync
     EmployeeSyncJob.perform_later(full_sync: true)
   end
