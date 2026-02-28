@@ -68,18 +68,18 @@ class EmployeeSyncService
 
   # Create or update a local Employee record based on the QBO remote data
   def persist(remote)
-    employee = Employee.find_or_initialize_by(id: remote.id)
+    local = Employee.find_or_initialize_by(id: remote.id)
 
     if remote.active?
-      employee.name = remote.display_name
+      local.name = remote.display_name
 
-      if employee.changed?
-        employee.save
+      if local.changed?
+        local.save
         log "Updated employee #{remote.id}"
       end
     else
-      if employee.persisted?
-        employee.destroy
+      if local.persisted?
+        local.destroy
         log "Deleted employee #{remote.id}"
       end
     end
