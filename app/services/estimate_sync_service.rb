@@ -84,23 +84,14 @@ class EstimateSyncService
     log "Persisting estimate #{remote.id}"
     local = Estimate.find_or_initialize_by(id: remote.id)
 
-    #if remote.txn_status?
-      local.doc_number = remote.doc_number
-      local.txn_date = remote.txn_date
-      local.customer = Customer.find_by(id: remote.customer_ref&.value)
-      
-      if local.changed?
-        local.save
-        log "Updated estimate #{remote.id}"
-      end
-
-    # TODO handle deleted estimates
-    #else
-    #  if local.persisted?
-    #     local.destroy
-    #     log "Deleted estimate #{remote.id}"
-    #   end
-    # end
+    local.doc_number = remote.doc_number
+    local.txn_date = remote.txn_date
+    local.customer = Customer.find_by(id: remote.customer_ref&.value)
+    
+    if local.changed?
+      local.save
+      log "Updated estimate #{remote.id}"
+    end
   rescue => e
     log "Failed to sync estimate #{remote.id}: #{e.message}"
   end
