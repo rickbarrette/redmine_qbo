@@ -58,7 +58,7 @@ module RedmineQbo
           #left << [l(:field_category), issue.category] unless issue.disabled_core_fields.include?(:category_id)
           #left << [l(:field_fixed_version), issue.fixed_version] unless issue.disabled_core_fields.include?(:fixed_version_id)
           
-          logger.debug "Calling :pdf_left hook"
+          log "Calling :pdf_left hook"
           left_hook_output = Redmine::Hook.call_hook :pdf_left, { issue: issue }
           unless left_hook_output.nil?
             left_hook_output.each do |l|
@@ -73,7 +73,7 @@ module RedmineQbo
           right << [l(:field_estimated_hours), l_hours(issue.estimated_hours)] unless issue.disabled_core_fields.include?(:estimated_hours)
           right << [l(:label_spent_time), l_hours(issue.total_spent_hours)] if User.current.allowed_to?(:view_time_entries, issue.project)
           
-          logger.debug "Calling :pdf_right hook"
+          log "Calling :pdf_right hook"
           right_hook_output = Redmine::Hook.call_hook :pdf_right, { issue: issue }
           unless right_hook_output.nil?
             right_hook_output.each do |r|
@@ -269,6 +269,13 @@ module RedmineQbo
         end
 
       end
+
+      private
+
+      def log(msg)
+          Rails.logger.info "[PdfPatch] #{msg}"
+      end
+
     end
 
     Redmine::Export::PDF::IssuesPdfHelper.send(:include, PdfPatch)
