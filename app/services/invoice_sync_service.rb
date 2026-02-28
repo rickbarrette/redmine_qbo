@@ -68,20 +68,25 @@ class InvoiceSyncService
 
   # Create or update a local Invoice record based on the QBO remote data
   def persist(remote)
-    invoice = Invoice.find_or_initialize_by(id: remote.id)
+    local = Invoice.find_or_initialize_by(id: remote.id)
 
-    invoice.doc_number      = remote.doc_number
-    invoice.txn_date        = remote.txn_date
-    invoice.due_date        = remote.due_date
-    invoice.total_amount    = remote.total
-    invoice.balance         = remote.balance
-    invoice.qbo_updated_at  = remote.meta_data&.last_updated_time
+    local.doc_number      = remote.doc_number
+    local.txn_date        = remote.txn_date
+    local.due_date        = remote.due_date
+    local.total_amount    = remote.total
+    local.balance         = remote.balance
+    local.qbo_updated_at  = remote.meta_data&.last_updated_time
 
-    invoice.customer = Customer.find_by(id: remote.customer_ref&.value)
+    local.customer = Customer.find_by(id: remote.customer_ref&.value)
 
-    invoice.save!
+    if local.changed?
+      local.save
+      log "Updated invoice #{remote.doc_number} (#{remote.id})"
+    end
 
-    InvoiceAttachmentService.new(invoice, remote).attach
+    InvoiceAttachmentService.new(local, remote).attach
+    rescue => e
+    log "Failed to sync invoice #{remote.doc_number} (#{remote.id}): #{e.message}"
   end
 
   def log(msg)
