@@ -98,7 +98,7 @@ en:
   notice_error_project_nil: "The issue's project is nil. Set project to:"
   notice_error_tracker_nil: "The issue's tracker is nil. Set tracker to:"
   notice_estimate_created: "Estimate created in QuickBooks"
-  notice_estimate_not_found: "Estimate not found"
+  notice_estimate_not_found: "Estimate not found, we are syncing with QuickBooks to find it. Please check back shortly."
   notice_estimate_updated: "Estimate updated in QuickBooks"
   notice_forbidden: "You do not have permission to access this resource."
   notice_invoice_created: "Invoice created in QuickBooks"
