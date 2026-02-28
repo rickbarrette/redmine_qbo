@@ -15,6 +15,7 @@ class EstimateController < ApplicationController
   skip_before_action :verify_authenticity_token, :check_if_login_required, unless: proc {|c| session[:token].nil? }
 
   def get_estimate
+    log "Searching for estimate with params: #{params.inspect}"
 
     e = Estimate.find_by_doc_number(params[:search]) if params[:search]
     e = Estimate.find_by_id(params[:id]) if params[:id]
