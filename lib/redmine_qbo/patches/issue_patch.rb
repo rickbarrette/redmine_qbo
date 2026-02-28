@@ -43,7 +43,7 @@ module RedmineQbo
           return unless closed?
           return unless customer.present?
           return unless assigned_to&.employee_id.present?
-          return unless Qbo.first
+          raise "No QBO configuration found" unless qbo.first
 
           log "Enqueuing billing for issue ##{id}"
           BillIssueTimeJob.perform_later(id)

@@ -14,7 +14,7 @@ class EmployeeSyncJob < ApplicationJob
 
   def perform(full_sync: false, id: nil)
     qbo = Qbo.first
-    return unless qbo
+    raise "No QBO configuration found" unless qbo
 
     log "Starting #{full_sync ? 'full' : 'incremental'} sync for employee ##{id || 'all'}..."
 
