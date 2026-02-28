@@ -12,6 +12,7 @@ class EstimateSyncJob < ApplicationJob
   queue_as :default
   retry_on StandardError, wait: 5.minutes, attempts: 5
 
+  # Performs a sync of estimates from QuickBooks Online.
   def perform(full_sync: false, id: nil, doc_number: nil)
     qbo = Qbo.first
     raise "No QBO configuration found" unless qbo

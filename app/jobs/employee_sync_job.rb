@@ -12,6 +12,7 @@ class EmployeeSyncJob < ApplicationJob
   queue_as :default
   retry_on StandardError, wait: 5.minutes, attempts: 5
 
+  # Performs a sync of employees from QuickBooks Online.
   def perform(full_sync: false, id: nil)
     qbo = Qbo.first
     raise "No QBO configuration found" unless qbo

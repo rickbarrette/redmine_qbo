@@ -12,6 +12,7 @@ class InvoiceSyncJob < ApplicationJob
   queue_as :default
   retry_on StandardError, wait: 5.minutes, attempts: 5
 
+  # Performs a sync of invoices from QuickBooks Online.
   def perform(full_sync: false, id: nil)
     qbo = Qbo.first
     raise "No QBO configuration found" unless qbo
