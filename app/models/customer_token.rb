@@ -21,14 +21,17 @@ class CustomerToken < ApplicationRecord
 
   TOKEN_EXPIRATION = 1.month
 
+  # Check if the token has expired
   def expired?
     expires_at.present? && expires_at <= Time.current
   end
 
+  # Remove expired tokens from the database
   def self.remove_expired_tokens
     where("expires_at <= ?", Time.current).delete_all
   end
 
+  # Get or create a token for the given issue
   def self.get_token(issue)
     return unless issue
     return unless User.current.allowed_to?(:view_issues, issue.project)
@@ -41,10 +44,12 @@ class CustomerToken < ApplicationRecord
 
   private
 
+  # Generate a unique token for the customer
   def generate_token
     self.token ||= SecureRandom.urlsafe_base64(32)
   end
 
+  # Generate an expiration date for the token
   def generate_expire_date
     self.expires_at ||= Time.current + TOKEN_EXPIRATION
   end
