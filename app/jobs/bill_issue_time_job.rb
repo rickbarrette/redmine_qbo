@@ -10,6 +10,7 @@
 
 class BillIssueTimeJob < ActiveJob::Base
   queue_as :default
+  retry_on StandardError, wait: 5.minutes, attempts: 5
 
   # Perform billing of unbilled time entries for a given issue by creating corresponding TimeActivity records in QuickBooks Online, and then marking those entries as billed in Redmine. This job is typically triggered after an invoice is created or updated to ensure all relevant time is captured for billing.
   def perform(issue_id)
