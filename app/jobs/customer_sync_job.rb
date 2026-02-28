@@ -16,7 +16,7 @@ class CustomerSyncJob < ApplicationJob
     qbo = Qbo.first
     return unless qbo
 
-    logger.info "[CustomerSyncJob] Starting #{full_sync ? 'full' : 'incremental'} sync..."
+    log "Starting #{full_sync ? 'full' : 'incremental'} sync..."
 
     qbo = Qbo.first
     qbo.perform_authenticated_request do |access_token|
@@ -36,11 +36,12 @@ class CustomerSyncJob < ApplicationJob
           break if entries.size < 1000
         end
 
-        logger.info "[CustomerSyncJob] Completed sync."
+        log "Completed sync."
+        Qbo.update_time_stamp
     end
   rescue => e
-    logger.error "[CustomerSyncJob] Fatal error: #{e.message}"
-    logger.error e.backtrace.join("\n")
+    log "Fatal error: #{e.message}"
+    log e.backtrace.join("\n")
     raise # allows retry
   end
 
@@ -62,13 +63,13 @@ class CustomerSyncJob < ApplicationJob
       SQL
     end
   rescue => e
-    logger.error "[CustomerSyncJob] Failed to fetch page #{page}: #{e.message}"
+    log "Failed to fetch page #{page}: #{e.message}"
     nil
   end
 
   # Sync a single customer record
   def sync_customer(c)
-    logger.info "[CustomerSyncJob] Processing customer #{c.id} / #{c.display_name} (active=#{c.active?})"
+    log "Processing customer #{c.id} / #{c.display_name} (active=#{c.active?})"
 
     customer = Customer.find_or_initialize_by(id: c.id)
 
@@ -79,15 +80,21 @@ class CustomerSyncJob < ApplicationJob
 
       if customer.changed?
         customer.save_without_push
-        logger.info "[CustomerSyncJob] Updated customer #{c.id}"
+        log "Updated customer #{c.id}"
       end
     else
       if customer.persisted? && customer.active?
         customer.destroy
-        logger.info "[CustomerSyncJob] Deleted customer #{c.id}"
+        log "Deleted customer #{c.id}"
       end
     end
   rescue => e
-    logger.error "[CustomerSyncJob] Failed to sync customer #{c.id}: #{e.message}"
+    log "Failed to sync customer #{c.id}: #{e.message}"
+  end
+
+  private
+
+  def log(msg)
+    Rails.logger.info "[CustomerSyncJob] #{msg}"
   end
 end
