@@ -26,7 +26,7 @@ class QboController < ApplicationController
   #
   def authenticate
     redirect_uri = "#{Setting.protocol}://#{Setting.host_name + qbo_oauth_callback_path}"
-    logger.info "redirect_uri: #{redirect_uri}"
+    log "redirect_uri: #{redirect_uri}"
     oauth2_client = Qbo.construct_oauth2_client
     grant_url = oauth2_client.auth_code.authorize_url(redirect_uri: redirect_uri, response_type: "code", state: SecureRandom.hex(12), scope: "com.intuit.quickbooks.accounting")
     redirect_to grant_url
@@ -91,15 +91,15 @@ class QboController < ApplicationController
   # Synchronizes the QboCustomer table with QBO
   #
   def sync
-    logger.info "Syncing EVERYTHING"
+    log "Syncing EVERYTHING"
 
     CustomerSyncJob.perform_later(full_sync: true)
     EstimateSyncJob.perform_later(full_sync: true)
+    InvoiceSyncJob.perform_later(full_sync: true)
 
     # Update info in background
     Thread.new do
       if Qbo.exists?
-        Invoice.sync
         Employee.sync
         
         # Record the last sync time
@@ -113,7 +113,7 @@ class QboController < ApplicationController
 
   # QuickBooks Webhook Callback
   def webhook
-    logger.info "QBO: Webhook received"
+    log "Webhook received"
 
     signature = request.headers['intuit-signature']
     key       = Setting.plugin_redmine_qbo['settingsWebhookToken']
@@ -123,7 +123,7 @@ class QboController < ApplicationController
     computed = Base64.strict_encode64(OpenSSL::HMAC.digest(digest, key, body))
 
     unless secure_compare(computed, signature)
-      logger.warn "QBO: Invalid webhook signature"
+      log "Invalid webhook signature"
       head :unauthorized
       return
     end
@@ -135,8 +135,13 @@ class QboController < ApplicationController
 
   private
 
+  # Securely compare two strings to prevent timing attacks. Returns false if either string is blank or if they do not match.
   def secure_compare(a, b)
     return false if a.blank? || b.blank?
     ActiveSupport::SecurityUtils.secure_compare(a, b)
+  end
+
+  def log(msg)
+    Rails.logger.info "[QboController] #{msg}"
   end
 end

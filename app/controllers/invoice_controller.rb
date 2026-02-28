@@ -19,7 +19,7 @@ class InvoiceController < ApplicationController
   # Downloads and forwards the invoice pdf
   #
   def show
-    logger.info("Processing request for URL: #{request.original_url}") 
+    log "Processing request for URL: #{request.original_url}" 
     begin
       qbo = Qbo.first
         qbo.perform_authenticated_request do |access_token|
@@ -27,10 +27,10 @@ class InvoiceController < ApplicationController
         
         # If multiple id's then pull each pdf & combine them
         if params[:invoice_ids]
-          logger.info("Grabbing pdfs for " + params[:invoice_ids].join(', '))
+          log "Grabbing pdfs for " + params[:invoice_ids].join(', ')
           ref = ""
           params[:invoice_ids].each do |i|
-            logger.info("processing " + i)
+            log "processing " + i
             invoice = service.fetch_by_id(i)
             ref += " #{invoice.doc_number}"
             @pdf << CombinePDF.parse(service.pdf(invoice)) unless @pdf.nil?
@@ -50,5 +50,11 @@ class InvoiceController < ApplicationController
     rescue
       redirect_to :back, flash: { error: I18n.t(:notice_invoice_not_found) }
     end
+  end
+
+  private
+
+  def log(msg)
+    Rails.logger.info "[InvoiceController] #{msg}"
   end
 end

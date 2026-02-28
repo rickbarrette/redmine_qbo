@@ -8,27 +8,28 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class Invoice < ActiveRecord::Base
-  has_and_belongs_to_many :issues
-  belongs_to :customer
+class InvoiceSyncJob < ApplicationJob
+  queue_as :default
+  retry_on StandardError, wait: 5.minutes, attempts: 5
 
-  validates :id, presence: true, uniqueness: true
-  validates :doc_number, :txn_date, presence: true
+  def perform(full_sync: false, id: nil)
+    qbo = Qbo.first
+    return unless qbo
 
-  self.primary_key = :id
+    log "Starting #{full_sync ? 'full' : 'incremental'} sync for invoice ##{id || 'all'}..."
 
-  # Return the invoice's document number as its string representation
-  def to_s
-    doc_number
+    service = InvoiceSyncService.new(qbo: qbo)
+
+    if id.present?
+      service.sync_by_id(id)
+    else
+      service.sync(full_sync: full_sync)
+    end
   end
 
-  def self.sync
-    InvoiceSyncJob.perform_later(full_sync: true)
-  end
+  private
 
-  # Sync a single invoice by ID, typically triggered by a webhook notification or manual sync request
-  def self.sync_by_id(id)
-    InvoiceSyncJob.perform_later(id: id)
+  def log(msg)
+    Rails.logger.info "[InvoiceSyncJob] #{msg}"
   end
-
 end

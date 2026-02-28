@@ -8,27 +8,40 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class Invoice < ActiveRecord::Base
-  has_and_belongs_to_many :issues
-  belongs_to :customer
-
-  validates :id, presence: true, uniqueness: true
-  validates :doc_number, :txn_date, presence: true
-
-  self.primary_key = :id
-
-  # Return the invoice's document number as its string representation
-  def to_s
-    doc_number
+class InvoicePushService
+  
+  def initialize(invoice)
+    @invoice = invoice
   end
 
-  def self.sync
-    InvoiceSyncJob.perform_later(full_sync: true)
+  # Push invoice changes to QBO if the invoice is linked to any issues with custom field changes that need to be synced
+  def push
+    return if @invoice.qbo_sync_locked?
+
+    log "Pushing invoice ##{@invoice.id} to QBO due to linked issue custom field changes"
+
+    @invoice.update_column(:qbo_sync_locked, true)
+
+    qbo = Qbo.first
+
+    qbo.perform_authenticated_request do |access_token|
+      service = Quickbooks::Service::Invoice.new( company_id: qbo.realm_id, access_token: access_token)
+
+      remote = service.fetch_by_id(@invoice.id)
+
+      # modify remote object here if needed
+
+      service.update(remote)
+    end
+  rescue => e
+    Rails.logger.error "[InvoicePushService] #{e.message}"
+  ensure
+    @invoice.update_column(:qbo_sync_locked, false)
   end
 
-  # Sync a single invoice by ID, typically triggered by a webhook notification or manual sync request
-  def self.sync_by_id(id)
-    InvoiceSyncJob.perform_later(id: id)
-  end
+  private
 
+  def log(msg)
+    Rails.logger.info "[InvoicePushService] #{msg}"
+  end
 end

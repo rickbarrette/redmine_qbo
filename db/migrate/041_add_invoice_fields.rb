@@ -8,27 +8,17 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class Invoice < ActiveRecord::Base
-  has_and_belongs_to_many :issues
-  belongs_to :customer
+class AddInvoiceFields < ActiveRecord::Migration[7.0]
+  def change
+    change_table :invoices, bulk: true do |t|
+      t.date     :due_date
+      t.decimal  :total_amount, precision: 15, scale: 2
+      t.decimal  :balance, precision: 15, scale: 2
+      t.datetime :qbo_updated_at
+      t.boolean  :qbo_sync_locked, null: false, default: false
+    end
 
-  validates :id, presence: true, uniqueness: true
-  validates :doc_number, :txn_date, presence: true
-
-  self.primary_key = :id
-
-  # Return the invoice's document number as its string representation
-  def to_s
-    doc_number
+    add_index :invoices, :qbo_updated_at
+    add_index :invoices, :qbo_sync_locked
   end
-
-  def self.sync
-    InvoiceSyncJob.perform_later(full_sync: true)
-  end
-
-  # Sync a single invoice by ID, typically triggered by a webhook notification or manual sync request
-  def self.sync_by_id(id)
-    InvoiceSyncJob.perform_later(id: id)
-  end
-
 end
