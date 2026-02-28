@@ -27,6 +27,7 @@ module RedmineQbo
           before_save :titlize_subject
           after_commit :enqueue_billing, on: :update
         end
+        
       end
 
       module ClassMethods
@@ -35,20 +36,22 @@ module RedmineQbo
 
       module InstanceMethods
 
+        # Enqueue a background job to bill the time spent on this issue to the associated customer in Quickbooks, if the issue is closed and has a customer assigned.
         def enqueue_billing
-          Rails.logger.debug "QBO: Checking if issue needs to be billed for issue ##{id}"
+          log "Checking if issue needs to be billed for issue ##{id}"
           #return unless saved_change_to_status_id?
           return unless closed?
           return unless customer.present?
           return unless assigned_to&.employee_id.present?
           return unless Qbo.first
 
-          Rails.logger.debug "QBO: Enqueuing billing for issue ##{id}"
+          log "Enqueuing billing for issue ##{id}"
           BillIssueTimeJob.perform_later(id)
         end
 
+        # Titlize the subject of the issue before saving to ensure consistent formatting for billing descriptions in Quickbooks
         def titlize_subject
-          Rails.logger.debug "QBO: Titlizing subject for issue ##{id}"
+          log "Titlizing subject for issue ##{id}"
 
           self.subject = subject.split(/\s+/).map do |word|
             if word =~ /[A-Z]/ && word =~ /[0-9]/
@@ -60,8 +63,15 @@ module RedmineQbo
         end
       end
 
+      # This method is used to generate a shareable token for the customer associated with this issue, which can be used to link the issue to the corresponding customer in Quickbooks for billing and tracking purposes.
       def share_token
         CustomerToken.get_token(self)
+      end
+
+      private
+
+      def log(msg)
+          Rails.logger.info "[IssuePatch] #{msg}"
       end
     end
 

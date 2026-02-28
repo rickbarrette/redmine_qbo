@@ -25,7 +25,7 @@ class EstimateController < ApplicationController
         Estimate.sync_by_doc_number(params[:search])
         e = Estimate.find_by_doc_number(params[:search])
       rescue
-        logger.info "Estimate.find_by_doc_number failed"
+        log "Estimate.find_by_doc_number failed"
       end
     end
 
@@ -35,7 +35,7 @@ class EstimateController < ApplicationController
         Estimate.sync_by_id(params[:id])
         e = Estimate.find_by_id(params[:id])
       rescue
-        logger.info "Estimate.find_by_id failed"
+        log "Estimate.find_by_id failed"
       end
     end
 
@@ -66,6 +66,12 @@ class EstimateController < ApplicationController
     rescue
       redirect_to :back, flash: { error: I18n.t(:notice_estimate_not_found) }
     end
+  end
+
+  private
+
+  def log(msg)
+    Rails.logger.info "[EstimateController] #{msg}"
   end
 
 end

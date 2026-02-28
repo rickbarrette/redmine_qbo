@@ -17,7 +17,9 @@ class WebhookProcessJob < ActiveJob::Base
     Estimate
   ].freeze
 
+  # Process incoming QBO webhook notifications and sync relevant data to Redmine
   def perform(raw_body)
+    log "Received webhook: #{raw_body}"
     data = JSON.parse(raw_body)
 
     data.fetch('eventNotifications', []).each do |notification|
@@ -33,7 +35,9 @@ class WebhookProcessJob < ActiveJob::Base
 
   private
 
+  # Process a single entity from the webhook payload and sync it to Redmine if it's an allowed type
   def process_entity(entity)
+    log "Processing entity: #{entity}"
     name = entity['name']
     id   = entity['id']&.to_i
 
@@ -53,7 +57,10 @@ class WebhookProcessJob < ActiveJob::Base
       model.sync_by_id(id)
     end
   rescue => e
-    Rails.logger.error "QBO Webhook entity processing failed"
-    Rails.logger.error e.message
+    log "#{e.message}"
+  end
+
+  def log(msg)
+    Rails.logger.info "[WebhookProcessJob] #{msg}"
   end
 end

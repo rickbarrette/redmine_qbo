@@ -11,10 +11,11 @@
 class BillIssueTimeJob < ActiveJob::Base
   queue_as :default
 
+  # Perform billing of unbilled time entries for a given issue by creating corresponding TimeActivity records in QuickBooks Online, and then marking those entries as billed in Redmine. This job is typically triggered after an invoice is created or updated to ensure all relevant time is captured for billing.
   def perform(issue_id)
     issue = Issue.find(issue_id)
 
-    Rails.logger.debug "QBO: Starting billing for issue ##{issue.id}"
+    log "Starting billing for issue ##{issue.id}"
 
     issue.with_lock do
       unbilled_entries = issue.time_entries.where(billed: [false, nil]).lock
@@ -23,6 +24,7 @@ class BillIssueTimeJob < ActiveJob::Base
 
       totals = aggregate_hours(unbilled_entries)
       return if totals.blank?
+      log "Aggregated hours for billing: #{totals.inspect}"
 
       qbo = Qbo.first
       raise "No QBO configuration found" unless qbo
@@ -35,14 +37,16 @@ class BillIssueTimeJob < ActiveJob::Base
       unbilled_entries.update_all(billed: true)
     end
 
-    Rails.logger.debug "QBO: Completed billing for issue ##{issue.id}"
+    log "Completed billing for issue ##{issue.id}"
+    Qbo.update_time_stamp
   rescue => e
-    Rails.logger.error "QBO: Billing failed for issue ##{issue_id} - #{e.message}"
+    log "Billing failed for issue ##{issue_id} - #{e.message}"
     raise e
   end
 
   private
 
+  # Aggregate time entries by activity name and sum their hours
   def aggregate_hours(entries)
     entries.includes(:activity)
            .group_by { |e| e.activity&.name }
@@ -50,7 +54,9 @@ class BillIssueTimeJob < ActiveJob::Base
            .compact
   end
 
+  # Create TimeActivity records in QBO for each activity type with the appropriate hours and link them to the issue's assigned employee and customer
   def create_time_activities(issue, totals, access_token, qbo)
+    log "Creating TimeActivity records in QBO for issue ##{issue.id}"
     time_service = Quickbooks::Service::TimeActivity.new(
       company_id: qbo.realm_id,
       access_token: access_token
@@ -82,12 +88,13 @@ class BillIssueTimeJob < ActiveJob::Base
       time_entry.hourly_rate     = item.unit_price
       time_entry.item_id         = item.id
 
-      Rails.logger.debug "QBO: Creating TimeActivity for #{activity_name} (#{hours}h #{minutes}m)"
+      log "Creating TimeActivity for #{activity_name} (#{hours}h #{minutes}m)"
 
       time_service.create(time_entry)
     end
   end
 
+  # Convert a decimal hours float into separate hours and minutes components for QBO TimeActivity
   def convert_hours(hours_float)
     total_minutes = (hours_float.to_f * 60).round
     hours = total_minutes / 60
@@ -95,14 +102,20 @@ class BillIssueTimeJob < ActiveJob::Base
     [hours, minutes]
   end
 
+  # Build a descriptive string for the TimeActivity based on the issue's tracker, ID, subject, and completion status
   def build_description(issue)
     base = "#{issue.tracker} ##{issue.id}: #{issue.subject}"
     return base if issue.closed?
     "#{base} (Partial @ #{issue.done_ratio}%)"
   end
 
+  # Find an item in QBO by name, escaping single quotes to prevent query issues. Returns nil if not found.
   def find_item(item_service, name)
     safe = name.gsub("'", "\\\\'")
     item_service.query("SELECT * FROM Item WHERE Name = '#{safe}'").first
+  end
+
+  def log(msg)
+    Rails.logger.info "[BillIssueTimeJob] #{msg}"
   end
 end

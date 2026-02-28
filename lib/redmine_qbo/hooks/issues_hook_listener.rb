@@ -17,12 +17,12 @@ module RedmineQbo
       # Edit Issue Form
       # Here we build the required form components before passing them to a partial view formatting. 
       def view_issues_form_details_bottom(context={})
-        Rails.logger.debug "RedmineQbo::Hooks::IssuesHookListener.view_issues_form_details_bottom: Building form components for quickbooks customer, estimate, and invoice data"
+        log "view_issues_form_details_bottom: Building form components for quickbooks customer, estimate, and invoice data"
         f = context[:form]
         issue = context[:issue]
         project = context[:project]
-        Rails.logger.debug issue.inspect
-        Rails.logger.debug project.inspect
+        log issue.inspect
+        log project.inspect
 
         # Customer Name Text Box with database backed autocomplete
         # onchange event will update the hidden customer_id field
@@ -44,7 +44,7 @@ module RedmineQbo
         #
         # If this is not handled correctly, it leads to a 422 error when creating a new issue and selecting a customer.
         js_path = "updateIssueFrom('#{escape_javascript update_issue_form_path(project, issue)}', this)"
-        Rails.logger.debug js_path
+        log js_path
 
         # This hidden field is used for the customer ID for the issue
         # the onchange event will reload the issue form via ajax to update the available estimates
@@ -92,6 +92,12 @@ module RedmineQbo
               issue: issue
             } 
           })
+      end
+
+      private
+
+      def log(msg)
+        Rails.logger.info "[IssuesHookListener] #{msg}"
       end
       
     end

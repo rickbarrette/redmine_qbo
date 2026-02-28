@@ -27,7 +27,7 @@ class Estimate < ActiveRecord::Base
   
   # sync only one estimate
   def self.sync_by_id(id)
-    logger.info "Syncing estimate #{id}"
+    log "Syncing estimate #{id}"
     qbo = Qbo.first
     qbo.perform_authenticated_request do |access_token|
       service = Quickbooks::Service::Estimate.new(company_id: qbo.realm_id, access_token: access_token)
@@ -37,7 +37,7 @@ class Estimate < ActiveRecord::Base
 
   # sync only one estimate
   def self.sync_by_doc_number(number)
-    logger.info "Syncing estimate by doc number #{number}"
+    log "Syncing estimate by doc number #{number}"
     qbo = Qbo.first
     qbo.perform_authenticated_request do |access_token|
       service = Quickbooks::Service::Estimate.new(company_id: qbo.realm_id, access_token: access_token)
@@ -63,7 +63,7 @@ class Estimate < ActiveRecord::Base
   
   # process an estimate into the database
   def self.process_estimate(qbo_estimate)
-    logger.info "Processing estimate #{qbo_estimate.id}"
+    log "Processing estimate #{qbo_estimate.id}"
     estimate = find_or_create_by(id: qbo_estimate.id)
     estimate.doc_number = qbo_estimate.doc_number
     estimate.customer_id = qbo_estimate.customer_ref.value
@@ -114,6 +114,10 @@ class Estimate < ActiveRecord::Base
     rescue Exception => e
       @details = Quickbooks::Model::Estimate.new
     end
+  end
+
+  def log(msg)
+    Rails.logger.info "[Estimate] #{msg}"
   end
   
 end

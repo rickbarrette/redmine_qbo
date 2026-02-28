@@ -12,11 +12,12 @@ class EstimateSyncJob < ApplicationJob
   queue_as :default
   retry_on StandardError, wait: 5.minutes, attempts: 5
 
+  # Sync estimates from QuickBooks Online to local database
   def perform(full_sync: false)
     qbo = Qbo.first
     return unless qbo
 
-    logger.info "[EstimateSyncJob] Starting #{full_sync ? 'full' : 'incremental'} sync..."
+    log "Starting #{full_sync ? 'full' : 'incremental'} sync..."
 
     qbo = Qbo.first
     qbo.perform_authenticated_request do |access_token|
@@ -36,11 +37,12 @@ class EstimateSyncJob < ApplicationJob
           break if entries.size < 1000
         end
 
-        logger.info "[EstimateSyncJob] Completed sync."
+        log "Completed sync."
+        Qbo.update_time_stamp
     end
   rescue => e
-    logger.error "[EstimateSyncJob] Fatal error: #{e.message}"
-    logger.error e.backtrace.join("\n")
+    log "Fatal error: #{e.message}"
+    log e.backtrace.join("\n")
     raise # allows retry
   end
 
@@ -62,13 +64,13 @@ class EstimateSyncJob < ApplicationJob
       SQL
     end
   rescue => e
-    logger.error "[EstimateSyncJob] Failed to fetch page #{page}: #{e.message}"
+    log "Failed to fetch page #{page}: #{e.message}"
     nil
   end
 
   # Sync a single estimate record
   def sync_estimates(e)
-    logger.info "[EstimateSyncJob] Processing estimate #{e.id} doc=#{e.doc_number} status=#{e.txn_status}"
+    log "Processing estimate #{e.id} doc=#{e.doc_number} status=#{e.txn_status}"
 
     estimate = Estimate.find_or_initialize_by(id: e.id)
 
@@ -78,13 +80,17 @@ class EstimateSyncJob < ApplicationJob
 
     if estimate.changed?
       estimate.save
-      logger.info "[EstimateSyncJob] Updated estimate #{e.id}"
+      log "Updated estimate #{e.id}"
     end
   end
 
   # TODO remove deleted estimates
   
   rescue => error
-    logger.error "[EstimateSyncJob] Failed to sync estimate #{e.id}: #{error.message}"
+    log "Failed to sync estimate #{e.id}: #{error.message}"
+  end
+
+  def log(msg)
+    Rails.logger.info "[EstimateSyncJob] #{msg}"
   end
 end

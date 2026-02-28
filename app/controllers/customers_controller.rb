@@ -225,4 +225,8 @@ class CustomersController < ApplicationController
     return string
   end
 
+  def log(msg)
+    Rails.logger.info "[CustomersController] #{msg}"
+  end
+
 end
