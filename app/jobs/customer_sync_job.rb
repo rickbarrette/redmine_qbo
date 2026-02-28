@@ -12,84 +12,20 @@ class CustomerSyncJob < ApplicationJob
   queue_as :default
   retry_on StandardError, wait: 5.minutes, attempts: 5
 
-  def perform(full_sync: false)
+  # Perform a full sync of all customers, or an incremental sync of only those updated since the last sync
+  def perform(full_sync: false, id: nil)
     qbo = Qbo.first
     return unless qbo
 
-    log "Starting #{full_sync ? 'full' : 'incremental'} sync..."
+    log "Starting #{full_sync ? 'full' : 'incremental'} sync for customer ##{id || 'all'}..."
 
-    qbo = Qbo.first
-    qbo.perform_authenticated_request do |access_token|
-            
-        service = Quickbooks::Service::Customer.new(company_id: qbo.realm_id, access_token: access_token)
+    service = CustomerSyncService.new(qbo: qbo)
 
-        page = 1
-        loop do
-          collection = fetch_customers(service, page, full_sync)
-          entries = Array(collection&.entries)
-
-          break if entries.empty?
-
-          entries.each { |c| sync_customer(c) }
-
-          page += 1
-          break if entries.size < 1000
-        end
-
-        log "Completed sync."
-        Qbo.update_time_stamp
-    end
-  rescue => e
-    log "Fatal error: #{e.message}"
-    log e.backtrace.join("\n")
-    raise # allows retry
-  end
-
-  private
-
-  # Fetch either all or incremental customers
-  def fetch_customers(service, page, full_sync)
-    start_position = (page - 1) * 1000 + 1
-
-    if full_sync
-      service.query("SELECT * FROM Customer STARTPOSITION #{start_position} MAXRESULTS 1000")
+    if id.present?
+      service.sync_by_id(id)
     else
-      last_update = Customer.maximum(:updated_at) || 1.year.ago
-      service.query(<<~SQL.squish)
-        SELECT * FROM Customer
-        WHERE MetaData.LastUpdatedTime > '#{last_update.utc.iso8601}'
-        STARTPOSITION #{start_position}
-        MAXRESULTS 1000
-      SQL
+      service.sync(full_sync: full_sync)
     end
-  rescue => e
-    log "Failed to fetch page #{page}: #{e.message}"
-    nil
-  end
-
-  # Sync a single customer record
-  def sync_customer(c)
-    log "Processing customer #{c.id} / #{c.display_name} (active=#{c.active?})"
-
-    customer = Customer.find_or_initialize_by(id: c.id)
-
-    if c.active?
-      customer.name = c.display_name
-      customer.phone_number = c.primary_phone&.free_form_number&.gsub(/\D/, '')
-      customer.mobile_phone_number = c.mobile_phone&.free_form_number&.gsub(/\D/, '')
-
-      if customer.changed?
-        customer.save_without_push
-        log "Updated customer #{c.id}"
-      end
-    else
-      if customer.persisted? && customer.active?
-        customer.destroy
-        log "Deleted customer #{c.id}"
-      end
-    end
-  rescue => e
-    log "Failed to sync customer #{c.id}: #{e.message}"
   end
 
   private

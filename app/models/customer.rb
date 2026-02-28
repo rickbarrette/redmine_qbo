@@ -149,12 +149,6 @@ class Customer < ActiveRecord::Base
       end
     end
   end
-  
-  # proforms a bruteforce sync operation
-  # This needs to be simplified
-  def self.sync 
-    CustomerSyncJob.perform_later(full_sync: false)
-  end
 
   # Seach for customers by name or phone number
   def self.search(search)
@@ -177,30 +171,13 @@ class Customer < ActiveRecord::Base
   end
   
   # proforms a bruteforce sync operation
-  # This needs to be simplified
+  def self.sync 
+    CustomerSyncJob.perform_later(full_sync: false)
+  end
+
+  # proforms a bruteforce sync operation
   def self.sync_by_id(id) 
-    qbo = Qbo.first
-    c = qbo.perform_authenticated_request do |access_token|
-      service = Quickbooks::Service::Customer.new(company_id: qbo.realm_id, access_token: access_token)
-      service.fetch_by_id(id)
-    end
-
-    return unless c
-
-    customer = Customer.find_or_create_by(id: c.id)
-    if c.active?
-      #if not customer.name.eql? c.display_name
-        customer.name = c.display_name
-        customer.id = c.id
-        customer.phone_number = c.primary_phone.free_form_number.tr('^0-9', '') unless c.primary_phone.nil?
-        customer.mobile_phone_number = c.mobile_phone.free_form_number.tr('^0-9', '') unless c.mobile_phone.nil?
-        customer.save_without_push
-      #end
-    else
-      if not customer.new_record?
-        customer.delete
-      end
-    end
+    CustomerSyncJob.perform_later(id: id)
   end
   
   # returns a human readable string
