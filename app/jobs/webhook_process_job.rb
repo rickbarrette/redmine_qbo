@@ -10,6 +10,7 @@
 
 class WebhookProcessJob < ActiveJob::Base
   queue_as :default
+  retry_on StandardError, wait: 5.minutes, attempts: 5
 
   ALLOWED_ENTITIES = %w[
     Customer
