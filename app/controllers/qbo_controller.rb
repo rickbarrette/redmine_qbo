@@ -34,15 +34,13 @@ class QboController < ApplicationController
   def bill
     issue = Issue.find_by(id: params[:id])
     raise I18n.t(:notice_error_issue_not_found) unless issue
-    raise I18n.t(:label_billing_error_no_customer) unless issue.customer
-    raise I18n.t(:label_billing_error_no_employee) unless issue.assigned_to&.employee_id.present?
-    raise I18n.t(:label_billing_error_no_qbo) unless Qbo.exists?
+    raise I18n.t(:notice_billing_error_no_customer) unless issue.customer
+    raise I18n.t(:notice_billing_error_no_employee) unless issue.assigned_to&.employee_id.present?
+    raise I18n.t(:notice_billing_error_no_qbo) unless Qbo.exists?
 
     BillIssueTimeJob.perform_later(issue.id)
 
-    redirect_to issue, flash: {
-      notice: "#{I18n.t(:label_billing_enqueued)} #{issue.customer.name}"
-    }
+    redirect_to issue, flash: { notice: "#{I18n.t(:label_billing_enqueued)} #{issue.customer.name}"}
 
   rescue StandardError => e
     redirect_to issue || root_path, flash: { error: e.message }
