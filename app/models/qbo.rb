@@ -27,7 +27,7 @@ class Qbo < ActiveRecord::Base
   # Returns the last sync time formatted for display. If no sync has occurred, returns a default message.
   def self.last_sync
     qbo = QboConnectionService.current!
-    return t(:label_qbo_never_synced) unless qbo&.last_sync
+    return I18n.t(:label_qbo_never_synced) unless qbo&.last_sync
     format_time(qbo.last_sync)
   end
 
