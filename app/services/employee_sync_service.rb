@@ -8,86 +8,23 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class EmployeeSyncService
-  PAGE_SIZE = 1000
-
-  def initialize(qbo:)
-    @qbo = qbo
-  end
-
-  # Sync all employees, or only those updated since the last sync
-  def sync(full_sync: false)
-    log "Starting #{full_sync ? 'full' : 'incremental'} employee sync"
-
-    @qbo.perform_authenticated_request do |access_token|
-      service = Quickbooks::Service::Employee.new(company_id: @qbo.realm_id, access_token: access_token)
-
-      page = 1
-      loop do
-        collection = fetch_page(service, page, full_sync)
-        entries = Array(collection&.entries)
-        break if entries.empty?
-
-        entries.each { |remote| persist(remote) }
-
-        break if entries.size < PAGE_SIZE
-        page += 1
-      end
-    end
-
-    log "Employee sync complete"
-  end
-
-  # Sync a single employee by its QBO ID, used for webhook updates
-  def sync_by_id(id)
-    @qbo.perform_authenticated_request do |access_token|
-      service = Quickbooks::Service::Employee.new(company_id: @qbo.realm_id, access_token: access_token)
-      remote = service.fetch_by_id(id)
-      persist(remote)
-    end
-  end
+class EmployeeSyncService < SyncServiceBase
 
   private
 
-  # Fetch a page of employees, either all or only those updated since the last sync
-  def fetch_page(service, page, full_sync)
-    start_position = (page - 1) * PAGE_SIZE + 1
-
-    if full_sync
-      service.query("SELECT * FROM Employee STARTPOSITION #{start_position} MAXRESULTS #{PAGE_SIZE}")
-    else
-      last_update = Employee.maximum(:updated_at) || 1.year.ago
-      service.query(<<~SQL.squish)
-        SELECT * FROM Employee
-        WHERE MetaData.LastUpdatedTime > '#{last_update.utc.iso8601}'
-        STARTPOSITION #{start_position}
-        MAXRESULTS #{PAGE_SIZE}
-      SQL
-    end
+  # Specify the local model this service syncs
+  def self.model_class
+    Employee
   end
 
-  # Create or update a local Employee record based on the QBO remote data
-  def persist(remote)
-    local = Employee.find_or_initialize_by(id: remote.id)
-
-    if remote.active?
-      local.name = remote.display_name
-
-      if local.changed?
-        local.save
-        log "Updated employee #{remote.id}"
-      end
-    else
-      if local.persisted?
-        local.destroy
-        log "Deleted employee #{remote.id}"
-      end
-    end
-  rescue => e
-    log "Failed to sync employee #{remote.id}: #{e.message}"
+  # Determine if the remote entity should be deleted locally (e.g. if it's marked inactive in QBO)
+  def destroy_remote?(remote)
+    !remote.active?
   end
 
-  def log(msg)
-    Rails.logger.info "[EmployeeSyncService] #{msg}"
+  # Map relevant attributes from the QBO Employee to the local Employee model
+  def process_attributes(local, remote)
+    local.name = remote.display_name
   end
+
 end
