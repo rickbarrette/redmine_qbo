@@ -40,7 +40,6 @@ class SyncServiceBase
 
         break if entries.size < PAGE_SIZE
         page += 1
-        log "Fetched page #{page} of #{@entity.name} from QBO"
       end
     end
 
