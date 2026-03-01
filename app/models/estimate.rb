@@ -35,17 +35,6 @@ class Estimate < ActiveRecord::Base
     EstimateSyncJob.perform_later(doc_number: number)
   end
 
-  # download the pdf from quickbooks
-  def pdf
-    log "Downloading PDF for estimate ##{self.id}..."
-    qbo = Qbo.first
-    qbo.perform_authenticated_request do |access_token|
-      service = Quickbooks::Service::Estimate.new(company_id: qbo.realm_id, access_token: access_token)
-      estimate = service.fetch_by_id(id)
-      service.pdf(estimate)
-    end
-  end
-
   # Magic Method
   # Maps Get/Set methods to QBO estimate object
   def method_missing(sym, *arguments)
