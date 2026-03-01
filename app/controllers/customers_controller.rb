@@ -120,18 +120,6 @@ class CustomersController < ApplicationController
     end
   end
 
-  # delete a customer
-  def destroy
-    begin
-      Customer.find_by_id(params[:id]).destroy
-      flash[:notice] = t :notice_customer_deleted
-      redirect_to action: :index
-    rescue 
-      flash[:error] = t :notice_customer_not_deleted
-      render_404
-    end
-  end
-
   # creates new customer view tokens, removes expired tokens & redirects to newly created customer view with new token.
   def share
     issue = Issue.find(params[:id])
