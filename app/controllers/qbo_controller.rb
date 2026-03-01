@@ -33,7 +33,10 @@ class QboController < ApplicationController
   # Manual billing endpoint to trigger the billing process for a specific issue. Validates the issue and its associations, enqueues a job to bill the issue's time entries, and redirects back to the issue with a notice. If validation fails, redirects back with an error message.
   def bill
     issue = Issue.find_by(id: params[:id])
-    BillingValidator.validate!(issue)
+    raise I18n.t(:notice_error_issue_not_found) unless issue
+    raise I18n.t(:label_billing_error_no_customer) unless issue.customer
+    raise I18n.t(:label_billing_error_no_employee) unless issue.assigned_to&.employee_id.present?
+    raise I18n.t(:label_billing_error_no_qbo) unless Qbo.exists?
 
     BillIssueTimeJob.perform_later(issue.id)
 

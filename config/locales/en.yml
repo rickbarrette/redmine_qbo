@@ -96,6 +96,7 @@ en:
   notice_customer_not_deleted: "Customer could not be deleted in QuickBooks"
   notice_customer_not_found: "Customer not found in QuickBooks"
   notice_customer_updated: "Customer updated in QuickBooks"
+  notice_error_issue_not_found: "The issue could not be found. Please check the issue and try again."
   notice_error_project_nil: "The issue's project is nil. Set project to:"
   notice_error_tracker_nil: "The issue's tracker is nil. Set tracker to:"
   notice_estimate_created: "Estimate created in QuickBooks"
