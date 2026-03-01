@@ -8,48 +8,22 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 class InvoiceController < ApplicationController
-  
   include AuthHelper
-  require 'combine_pdf'
 
-  before_action :require_user, unless: proc {|c| session[:token].nil? }
-  skip_before_action :verify_authenticity_token, :check_if_login_required, unless: proc {|c| session[:token].nil? }
-  
-  #
-  # Downloads and forwards the invoice pdf
-  #
+  before_action :require_user, unless: -> { session[:token].nil? }
+  skip_before_action :verify_authenticity_token, :check_if_login_required, unless: -> { session[:token].nil? }
+
   def show
-    log "Processing request for URL: #{request.original_url}" 
-    begin
-      qbo = Qbo.first
-        qbo.perform_authenticated_request do |access_token|
-        service = Quickbooks::Service::Invoice.new(company_id: qbo.realm_id, access_token: access_token)
-        
-        # If multiple id's then pull each pdf & combine them
-        if params[:invoice_ids]
-          log "Grabbing pdfs for " + params[:invoice_ids].join(', ')
-          ref = ""
-          params[:invoice_ids].each do |i|
-            log "processing " + i
-            invoice = service.fetch_by_id(i)
-            ref += " #{invoice.doc_number}"
-            @pdf << CombinePDF.parse(service.pdf(invoice)) unless @pdf.nil?
-            if @pdf.nil?
-              @pdf = CombinePDF.parse(service.pdf(invoice))
-            end
-          end
-          @pdf = @pdf.to_pdf
-        else
-          invoice = service.fetch_by_id(params[:id])
-          @pdf = service.pdf(invoice)
-          ref = invoice.doc_number
-        end
+    log "Processing request for #{request.original_url}"
 
-        send_data @pdf, filename: "invoice #{ref}.pdf", disposition: :inline, type: "application/pdf"
-      end
-    rescue
-      redirect_to :back, flash: { error: I18n.t(:notice_invoice_not_found) }
-    end
+    invoice_ids = Array(params[:invoice_ids] || params[:id])
+    pdf, ref = InvoicePdfService.new(qbo: Qbo.first) .fetch_pdf(invoice_ids: invoice_ids)
+
+    send_data pdf, filename: "invoice #{ref}.pdf", disposition: :inline, type: "application/pdf"
+
+  rescue StandardError => e
+    log "Invoice PDF failure: #{e.message}"
+    redirect_back fallback_location: root_path, flash: { error: I18n.t(:notice_invoice_not_found) }
   end
 
   private
