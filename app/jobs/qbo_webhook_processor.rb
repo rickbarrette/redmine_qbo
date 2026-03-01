@@ -21,9 +21,12 @@ class QboWebhookProcessor
     WebhookProcessJob.perform_later(body)
   end
 
+  private
+
   # Validates the QuickBooks webhook request by computing the HMAC signature and comparing it to the provided signature. Returns false if either the signature or secret is blank, or if the computed signature does not match the provided signature.
   def self.valid_signature?(body, signature, secret)
     return false if signature.blank? || secret.blank?
+    log "Validating signature"
 
     digest = OpenSSL::Digest.new('sha256')
     computed = Base64.strict_encode64(
@@ -31,5 +34,9 @@ class QboWebhookProcessor
     )
 
     ActiveSupport::SecurityUtils.secure_compare(computed, signature)
+  end
+
+  def self.log(msg)
+    Rails.logger.info "[QboWebhookProcessor] #{msg}"
   end
 end
