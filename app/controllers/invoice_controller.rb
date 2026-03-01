@@ -13,11 +13,12 @@ class InvoiceController < ApplicationController
   before_action :require_user, unless: -> { session[:token].nil? }
   skip_before_action :verify_authenticity_token, :check_if_login_required, unless: -> { session[:token].nil? }
 
+  # Displays the invoice PDF in the browser or redirects with an error if not found.
   def show
     log "Processing request for #{request.original_url}"
 
     invoice_ids = Array(params[:invoice_ids] || params[:id])
-    pdf, ref = InvoicePdfService.new(qbo: Qbo.first) .fetch_pdf(invoice_ids: invoice_ids)
+    pdf, ref = InvoicePdfService.new(qbo: Qbo.first).fetch_pdf(doc_ids: invoice_ids)
 
     send_data pdf, filename: "invoice #{ref}.pdf", disposition: :inline, type: "application/pdf"
 
@@ -28,6 +29,7 @@ class InvoiceController < ApplicationController
 
   private
 
+  # Logs messages with a consistent prefix for easier debugging.
   def log(msg)
     Rails.logger.info "[InvoiceController] #{msg}"
   end
