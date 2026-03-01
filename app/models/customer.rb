@@ -215,7 +215,7 @@ class Customer < ActiveRecord::Base
   def pull
     begin
       raise Exception unless self.id
-      qbo = Qbo.first
+      qbo = QboConnectionService.current!
       @details = qbo.perform_authenticated_request do |access_token|
         service = Quickbooks::Service::Customer.new(company_id: qbo.realm_id, access_token: access_token)
         service.fetch_by_id(self.id)

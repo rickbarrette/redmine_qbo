@@ -14,7 +14,7 @@ class EmployeeSyncJob < ApplicationJob
 
   # Performs a sync of employees from QuickBooks Online.
   def perform(full_sync: false, id: nil)
-    qbo = Qbo.first
+    qbo = QboConnectionService.current!
     raise "No QBO configuration found" unless qbo
 
     log "Starting #{full_sync ? 'full' : 'incremental'} sync for employee ##{id || 'all'}..."

@@ -8,31 +8,28 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class EstimateSyncJob < ApplicationJob
-  queue_as :default
-  retry_on StandardError, wait: 5.minutes, attempts: 5
+class QboWebhookProcessor
 
-  # Performs a sync of estimates from QuickBooks Online.
-  def perform(full_sync: false, id: nil, doc_number: nil)
-    qbo = QboConnectionService.current!
-    raise "No QBO configuration found" unless qbo
+  # Processes the incoming QuickBooks webhook request by validating the signature and enqueuing a background job to handle the webhook payload. Raises an error if the signature is invalid.
+  def self.process!(request:)
+    body = request.raw_post
+    signature = request.headers['intuit-signature']
+    secret = Setting.plugin_redmine_qbo['settingsWebhookToken']
 
-    log "Starting #{full_sync ? 'full' : 'incremental'} sync for estimate ##{id || doc_number || 'all'}..."
+    raise "Invalid signature" unless valid_signature?(body, signature, secret)
 
-    service = EstimateSyncService.new(qbo: qbo)
-
-    if id.present?
-      service.sync_by_id(id)
-    elsif doc_number.present?
-      service.sync_by_doc(doc_number)
-    else
-      service.sync(full_sync: full_sync)
-    end
+    WebhookProcessJob.perform_later(body)
   end
 
-  private
+  # Validates the QuickBooks webhook request by computing the HMAC signature and comparing it to the provided signature. Returns false if either the signature or secret is blank, or if the computed signature does not match the provided signature.
+  def self.valid_signature?(body, signature, secret)
+    return false if signature.blank? || secret.blank?
 
-  def log(msg)
-    Rails.logger.info "[EstimateSyncJob] #{msg}"
+    digest = OpenSSL::Digest.new('sha256')
+    computed = Base64.strict_encode64(
+      OpenSSL::HMAC.digest(digest, secret, body)
+    )
+
+    ActiveSupport::SecurityUtils.secure_compare(computed, signature)
   end
 end

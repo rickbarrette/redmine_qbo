@@ -29,7 +29,7 @@ class SyncServiceBase
     @qbo.perform_authenticated_request do |access_token|
       service_class = "Quickbooks::Service::#{@entity.name}".constantize
       service = service_class.new(company_id: @qbo.realm_id, access_token: access_token)
-
+      
       page = 1
       loop do
         collection = fetch_page(service, page, full_sync)

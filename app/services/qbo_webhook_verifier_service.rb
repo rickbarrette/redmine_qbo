@@ -8,31 +8,17 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class EstimateSyncJob < ApplicationJob
-  queue_as :default
-  retry_on StandardError, wait: 5.minutes, attempts: 5
+class QboWebhookVerifierService
 
-  # Performs a sync of estimates from QuickBooks Online.
-  def perform(full_sync: false, id: nil, doc_number: nil)
-    qbo = QboConnectionService.current!
-    raise "No QBO configuration found" unless qbo
+  # Validates the QuickBooks webhook request by computing the HMAC signature and comparing it to the provided signature.
+  def self.valid?(body:, signature:, secret:)
+    return false if signature.blank? || secret.blank?
 
-    log "Starting #{full_sync ? 'full' : 'incremental'} sync for estimate ##{id || doc_number || 'all'}..."
+    digest = OpenSSL::Digest.new('sha256')
+    computed = Base64.strict_encode64(
+      OpenSSL::HMAC.digest(digest, secret, body)
+    )
 
-    service = EstimateSyncService.new(qbo: qbo)
-
-    if id.present?
-      service.sync_by_id(id)
-    elsif doc_number.present?
-      service.sync_by_doc(doc_number)
-    else
-      service.sync(full_sync: full_sync)
-    end
-  end
-
-  private
-
-  def log(msg)
-    Rails.logger.info "[EstimateSyncJob] #{msg}"
+    ActiveSupport::SecurityUtils.secure_compare(computed, signature)
   end
 end

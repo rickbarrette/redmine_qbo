@@ -14,7 +14,7 @@ class CustomerSyncJob < ApplicationJob
 
   # Perform a full sync of all customers, or an incremental sync of only those updated since the last sync
   def perform(full_sync: false, id: nil)
-    qbo = Qbo.first
+    qbo = QboConnectionService.current!
     raise "No QBO configuration found" unless qbo
 
     log "Starting #{full_sync ? 'full' : 'incremental'} sync for customer ##{id || 'all'}..."

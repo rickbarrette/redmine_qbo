@@ -8,31 +8,26 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class EstimateSyncJob < ApplicationJob
-  queue_as :default
-  retry_on StandardError, wait: 5.minutes, attempts: 5
+class QboOauthService
 
-  # Performs a sync of estimates from QuickBooks Online.
-  def perform(full_sync: false, id: nil, doc_number: nil)
-    qbo = QboConnectionService.current!
-    raise "No QBO configuration found" unless qbo
-
-    log "Starting #{full_sync ? 'full' : 'incremental'} sync for estimate ##{id || doc_number || 'all'}..."
-
-    service = EstimateSyncService.new(qbo: qbo)
-
-    if id.present?
-      service.sync_by_id(id)
-    elsif doc_number.present?
-      service.sync_by_doc(doc_number)
-    else
-      service.sync(full_sync: full_sync)
-    end
+  # Generates the QuickBooks OAuth authorization URL with the specified callback URL. The URL includes necessary parameters such as response type, state, and scope.
+  def self.authorization_url(callback_url:)
+    client.auth_code.authorize_url(
+      redirect_uri: callback_url,
+      response_type: "code",
+      state: SecureRandom.hex(12),
+      scope: "com.intuit.quickbooks.accounting"
+    )
   end
 
-  private
+  # Exchanges the authorization code for access and refresh tokens. Creates or replaces the QBO connection record with the new credentials and refreshes the token immediately after creation.
+  def self.exchange!(code:, callback_url:, realm_id:)
+    resp = client.auth_code.get_token(code, redirect_uri: callback_url)
+    QboConnectionService.replace!( token: resp.token, refresh_token: resp.refresh_token, realm_id: realm_id )
+  end
 
-  def log(msg)
-    Rails.logger.info "[EstimateSyncJob] #{msg}"
+  # Constructs and returns an OAuth2 client instance configured with the application's credentials and settings.
+  def self.client
+    Qbo.construct_oauth2_client
   end
 end

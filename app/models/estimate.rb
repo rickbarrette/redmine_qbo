@@ -60,7 +60,7 @@ class Estimate < ActiveRecord::Base
     log "Pulling details for estimate ##{self.id}..."
     begin
       raise Exception unless self.id
-      qbo = Qbo.first
+      qbo = QboConnectionService.current!
       @details = qbo.perform_authenticated_request do |access_token|
         service = Quickbooks::Service::Estimate.new(company_id: qbo.realm_id, access_token: access_token)
         service(:estimate).fetch_by_id(self.id)

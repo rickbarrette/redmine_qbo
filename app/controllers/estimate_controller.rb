@@ -65,7 +65,7 @@ class EstimateController < ApplicationController
 
   # Renders the estimate PDF or redirects with an error if rendering fails.
   def render_pdf(estimate)
-    pdf, ref = EstimatePdfService.new(qbo: Qbo.first).fetch_pdf(doc_ids: [estimate.id])
+    pdf, ref = EstimatePdfService.new(qbo: QboConnectionService.current!).fetch_pdf(doc_ids: [estimate.id])
     send_data( pdf, filename: "estimate #{ref}.pdf", disposition: :inline, type: "application/pdf" )
   rescue StandardError => e
     log "PDF render failed for Estimate #{estimate&.id}: #{e.message}"

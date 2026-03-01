@@ -27,7 +27,7 @@ class BillIssueTimeJob < ActiveJob::Base
       return if totals.blank?
       log "Aggregated hours for billing: #{totals.inspect}"
 
-      qbo = Qbo.first
+      qbo = QboConnectionService.current!
       raise "No QBO configuration found" unless qbo
 
       qbo.perform_authenticated_request do |access_token|
@@ -58,6 +58,7 @@ class BillIssueTimeJob < ActiveJob::Base
   # Create TimeActivity records in QBO for each activity type with the appropriate hours and link them to the issue's assigned employee and customer
   def create_time_activities(issue, totals, access_token, qbo)
     log "Creating TimeActivity records in QBO for issue ##{issue.id}"
+   
     time_service = Quickbooks::Service::TimeActivity.new(
       company_id: qbo.realm_id,
       access_token: access_token
@@ -66,8 +67,8 @@ class BillIssueTimeJob < ActiveJob::Base
     item_service = Quickbooks::Service::Item.new(
       company_id: qbo.realm_id,
       access_token: access_token
-    )
 
+      )
     totals.each do |activity_name, hours_float|
       next if activity_name.blank?
       next if hours_float.to_f <= 0

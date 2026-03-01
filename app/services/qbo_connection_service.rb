@@ -8,31 +8,25 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class EstimateSyncJob < ApplicationJob
-  queue_as :default
-  retry_on StandardError, wait: 5.minutes, attempts: 5
+class QboConnectionService
 
-  # Performs a sync of estimates from QuickBooks Online.
-  def perform(full_sync: false, id: nil, doc_number: nil)
-    qbo = QboConnectionService.current!
-    raise "No QBO configuration found" unless qbo
-
-    log "Starting #{full_sync ? 'full' : 'incremental'} sync for estimate ##{id || doc_number || 'all'}..."
-
-    service = EstimateSyncService.new(qbo: qbo)
-
-    if id.present?
-      service.sync_by_id(id)
-    elsif doc_number.present?
-      service.sync_by_doc(doc_number)
-    else
-      service.sync(full_sync: full_sync)
+  # Replaces the existing QBO connection with new credentials. Deletes all existing records and creates a new one with the provided token, refresh token, and realm ID. Refreshes the token immediately after creation.
+  def self.replace!(token:, refresh_token:, realm_id:)
+    Qbo.transaction do
+      Qbo.destroy_all
+      qbo = Qbo.create!(
+        oauth2_access_token: token,
+        oauth2_refresh_token: refresh_token,
+        realm_id: realm_id
+      )
+      qbo.refresh_token!
+      qbo
     end
   end
 
-  private
-
-  def log(msg)
-    Rails.logger.info "[EstimateSyncJob] #{msg}"
+  # Returns the current QBO connection record. Raises an error if no connection exists.
+  def self.current!
+    Qbo.first || raise("QBO not connected")
   end
+
 end

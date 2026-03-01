@@ -14,7 +14,7 @@ class InvoiceSyncJob < ApplicationJob
 
   # Performs a sync of invoices from QuickBooks Online.
   def perform(full_sync: false, id: nil)
-    qbo = Qbo.first
+    qbo = QboConnectionService.current!
     raise "No QBO configuration found" unless qbo
 
     log "Starting #{full_sync ? 'full' : 'incremental'} sync for invoice ##{id || 'all'}..."

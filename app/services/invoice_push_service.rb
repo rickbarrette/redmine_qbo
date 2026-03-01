@@ -22,7 +22,7 @@ class InvoicePushService
 
     @invoice.update_column(:qbo_sync_locked, true)
 
-    qbo = Qbo.first
+    qbo = QboConnectionService.current!
 
     qbo.perform_authenticated_request do |access_token|
       service = Quickbooks::Service::Invoice.new( company_id: qbo.realm_id, access_token: access_token)

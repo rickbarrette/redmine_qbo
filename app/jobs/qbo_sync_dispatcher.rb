@@ -8,31 +8,17 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class EstimateSyncJob < ApplicationJob
-  queue_as :default
-  retry_on StandardError, wait: 5.minutes, attempts: 5
+class QboSyncDispatcher
 
-  # Performs a sync of estimates from QuickBooks Online.
-  def perform(full_sync: false, id: nil, doc_number: nil)
-    qbo = QboConnectionService.current!
-    raise "No QBO configuration found" unless qbo
+  SYNC_JOBS = [
+    CustomerSyncJob,
+    EstimateSyncJob,
+    InvoiceSyncJob,
+    EmployeeSyncJob
+  ].freeze
 
-    log "Starting #{full_sync ? 'full' : 'incremental'} sync for estimate ##{id || doc_number || 'all'}..."
-
-    service = EstimateSyncService.new(qbo: qbo)
-
-    if id.present?
-      service.sync_by_id(id)
-    elsif doc_number.present?
-      service.sync_by_doc(doc_number)
-    else
-      service.sync(full_sync: full_sync)
-    end
-  end
-
-  private
-
-  def log(msg)
-    Rails.logger.info "[EstimateSyncJob] #{msg}"
+  # Dispatches all synchronization jobs to perform a full sync of QuickBooks entities with the local database. Each job is enqueued with the `full_sync` flag set to true.
+  def self.full_sync!
+    SYNC_JOBS.each { |job| job.perform_later(full_sync: true) }
   end
 end

@@ -8,31 +8,14 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class EstimateSyncJob < ApplicationJob
-  queue_as :default
-  retry_on StandardError, wait: 5.minutes, attempts: 5
 
-  # Performs a sync of estimates from QuickBooks Online.
-  def perform(full_sync: false, id: nil, doc_number: nil)
-    qbo = QboConnectionService.current!
-    raise "No QBO configuration found" unless qbo
+class BillingValidator
 
-    log "Starting #{full_sync ? 'full' : 'incremental'} sync for estimate ##{id || doc_number || 'all'}..."
-
-    service = EstimateSyncService.new(qbo: qbo)
-
-    if id.present?
-      service.sync_by_id(id)
-    elsif doc_number.present?
-      service.sync_by_doc(doc_number)
-    else
-      service.sync(full_sync: full_sync)
-    end
-  end
-
-  private
-
-  def log(msg)
-    Rails.logger.info "[EstimateSyncJob] #{msg}"
+  # Validates that the given issue is eligible for billing by checking for the presence of the issue, its associated customer, assigned employee, and an active QBO connection. Raises descriptive errors if any of these conditions are not met.
+  def self.validate!(issue)
+    raise "Issue not found" unless issue
+    raise I18n.t(:label_billing_error_no_customer) unless issue.customer
+    raise I18n.t(:label_billing_error_no_employee) unless issue.assigned_to&.employee_id.present?
+    raise I18n.t(:label_billing_error_no_qbo) unless Qbo.exists?
   end
 end

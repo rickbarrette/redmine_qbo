@@ -12,24 +12,35 @@ class Qbo < ActiveRecord::Base
     
   include QuickbooksOauth
   include Redmine::I18n
+
+  validate :single_record_only, on: :create
   
   # Updates last sync time stamp
   def self.update_time_stamp
     date = DateTime.now
     log "Updating QBO timestamp to #{date}"
-    qbo = Qbo.first
+    qbo = QboConnectionService.current!
     qbo.last_sync = date
     qbo.save
   end
   
+  # Returns the last sync time formatted for display. If no sync has occurred, returns a default message.
   def self.last_sync
-    format_time(Qbo.first.last_sync)
+    qbo = QboConnectionService.current!
+    return t(:label_qbo_never_synced) unless qbo&.last_sync
+    format_time(qbo.last_sync)
   end
 
   private
 
+  # Logs a message with a QBO-specific prefix for easier identification in the logs.
   def self.log(msg)
     logger.info "[QBO] #{msg}"
+  end
+
+  # Validates that only one QBO connection record exists in the database. Adds an error if a record already exists.
+  def single_record_only
+    errors.add(:base, "Only one QBO connection allowed") if Qbo.exists?
   end
 
 end

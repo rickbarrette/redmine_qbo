@@ -18,7 +18,7 @@ class InvoiceController < ApplicationController
     log "Processing request for #{request.original_url}"
 
     invoice_ids = Array(params[:invoice_ids] || params[:id])
-    pdf, ref = InvoicePdfService.new(qbo: Qbo.first).fetch_pdf(doc_ids: invoice_ids)
+    pdf, ref = InvoicePdfService.new(qbo: QboConnectionService.current!).fetch_pdf(doc_ids: invoice_ids)
 
     send_data pdf, filename: "invoice #{ref}.pdf", disposition: :inline, type: "application/pdf"
 
