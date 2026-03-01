@@ -8,9 +8,35 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class RemoveQboItems < ActiveRecord::Migration[5.1]
+class CreateLineItems < ActiveRecord::Migration[7.0]
   def change
-    drop_table :qbo_items
-    drop_table :qbo_purchases
+    create_table :line_items do |t|
+      t.integer :issue_id, null: false
+
+      t.text    :description, null: false
+
+      t.decimal :quantity,
+                precision: 15,
+                scale: 4,
+                null: false,
+                default: 0
+
+      t.decimal :unit_price,
+                precision: 15,
+                scale: 4,
+                null: false,
+                default: 0
+
+      t.decimal :line_total,
+                precision: 15,
+                scale: 4,
+                null: false,
+                default: 0
+
+      t.timestamps
+    end
+
+    add_index :line_items, :issue_id
+    add_foreign_key :line_items, :issues
   end
 end

@@ -1,0 +1,31 @@
+<%= form_with model: @issue do |f| %>
+
+  <!-- Existing issue fields -->
+
+  <h3>Invoice Line Items</h3>
+
+  <div
+    data-controller="nested-form"
+    data-nested-form-wrapper-selector-value=".line-item"
+  >
+    <div data-nested-form-target="container">
+      <%= f.fields_for :invoice_line_items do |item_form| %>
+        <%= render "line_items/invoice_line_item_fields", f: item_form %>
+      <% end %>
+    </div>
+
+    <template data-nested-form-target="template">
+      <%= f.fields_for :invoice_line_items,
+            LineItem.new,
+            child_index: "NEW_RECORD" do |item_form| %>
+        <%= render "line_items/invoice_line_item_fields", f: item_form %>
+      <% end %>
+    </template>
+
+    <button type="button" data-action="nested-form#add">
+      Add Line Item
+    </button>
+  </div>
+
+  <%= f.submit %>
+<% end %>

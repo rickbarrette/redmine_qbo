@@ -16,9 +16,12 @@ module RedmineQbo
       # Load the javascript to support the autocomplete forms
       def view_layouts_base_html_head(context = {})
         safe_join([
+          '<script src="https://unpkg.com/@hotwired/stimulus/dist/stimulus.umd.js"></script>'.html_safe,  
           javascript_include_tag( 'application.js', plugin: :redmine_qbo),
           javascript_include_tag( 'autocomplete-rails.js', plugin: :redmine_qbo),
-          javascript_include_tag( 'checkbox_controller.js', plugin: :redmine_qbo)
+          javascript_include_tag( 'checkbox_controller.js', plugin: :redmine_qbo),
+          javascript_include_tag( 'index.js', plugin: :redmine_qbo),
+          javascript_include_tag( 'nested_form_controller.js', plugin: :redmine_qbo)
         ])
       end
 
