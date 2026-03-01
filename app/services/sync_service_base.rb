@@ -103,6 +103,7 @@ class SyncServiceBase
       return
     end
 
+    # Map remote attributes to local model fields, this should be implemented in subclasses
     process_attributes(local, remote)
 
     if local.changed?
@@ -110,6 +111,7 @@ class SyncServiceBase
       log "Updated #{@entity.name} #{remote.id}"
     end
 
+    # Handle attaching documents if applicable to invoices
     attach_documents(local, remote)
 
   rescue => e
