@@ -109,10 +109,10 @@ class SyncServiceBase
     if local.changed?
       local.save!
       log "Updated #{@entity.name} #{remote.id}"
-    end
 
-    # Handle attaching documents if applicable to invoices
-    attach_documents(local, remote)
+      # Handle attaching documents if applicable to invoices
+      attach_documents(local, remote) 
+    end
 
   rescue => e
       log "Failed to sync #{@entity.name} #{remote.id}: #{e.message}"
