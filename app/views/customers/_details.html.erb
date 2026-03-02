@@ -13,12 +13,12 @@
     
     <tr>
       <th><%=t(:label_primary_phone)%></th>
-      <td><%= number_to_phone(customer.primary_phone.gsub(/[^\d]/, '').to_i, area_code: true) if customer.primary_phone %></td>
+      <td><%= number_to_phone(customer&.primary_phone&.gsub(/[^\d]/, '').to_i, area_code: true) %></td>
     </tr>
     
     <tr>
       <th><%=t(:label_mobile_phone)%></th>
-      <td><%= number_to_phone(customer.mobile_phone.gsub(/[^\d]/, '').to_i, area_code: true) if customer.mobile_phone %></td>
+      <td><%= number_to_phone(customer&.mobile_phone&.gsub(/[^\d]/, '').to_i, area_code: true) %></td>
     </tr>
     
      <tr>
