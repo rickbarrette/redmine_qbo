@@ -11,8 +11,9 @@
 class Customer < ActiveRecord::Base
 
   include Redmine::Acts::Searchable
-  include Redmine::Acts::Event
-  
+  include Redmine::Acts::Event  
+  include Redmine::I18n
+
   has_many :issues
   has_many :invoices
   has_many :estimates
@@ -49,6 +50,12 @@ class Customer < ActiveRecord::Base
     @details.email_address = s
   end
 
+  # Returns the last sync time formatted for display. If no sync has occurred, returns a default message.
+  def self.last_sync
+    return I18n.t(:label_qbo_never_synced) unless maximum(:updated_at)
+    format_time(maximum(:updated_at))
+  end
+  
   # Convenience Method
   # returns the customer's primary phone
   def primary_phone

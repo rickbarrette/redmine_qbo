@@ -10,10 +10,18 @@
 
 class Estimate < ActiveRecord::Base
   
+  include Redmine::I18n
+
   has_and_belongs_to_many :issues
   belongs_to :customer 
   validates_presence_of :doc_number, :id
   self.primary_key = :id
+
+  # Returns the last sync time formatted for display. If no sync has occurred, returns a default message.
+  def self.last_sync
+    return I18n.t(:label_qbo_never_synced) unless maximum(:updated_at)
+    format_time(maximum(:updated_at))
+  end
 
   # returns a human readable string
   def to_s

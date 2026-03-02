@@ -89,19 +89,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 <br/>
 
 <div>
-    <b><%=t(:label_customer_count)%>:</b> <%= Customer.count%>
+    <b><%=t(:label_customer_count)%>:</b> <%= Customer.count%> @ <%= Customer.last_sync %>
     </div>
       
     <div>
-        <b><%=t(:label_employee_count)%>:</b> <%= Employee.count %>
+        <b><%=t(:label_employee_count)%>:</b> <%= Employee.count %> @ <%= Employee.last_sync %>
     </div>
     
     <div>
-        <b><%=t(:label_invoice_count)%>:</b> <%= Invoice.count %>
+        <b><%=t(:label_invoice_count)%>:</b> <%= Invoice.count %> @ <%= Invoice.last_sync%>
     </div>
     
     <div>
-        <b><%=t(:label_estimate_count)%>:</b> <%= Estimate.count %>
+        <b><%=t(:label_estimate_count)%>:</b> <%= Estimate.count %> @ <%= Estimate.last_sync %>
     </div>
       
     <br/>
