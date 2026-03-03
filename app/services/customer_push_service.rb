@@ -18,11 +18,6 @@ class CustomerPushService
     @customer = customer
   end
 
-  # Log messages with the entity type for better traceability
-  def log(msg)
-    Rails.logger.info "[CustomerPushService] #{msg}"
-  end
-
   # Pushes the customer data to QuickBooks Online. This method handles the communication with QBO, including authentication and error handling. It uses the QBO client to send the customer data and logs the process for monitoring and debugging purposes. If the push is successful, it returns the customer record; otherwise, it logs the error and returns false.
   def push
     log "Pushing customer ##{@customer.id} to QBO..."
@@ -38,6 +33,13 @@ class CustomerPushService
     @customer.id = customer.id unless @customer.persisted?
     log "Push for customer ##{@customer.id} completed."
     return @customer
+  end
+
+  private 
+
+  # Log messages with the entity type for better traceability
+  def log(msg)
+    Rails.logger.info "[CustomerPushService] #{msg}"
   end
 
 end
