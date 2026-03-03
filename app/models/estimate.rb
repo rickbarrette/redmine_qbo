@@ -43,40 +43,7 @@ class Estimate < ActiveRecord::Base
     EstimateSyncJob.perform_later(doc_number: number)
   end
 
-  # Magic Method
-  # Maps Get/Set methods to QBO estimate object
-  def method_missing(sym, *arguments)
-    # Check to see if the method exists
-    if Quickbooks::Model::Estimate.method_defined?(sym)
-      # download details if required
-      pull unless @details
-      method_name = sym.to_s
-      # Setter
-      if method_name[-1, 1] == "="
-        @details.method(method_name).call(arguments[0])
-      # Getter
-      else
-        return @details.method(method_name).call 
-      end
-    end
-  end
-
   private
-  
-  # pull the details
-  def pull
-    log "Pulling details for estimate ##{self.id}..."
-    begin
-      raise Exception unless self.id
-      qbo = QboConnectionService.current!
-      @details = qbo.perform_authenticated_request do |access_token|
-        service = Quickbooks::Service::Estimate.new(company_id: qbo.realm_id, access_token: access_token)
-        service(:estimate).fetch_by_id(self.id)
-      end
-    rescue Exception => e
-      @details = Quickbooks::Model::Estimate.new
-    end
-  end
 
   def log(msg)
     Rails.logger.info "[Estimate] #{msg}"
