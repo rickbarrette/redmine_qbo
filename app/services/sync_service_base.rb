@@ -13,6 +13,7 @@ class SyncServiceBase
 
   # Subclasses should initialize with a QBO client instance
   def initialize(qbo:)
+    raise "No QBO configuration found" unless qbo
     @qbo = qbo
     @entity = self.class.model_class
   end
