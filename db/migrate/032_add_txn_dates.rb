@@ -11,9 +11,8 @@
 class AddTxnDates < ActiveRecord::Migration[5.1]
 
   def change
-    begin
-      add_column :qbo_invoices, :txn_date, :date
-      add_column :qbo_estimates, :txn_date, :date
+    add_column :qbo_invoices, :txn_date, :date
+    add_column :qbo_estimates, :txn_date, :date
   end
 
 end
