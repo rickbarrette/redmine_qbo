@@ -66,67 +66,60 @@ class CustomersController < ApplicationController
   # create a new customer
   def create
     @customer = Customer.new(allowed_params)
-    if @customer.save
-      flash[:notice] = t :notice_customer_created
-      redirect_to @customer
-    else
-      flash[:error] = @customer.errors.full_messages.to_sentence
-      redirect_to new_customer_path
-    end
+    @customer.save
+    log "Customer ##{@customer.id} created successfully."
+    flash[:notice] = t :notice_customer_created
+    redirect_to @customer
+  rescue => e
+    log "Failed to create customer: #{e.message}"
+    flash[:error] = e.message
+    redirect_to new_customer_path
   end
 
   # display a specific customer
   def show
-    begin
-      @customer = Customer.find_by_id(params[:id])
-      @issues = @customer.issues.order(id: :desc)
-      @billing_address = address_to_s(@customer.billing_address)
-      @shipping_address = address_to_s(@customer.shipping_address)
-      @closed_issues = (@issues - @issues.open)
-      @hours = 0
-      @closed_hours = 0
-      @issues.open.each { |i| @hours+= i.total_spent_hours }
-      @closed_issues.each { |i| @closed_hours+= i.total_spent_hours }
-    rescue 
-      flash[:error] = t :notice_customer_not_found
-      render_404
-    end
+    @customer = Customer.find_by_id(params[:id])
+    return render_404 unless @customer
+    @issues = @customer.issues&.order(id: :desc)
+    @billing_address = address_to_s(@customer.billing_address)
+    @shipping_address = address_to_s(@customer.shipping_address)
+    @closed_issues = (@issues - @issues.open)
+    @hours = 0
+    @closed_hours = 0
+    @issues.open.each { |i| @hours+= i.total_spent_hours }
+    @closed_issues.each { |i| @closed_hours+= i.total_spent_hours }
+  rescue => e
+    log "Failed to load customer ##{params[:id]}: #{e.message}"
+    flash[:error] = e.message
+    render_404
   end
 
   # return an HTML form for editing a customer
   def edit
-    begin
-      @customer = Customer.find_by_id(params[:id])
-    rescue 
-      flash[:error] = t :notice_customer_not_found
-      render_404
-    end
+    @customer = Customer.find_by_id(params[:id])
+    return render_404 unless @customer
+  rescue 
+    flash[:error] = t :notice_customer_not_found
+    render_404
   end
 
   # update a specific customer
   def update
-    begin
-      @customer = Customer.find_by_id(params[:id])
-      if @customer.update(allowed_params)
-        flash[:notice] = t :notice_customer_updated
-        redirect_to @customer
-      else
-        redirect_to edit_customer_path
-        flash[:error] = @customer.errors.full_messages.to_sentence if @customer.errors
-      end
-    rescue 
-      flash[:error] = t :notice_customer_not_found
-      render_404
-    end
+    @customer = Customer.find_by_id(params[:id])
+    @customer.update(allowed_params)
+    flash[:notice] = t :notice_customer_updated
+    redirect_to @customer
+  rescue => e
+    log "Failed to update customer: #{e.message}"
+    flash[:error] = e.message
+    redirect_to edit_customer_path
   end
 
   # creates new customer view tokens, removes expired tokens & redirects to newly created customer view with new token.
   def share
     issue = Issue.find(params[:id])
-
     token = issue.share_token
     redirect_to view_path(token.token)
-
   rescue ActiveRecord::RecordNotFound
     flash[:error] = t(:notice_issue_not_found)
     render_404
