@@ -127,7 +127,7 @@ class Customer < ActiveRecord::Base
 
   # Seach for customers by name or phone number
   def self.search(search)
-    return none if term.blank?
+    #return none if search.blank?
     search = sanitize_sql_like(search)
     where("name LIKE ? OR phone_number LIKE ? OR mobile_phone_number LIKE ?", "%#{search}%", "%#{search}%", "%#{search}%")
   end
