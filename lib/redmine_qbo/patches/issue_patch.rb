@@ -23,6 +23,8 @@ module RedmineQbo
           belongs_to :customer_token, primary_key: :id
           belongs_to :estimate, primary_key: :id
           has_and_belongs_to_many :invoices
+          has_many :line_items, dependent: :destroy
+          accepts_nested_attributes_for :line_items, allow_destroy: true
 
           before_save :titlize_subject
           after_commit :enqueue_billing, on: :update

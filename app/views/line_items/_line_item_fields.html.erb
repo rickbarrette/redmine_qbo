@@ -2,12 +2,12 @@
   <%= f.hidden_field :id %>
 
   <%= f.text_field :description, placeholder: "Description" %>
-  <%= f.number_field :quantity, step: 1 ,placeholder: "Quantity"%>
+  <%= f.number_field :quantity, step: 1, placeholder: "Quantity" %>
   <%= f.number_field :unit_price, step: 0.01, placeholder: "Unit Price" %>
 
   <%= f.hidden_field :_destroy %>
 
-  <button type="button" data-action="nested-form#remove">
+  <button type="button" data-nested-form-remove>
     Remove
   </button>
 </div>

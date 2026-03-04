@@ -64,7 +64,8 @@ module RedmineQbo
             locals: {
               search_customer: search_customer, 
               customer_id: customer_id, 
-              select_estimate: select_estimate
+              select_estimate: select_estimate,
+              f: context[:form]
             } 
           }
         )
