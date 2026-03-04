@@ -56,7 +56,7 @@ class CustomerService
 
   # Log messages with the entity type for better traceability
   def log(msg)
-    Rails.logger.info "[CustomerPushService] #{msg}"
+    Rails.logger.info "[CustomerService] #{msg}"
   end
 
 end
