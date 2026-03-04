@@ -30,7 +30,6 @@ class CustomerService
       )
       service.fetch_by_id(@customer.id)
     end
-    log "Pull for customer ##{@customer.id} completed."
   rescue => e
     log "Fetch failed for #{@customer.id}: #{e.message}"
     Quickbooks::Model::Customer.new
