@@ -98,8 +98,9 @@ class CustomersController < ApplicationController
   def edit
     @customer = Customer.find_by_id(params[:id])
     return render_404 unless @customer
-  rescue 
-    flash[:error] = t :notice_customer_not_found
+  rescue => e
+    log "Failed to edit customer"
+    flash[:error] = e.message
     render_404
   end
 
