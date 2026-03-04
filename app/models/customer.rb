@@ -164,9 +164,9 @@ class Customer < ActiveRecord::Base
 
   # Push the updates
   def save_with_push
-    qbo = QboConnectionService.current!
     log "Starting push for customer ##{self.id}..."
-    CustomerPushService.new(qbo: qbo, customer: self).push()
+    qbo = QboConnectionService.current!
+    CustomerService.new(qbo: qbo, customer: self).push()
     save_without_push
   end
 
@@ -180,16 +180,7 @@ class Customer < ActiveRecord::Base
     return Quickbooks::Model::Customer.new unless id.present?
     log "Fetching details for customer ##{id} from QBO..."
     qbo = QboConnectionService.current!
-    qbo.perform_authenticated_request do |access_token|
-      service = Quickbooks::Service::Customer.new(
-        company_id: qbo.realm_id,
-        access_token: access_token
-      )
-      service.fetch_by_id(id)
-    end
-  rescue => e
-    log "Fetch failed for #{id}: #{e.message}"
-    Quickbooks::Model::Customer.new
+    CustomerService.new(qbo: qbo, customer: self).pull()
   end
 
   # Log messages with the entity type for better traceability

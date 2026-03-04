@@ -8,7 +8,7 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class CustomerPushService
+class CustomerService
 
   # Initializes the service with a QBO client and an optional customer record. The QBO client is used to communicate with QuickBooks Online, while the customer record contains the data that needs to be pushed to QBO. If no customer is provided, the service will not perform any operations.
   def initialize(qbo:, customer: nil)
@@ -18,7 +18,24 @@ class CustomerPushService
     @customer = customer
   end
 
-  # Pushes the customer data to QuickBooks Online. This method handles the communication with QBO, including authentication and error handling. It uses the QBO client to send the customer data and logs the process for monitoring and debugging purposes. If the push is successful, it returns the customer record; otherwise, it logs the error and returns false.
+  # Pulls the customer data from QuickBooks Online. 
+  def pull
+    return Quickbooks::Model::Customer.new unless @customer.present?
+    log "Fetching details for customer ##{@customer.id} from QBO..."
+    qbo = QboConnectionService.current!
+    qbo.perform_authenticated_request do |access_token|
+      service = Quickbooks::Service::Customer.new(
+        company_id: qbo.realm_id,
+        access_token: access_token
+      )
+      service.fetch_by_id(@customer.id)
+    end
+  rescue => e
+    log "Fetch failed for #{@customer.id}: #{e.message}"
+    Quickbooks::Model::Customer.new
+  end
+
+   # Pushes the customer data to QuickBooks Online. This method handles the communication with QBO, including authentication and error handling. It uses the QBO client to send the customer data and logs the process for monitoring and debugging purposes. If the push is successful, it returns the customer record; otherwise, it logs the error and returns false.
   def push
     log "Pushing customer ##{@customer.id} to QBO..."
 
