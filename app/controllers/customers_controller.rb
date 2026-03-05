@@ -80,16 +80,31 @@ class CustomersController < ApplicationController
   def show
     @customer = Customer.find_by_id(params[:id])
     return render_404 unless @customer
-    @issues = @customer.issues&.order(id: :desc)
-    @billing_address = address_to_s(@customer.billing_address)
-    @shipping_address = address_to_s(@customer.shipping_address)
-    @closed_issues = (@issues - @issues.open)
-    @hours = 0
-    @closed_hours = 0
-    @issues.open.each { |i| @hours+= i.total_spent_hours }
-    @closed_issues.each { |i| @closed_hours+= i.total_spent_hours }
+
+    @open_issues = @customer.issues
+      .joins(:status)
+      .includes(:status, :project, :tracker, :priority)
+      .where(issue_statuses: { is_closed: false })
+      .order(id: :desc)
+
+    @closed_issues = @customer.issues
+      .joins(:status)
+      .includes(:status, :project, :tracker, :priority)
+      .where(issue_statuses: { is_closed: true })
+      .order(id: :desc)
+
+    @hours = TimeEntry
+      .joins(:issue)
+      .where(issues: { id: @open_issues.select(:id) })
+      .sum(:hours)
+
+    @closed_hours = TimeEntry
+      .joins(:issue)
+      .where(issues: { id: @closed_issues.select(:id) })
+      .sum(:hours)
+
   rescue => e
-    log "Failed to load customer ##{params[:id]}: #{e.message}"
+    Rails.logger.error "Failed to load customer ##{params[:id]}: #{e.message}\n#{e.backtrace.join("\n")}"
     flash[:error] = e.message
     render_404
   end
