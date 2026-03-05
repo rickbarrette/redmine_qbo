@@ -47,7 +47,7 @@ class Customer < ActiveRecord::Base
   end
 
   # Generates a unique cache key for storing this customer's QBO details.
-  def
+  def details_cache_key
     "customer:#{id}:qbo_details:#{updated_at.to_i}"
   end
 
