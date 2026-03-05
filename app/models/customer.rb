@@ -35,7 +35,20 @@ class Customer < ActiveRecord::Base
 
   # Returns the details of the customer. If the details have already been fetched, it returns the cached version. Otherwise, it fetches the details from QuickBooks Online and caches them for future use. This method is used to access the customer's information in a way that minimizes unnecessary API calls to QBO, improving performance and reducing latency.
   def details
-    @details ||= fetch_details
+    return Quickbooks::Model::Customer.new unless id.present?
+
+    @details ||= begin
+      xml = Rails.cache.fetch(details_cache_key, expires_in: 10.minutes) do
+        fetch_details.to_xml_ns
+      end
+
+      Quickbooks::Model::Customer.from_xml(xml)
+    end
+  end
+
+  # Generates a unique cache key for storing this customer's QBO details.
+  def
+    "customer:#{id}:qbo_details:#{updated_at.to_i}"
   end
 
   # Returns the customer's email address
@@ -49,6 +62,7 @@ class Customer < ActiveRecord::Base
     details
     @details.email_address = s
   end
+  
 
   # Returns the last sync time formatted for display. If no sync has occurred, returns a default message.
   def self.last_sync
@@ -167,6 +181,7 @@ class Customer < ActiveRecord::Base
     log "Starting push for customer ##{self.id}..."
     qbo = QboConnectionService.current!
     CustomerService.new(qbo: qbo, customer: self).push()
+    Rails.cache.delete(details_cache_key)
     save_without_push
   end
 
