@@ -66,12 +66,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
      <tr>
         <th><%=t(:label_oauth_expires)%></th>
-        <td><%= if Qbo.exists? then QboConnectionService.current!.oauth2_access_token_expires_at end %>
+        <td><%= QboConnectionService.current!&.oauth2_access_token_expires_at %>
       </tr>
       
       <tr>
         <th><%=t(:label_oauth2_refresh_token_expires_at)%></th>
-        <td><%= if Qbo.exists? then QboConnectionService.current!.oauth2_refresh_token_expires_at end %>
+        <td><%= QboConnectionService.current!&.oauth2_refresh_token_expires_at %>
      </tr>
 
   </tbody>
@@ -89,19 +89,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 <br/>
 
 <div>
-    <b><%=t(:label_customer_count)%>:</b> <%= Customer.count%>
+    <b><%=t(:label_customer_count)%>:</b> <%= Customer.count%> @ <%= Customer.last_sync %>
     </div>
       
     <div>
-        <b><%=t(:label_employee_count)%>:</b> <%= Employee.count %>
+        <b><%=t(:label_employee_count)%>:</b> <%= Employee.count %> @ <%= Employee.last_sync %>
     </div>
     
     <div>
-        <b><%=t(:label_invoice_count)%>:</b> <%= Invoice.count %>
+        <b><%=t(:label_invoice_count)%>:</b> <%= Invoice.count %> @ <%= Invoice.last_sync%>
     </div>
     
     <div>
-        <b><%=t(:label_estimate_count)%>:</b> <%= Estimate.count %>
+        <b><%=t(:label_estimate_count)%>:</b> <%= Estimate.count %> @ <%= Estimate.last_sync %>
     </div>
       
     <br/>

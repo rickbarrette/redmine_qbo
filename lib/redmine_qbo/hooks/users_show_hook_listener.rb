@@ -20,7 +20,7 @@ module RedmineQbo
         #Employee.update_all
     
         # Check to see if there is a quickbooks user attached to the issue
-        @selected = context[:user].employee.id if context[:user].employee
+        @selected = context[:user]&.employee&.id
 
         # Generate the drop down list of quickbooks contacts
         return "<p>#{context[:form].select :employee_id, Employee.all.pluck(:name, :id), selected: @selected, include_blank: true}</p>"

@@ -10,10 +10,18 @@
 
 class Estimate < ActiveRecord::Base
   
+  include Redmine::I18n
+
   has_and_belongs_to_many :issues
   belongs_to :customer 
   validates_presence_of :doc_number, :id
   self.primary_key = :id
+
+  # Returns the last sync time formatted for display. If no sync has occurred, returns a default message.
+  def self.last_sync
+    return I18n.t(:label_qbo_never_synced) unless maximum(:updated_at)
+    format_time(maximum(:updated_at))
+  end
 
   # returns a human readable string
   def to_s
@@ -35,40 +43,7 @@ class Estimate < ActiveRecord::Base
     EstimateSyncJob.perform_later(doc_number: number)
   end
 
-  # Magic Method
-  # Maps Get/Set methods to QBO estimate object
-  def method_missing(sym, *arguments)
-    # Check to see if the method exists
-    if Quickbooks::Model::Estimate.method_defined?(sym)
-      # download details if required
-      pull unless @details
-      method_name = sym.to_s
-      # Setter
-      if method_name[-1, 1] == "="
-        @details.method(method_name).call(arguments[0])
-      # Getter
-      else
-        return @details.method(method_name).call 
-      end
-    end
-  end
-
   private
-  
-  # pull the details
-  def pull
-    log "Pulling details for estimate ##{self.id}..."
-    begin
-      raise Exception unless self.id
-      qbo = QboConnectionService.current!
-      @details = qbo.perform_authenticated_request do |access_token|
-        service = Quickbooks::Service::Estimate.new(company_id: qbo.realm_id, access_token: access_token)
-        service(:estimate).fetch_by_id(self.id)
-      end
-    rescue Exception => e
-      @details = Quickbooks::Model::Estimate.new
-    end
-  end
 
   def log(msg)
     Rails.logger.info "[Estimate] #{msg}"

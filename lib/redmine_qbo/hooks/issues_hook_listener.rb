@@ -21,8 +21,6 @@ module RedmineQbo
         f = context[:form]
         issue = context[:issue]
         project = context[:project]
-        log issue.inspect
-        log project.inspect
 
         # Customer Name Text Box with database backed autocomplete
         # onchange event will update the hidden customer_id field

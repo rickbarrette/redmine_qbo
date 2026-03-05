@@ -13,6 +13,7 @@ class SyncServiceBase
 
   # Subclasses should initialize with a QBO client instance
   def initialize(qbo:)
+    raise "No QBO configuration found" unless qbo
     @qbo = qbo
     @entity = self.class.model_class
   end
@@ -109,10 +110,10 @@ class SyncServiceBase
     if local.changed?
       local.save!
       log "Updated #{@entity.name} #{remote.id}"
-    end
 
-    # Handle attaching documents if applicable to invoices
-    attach_documents(local, remote)
+      # Handle attaching documents if applicable to invoices
+      attach_documents(local, remote) 
+    end
 
   rescue => e
       log "Failed to sync #{@entity.name} #{remote.id}: #{e.message}"
