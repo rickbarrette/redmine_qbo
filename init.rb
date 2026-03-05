@@ -25,6 +25,7 @@ Redmine::Plugin.register :redmine_qbo do
   Issue.safe_attributes :estimate_id
   Issue.safe_attributes :invoice_id
   User.safe_attributes :employee_id
+  Issue.safe_attributes :line_items_attributes
   TimeEntry.safe_attributes :billed
   
   # set per_page globally
