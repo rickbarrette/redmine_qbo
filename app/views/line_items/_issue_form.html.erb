@@ -1,11 +1,24 @@
 <% @issue.line_items.build if @issue.line_items.empty? %>
 
-<div data-nested-form data-wrapper-selector=".line-item">
-  <div data-nested-form-container>
-    <%= f.fields_for :line_items do |item_form| %>
-      <%= render "line_items/line_item_fields", f: item_form %>
-    <% end %>
-  </div>
+<div class="box tabular" data-nested-form data-wrapper-selector=".line-item">
+  <p><strong>Line Items</strong></p>
+
+  <table class="list line-items-table">
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th style="width:120px;">Quantity</th>
+        <th style="width:150px;">Unit Price</th>
+        <th style="width:80px;"></th>
+      </tr>
+    </thead>
+
+    <tbody data-nested-form-container>
+      <%= f.fields_for :line_items do |item_form| %>
+        <%= render "line_items/line_item_fields", f: item_form %>
+      <% end %>
+    </tbody>
+  </table>
 
   <template data-nested-form-template>
     <%= f.fields_for :line_items, LineItem.new, child_index: "NEW_RECORD" do |item_form| %>
@@ -13,5 +26,9 @@
     <% end %>
   </template>
 
-  <button type="button" data-nested-form-add>Add Line Item</button>
+  <p>
+    <button type="button" class="icon icon-add" data-nested-form-add>
+      Add Line Item
+    </button>
+  </p>
 </div>
