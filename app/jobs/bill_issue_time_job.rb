@@ -17,10 +17,8 @@ class BillIssueTimeJob < ActiveJob::Base
     issue = Issue.find(issue_id)
 
     log "Starting billing for issue ##{issue.id}"
-
     issue.with_lock do
       unbilled_entries = issue.time_entries.where(billed: [false, nil]).lock
-
       return if unbilled_entries.blank?
 
       totals = aggregate_hours(unbilled_entries)
@@ -28,8 +26,6 @@ class BillIssueTimeJob < ActiveJob::Base
       log "Aggregated hours for billing: #{totals.inspect}"
 
       qbo = QboConnectionService.current!
-      raise "No QBO configuration found" unless qbo
-
       qbo.perform_authenticated_request do |access_token|
         create_time_activities(issue, totals, access_token, qbo)
       end
