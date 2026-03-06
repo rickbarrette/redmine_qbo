@@ -35,7 +35,7 @@ class Customer < ActiveRecord::Base
 
   # Returns the details of the customer. If the details have already been fetched, it returns the cached version. Otherwise, it fetches the details from QuickBooks Online and caches them for future use. This method is used to access the customer's information in a way that minimizes unnecessary API calls to QBO, improving performance and reducing latency.
   def details
-    return Quickbooks::Model::Customer.new unless id.present?
+    return (@details ||= Quickbooks::Model::Customer.new) if new_record?
 
     @details ||= begin
       xml = Rails.cache.fetch(details_cache_key, expires_in: 10.minutes) do
