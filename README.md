@@ -1,14 +1,21 @@
-# Redmine QuickBooks Online
+# Redmine QuickBooks Online Plugin
 
-A plugin for Redmine to connect to QuickBooks Online.
+A plugin for **Redmine** that integrates with **QuickBooks Online (QBO)** to automatically create **Time Activity entries** from billable hours logged on Issues.
 
-The goal of this project is to allow Redmine to connect with QuickBooks Online to create Time Activity Entries for billable hours logged when an Issue is closed.
+When an Issue associated with a Customer is closed, the plugin generates corresponding Time Activities in QuickBooks based on the Redmine Time Entries recorded for that Issue.
 
-## Disclaimer
+---
 
-**Note:** Although the core functionality is complete, this project is still under development and the master branch may be unstable. Tags should be stable and are recommended.
+# Disclaimer
 
-## Compatibility
+The core functionality is implemented, but the project is **under active development**.
+
+The `master` branch may contain unstable changes.  
+For production deployments, **use a tagged release**.
+
+---
+
+# Compatibility
 
 | Plugin Version | Redmine Version |
 | :--- | :--- |
@@ -17,85 +24,236 @@ The goal of this project is to allow Redmine to connect with QuickBooks Online t
 | Version 1.0.0+ | Redmine 4 |
 | Version 0.8.1 | Redmine 3 |
 
-## Features
+---
 
-* **Customer Assignment:** Issues can be assigned to a Customer via a dropdown in the edit Issue form.
-    * Once a customer is attached to an Issue, you can attach an Estimate to the issue via a dropdown menu.
-* **Employee Mapping:** An Employee is assigned to a Redmine User via a dropdown in the User Administration page.
-* **Automatic Billing:** If an Issue has been assigned a Customer, the following happens when the Issue is closed:
-    * A new Time Activity will be billed against the Customer assigned to the issue for each Redmine Time Entry.
-    * Time Entries will be totalled up by Activity name. This allows billing for different activities without having to create separate Issues.
-    * The Time Activity names are used to dynamically lookup Items in QuickBooks.
-    * If there are no Items that match the Activity name, it will be skipped and will not be billed to the Customer.
-    * Labor Rates are set by the corresponding Item in QuickBooks.
-* **Customer Management:** Customers can be created via the New Customer Page.
-    * Customers can be searched by name or phone number.
-    * Basic information for the Customer can be viewed/edited via the Customer page.
-* **Webhook Support:**
-    * **Invoices:** Automatically attached to an Issue if a line item contains a hashtag number (e.g., `#123`).
-    * **Custom Fields:** Invoice Custom Fields are matched to Issue Custom Fields and are automatically updated in QuickBooks. (Useful for extracting Mileage In/Out from the Issue to update the Invoice).
-    * **Sync:** Customers are automatically updated in the local database.
-* **Plugin View Hooks** Allows intergration of other features supported by companion plugins, for example [redmine_qbo_vehicles](https://github.com/rickbarrette/redmine_qbo_vehicles) adds customer vehicle interation
+# Features
 
-## Prerequisites
+## Issue Billing Integration
 
-* Sign up to become a developer for Intuit: https://developer.intuit.com/
-* Create your own application to obtain your API keys.
-* Set up the webhook service to `https://redmine.yourdomain.com/qbo/webhook`
-
-## Installation
-
-1. **Clone the plugin:**
-   Clone this repo into your plugin folder and checkout a tagged version.
-   ```bash
-   cd path/to/redmine/plugins
-   git clone git@github.com:rickbarrette/redmine_qbo.git
-   cd redmine_qbo
-   git checkout <tag>
-   ```
-
-2.  **Install dependencies:** *Crucial for Redmine 6 / Rails 7 compatibility.*
+*   Assign a **QuickBooks Customer** to a Redmine Issue.
     
-    Bash
-    
-    ```
-    bundle install
-    ```
-    
-3.  **Migrate your database:**
-    
-    Bash
-    
-    ```
-    bundle exec rake redmine:plugins:migrate RAILS_ENV=production
-    ```
-    
-4.  **Restart Redmine:** You must restart your Redmine server instance for the plugin and hooks to load.
-    
-5.  **Configuration:**
-    
-    *   Navigate to the plugin configuration page (`Administration > Plugins > Configure`).
-        
-    *   Supply your own OAuth Key & Secret.
-        
-    *   After saving the Key & Secret, click the **Authenticate** link on the configuration page to connect to QBO.
-        
-6.  **User Mapping:**
-    
-    *   Assign an Employee to each of your users via the **User Administration Page**.
-        
+*   Optionally associate a **QuickBooks Estimate** with the Issue.
 
-## Usage
+*   Automatically associates a **QuickBooks Invoice** with the Issue.
+    
 
-To enable automatic Time Activity entries for an Issue, you simply need to assign a Customer to an Issue via the dropdowns in the issue creation/update form.
+---
 
-**Note:** After the initial synchronization, this plugin will receive push notifications via Intuit's webhook service.   
+## Automatic Time Activity Creation
 
-## Companion Plugin Hooks
-* :pdf_left, { issue: issue }
-* :pdf_right, { issue: issue }
-* :process_invoice_custom_fields, { issue: issue, invoice: invoice } 
-* :show_customer_view_right, {customer: @customer}
+When an Issue with an assigned Customer is closed:
+
+*   A **Time Activity** is created in QuickBooks for each relevant Redmine Time Entry.
+    
+*   Time Entries are **grouped by Activity name**.
+    
+*   Activity names are used to **dynamically match Items in QuickBooks**.
+    
+*   If no matching Item exists, the activity is **skipped**.
+    
+*   **Labor rates** are determined by the associated QuickBooks Item.
+    
+
+---
+
+## Employee Mapping
+
+Redmine Users can be mapped to **QuickBooks Employees** through the **User Administration** page.
+
+This ensures Time Activities are recorded under the correct employee in QuickBooks.
+
+---
+
+## Customer Management
+
+The plugin provides basic Customer management:
+
+*   Create Customers directly from Redmine
+    
+*   Search Customers by **name or phone number**
+    
+*   View and edit Customer information
+    
+
+Customers are synchronized with QuickBooks.
+
+---
+
+## Webhook Support
+
+The plugin listens for **QuickBooks webhook events**.
+
+Supported automation:
+
+### Invoice Linking
+
+Invoices containing an Issue reference (e.g. `#123`) automatically attach to the corresponding Issue.
+
+### Custom Field Synchronization
+
+Invoice custom fields can be mapped to Issue custom fields.
+
+Example use case:
+
+*   Mileage In/Out recorded in Redmine
+    
+*   Automatically synchronized to the QuickBooks invoice.
+    
+
+### Customer Synchronization
+
+Customer records are automatically updated in the local database when changes occur in QuickBooks.
+
+---
+
+## Plugin Hooks
+
+The plugin exposes several hooks for extending functionality through companion plugins.
+
+Example:
+
+`redmine_qbo_vehicles`  
+Adds support for tracking **customer vehicles** associated with Issues.
+
+Available hooks:
+
+|Type|Hook|
+|--|---|
+View Hook|:pdf\_left, { issue: issue }  
+View Hook|:pdf\_right, { issue: issue }  
+Hook|process\_invoice\_custom\_fields, { issue: issue, invoice: invoice }  
+View Hook|:show\_customer\_view\_right, { customer: customer }
+
+---
+
+# Prerequisites
+
+Before installing the plugin:
+
+1.  Create a QuickBooks developer account:
+    
+
+[https://developer.intuit.com/](https://developer.intuit.com/)
+
+2.  Create an **Intuit application** to obtain:
+    
+
+*   Client ID
+    
+*   Client Secret
+    
+
+3.  Configure the QuickBooks webhook endpoint:
+    
+
+https://redmine.yourdomain.com/qbo/webhook
+
+---
+
+# Installation
+
+## 1\. Clone the Plugin
+
+Install the plugin into your Redmine plugins directory.
+
+cd /path/to/redmine/plugins  
+git clone https://github.com/rickbarrette/redmine\_qbo.git  
+cd redmine\_qbo  
+git checkout <tag>
+
+Use a **tagged release** for stability.
+
+---
+
+## 2\. Install Dependencies
+
+bundle install
+
+Required for **Redmine 6 / Rails 7 compatibility**.
+
+---
+
+## 3\. Run Database Migrations
+
+bundle exec rake redmine:plugins:migrate RAILS\_ENV=production
+
+---
+
+## 4\. Restart Redmine
+
+Restart your Redmine server so the plugin and hooks are loaded.
+
+---
+
+# Configuration
+
+1.  Navigate to:
+    
+
+Administration → Plugins → Configure
+
+2.  Enter your **QuickBooks Client ID and Client Secret**.
+    
+3.  Save the configuration.
+    
+4.  Click **Authenticate** to complete the OAuth connection with QuickBooks Online.
+    
+
+Once authentication succeeds, the plugin performs an **initial synchronization**.
+
+---
+
+# User Mapping
+
+Each Redmine user must be mapped to a QuickBooks Employee.
+
+Navigate to:
+
+Administration → Users
+
+Then assign the corresponding **QuickBooks Employee** to each user.
+
+---
+
+# Usage
+
+To enable automatic billing:
+
+1.  Assign a **Customer** to an Issue.
+    
+2.  Log billable time using **Redmine Time Entries**.
+    
+3.  Close the Issue.
+    
+
+When the Issue is closed, the plugin automatically generates the corresponding **Time Activity entries in QuickBooks Online**.
+
+After the initial synchronization, the plugin receives updates through **Intuit webhooks**.
+
+---
+
+# Troubleshooting
+
+### Time Activities Not Created
+
+Verify that:
+
+*   The Issue has a **Customer assigned**
+    
+*   Time Entries exist for the Issue
+    
+*   Activity names match **QuickBooks Item names**
+    
+
+---
+
+### Webhooks Not Triggering
+
+Ensure the QuickBooks webhook endpoint is reachable:
+
+https://redmine.yourdomain.com/qbo/webhook
+
+Also verify webhook configuration in the Intuit developer dashboard.
 
 ## License
 
