@@ -156,10 +156,12 @@ https://redmine.yourdomain.com/qbo/webhook
 
 Install the plugin into your Redmine plugins directory.
 
+```bash
 cd /path/to/redmine/plugins  
-git clone https://github.com/rickbarrette/redmine\_qbo.git  
-cd redmine\_qbo  
+git clone https://github.com/rickbarrette/redmine_qbo.git  
+cd redmine_qbo  
 git checkout <tag>
+```
 
 Use a **tagged release** for stability.
 
@@ -167,7 +169,9 @@ Use a **tagged release** for stability.
 
 ## 2\. Install Dependencies
 
+```bash
 bundle install
+```
 
 Required for **Redmine 6 / Rails 7 compatibility**.
 
@@ -175,7 +179,9 @@ Required for **Redmine 6 / Rails 7 compatibility**.
 
 ## 3\. Run Database Migrations
 
-bundle exec rake redmine:plugins:migrate RAILS\_ENV=production
+```bash
+bundle exec rake redmine:plugins:migrate RAILS_ENV=production
+```
 
 ---
 
