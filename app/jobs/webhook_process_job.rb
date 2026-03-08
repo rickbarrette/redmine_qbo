@@ -43,7 +43,14 @@ class WebhookProcessJob < ActiveJob::Base
     name = entity['name']
     id   = entity['id']&.to_i
 
-    return unless ALLOWED_ENTITIES.include?(name)
+    entitys = ALLOWED_ENTITIES.dup
+    # Allow other plugins to add addtional qbo entities via Hooks
+    Redmine::Hook.call_hook( :qbo_additional_entities ).each do |context|
+        next unless context
+        entitys.push context
+        log "Added additional QBO entities: #{context}"
+    end
+    return unless entitys.include?(name)
 
     model = name.safe_constantize
     return unless model

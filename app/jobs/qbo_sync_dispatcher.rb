@@ -19,6 +19,23 @@ class QboSyncDispatcher
 
   # Dispatches all synchronization jobs to perform a full sync of QuickBooks entities with the local database. Each job is enqueued with the `full_sync` flag set to true.
   def self.full_sync!
-    SYNC_JOBS.each { |job| job.perform_later(full_sync: true) }
+
+    jobs = SYNC_JOBS.dup
+
+    # Allow other plugins to add addtional sync jobs via Hooks
+    Redmine::Hook.call_hook( :qbo_full_sync ).each do |context|
+        next unless context
+        jobs.push context
+        log "Added additionals QBO Sync Job for #{contex.to_s}"
+    end
+
+    jobs.each { |job| job.perform_later(full_sync: true) }
   end
+
+  private
+
+  def self.log(msg)
+    Rails.logger.info "[QboSyncDispatcher] #{msg}"
+  end
+  
 end
