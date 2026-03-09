@@ -30,29 +30,30 @@ class SyncServiceBase
     @qbo.perform_authenticated_request do |access_token|
       service_class = "Quickbooks::Service::#{@entity.name}".constantize
       service = service_class.new(company_id: @qbo.realm_id, access_token: access_token)
-      
-      page = 1
-      loop do
-        collection = fetch_page(service, page, full_sync)
-        entries = Array(collection&.entries)
-        break if entries.empty?
 
-        entries.each { |remote| persist(remote) }
+      query = build_query(full_sync)
 
-        break if entries.size < PAGE_SIZE
-        page += 1
+      service.query_in_batches(query, per_page: self.class::PAGE_SIZE) do |batch|
+        entries = Array(batch)
+        log "Processing batch of #{entries.size} #{@entity.name}"
+
+        entries.each do |remote|
+          persist(remote)
+        end
       end
     end
 
     log "#{@entity.name} sync complete"
   end
 
-  # Sync a single entity by its QBO ID, used for webhook updates
+  # Sync a single entity by its QBO ID (webhook usage)
   def sync_by_id(id)
     log "Syncing #{@entity.name} with ID #{id}"
+
     @qbo.perform_authenticated_request do |access_token|
       service_class = "Quickbooks::Service::#{@entity.name}".constantize
       service = service_class.new(company_id: @qbo.realm_id, access_token: access_token)
+
       remote = service.fetch_by_id(id)
       persist(remote)
     end
@@ -60,8 +61,22 @@ class SyncServiceBase
 
   private
 
+  def build_query(full_sync)
+    if full_sync
+      "SELECT * FROM #{@entity.name} ORDER BY Id"
+    else
+      last_update = @entity.maximum(:updated_at) || 1.year.ago
+
+      <<~SQL.squish
+        SELECT * FROM #{@entity.name}
+        WHERE MetaData.LastUpdatedTime > '#{last_update.utc.iso8601}'
+        ORDER BY MetaData.LastUpdatedTime
+      SQL
+    end
+  end
+
   def attach_documents(local, remote)
-    # Override in subclasses if the entity has attachments (e.g. Invoice)
+   # Override in subclasses if the entity has attachments (e.g. Invoice)
   end
 
   # Determine if a remote entity should be deleted locally (e.g. if it's marked inactive in QBO)
@@ -72,24 +87,6 @@ class SyncServiceBase
   # Log messages with the entity type for better traceability
   def log(msg)
     Rails.logger.info "[#{@entity.name}SyncService] #{msg}"
-  end
-
-  # Fetch a page of entities, either all or only those updated since the last sync
-  def fetch_page(service, page, full_sync)
-    log "Fetching page #{page} of #{@entity.name} from QBO (#{full_sync ? 'full' : 'incremental'} sync)"
-    start_position = (page - 1) * PAGE_SIZE + 1
-
-    if full_sync
-      service.query("SELECT * FROM #{@entity.name} STARTPOSITION #{start_position} MAXRESULTS #{PAGE_SIZE}")
-    else
-      last_update = @entity.maximum(:updated_at) || 1.year.ago
-      service.query(<<~SQL.squish)
-        SELECT * FROM #{@entity.name}
-        WHERE MetaData.LastUpdatedTime > '#{last_update.utc.iso8601}'
-        STARTPOSITION #{start_position}
-        MAXRESULTS #{PAGE_SIZE}
-      SQL
-    end
   end
 
   # Create or update a local entity record based on the QBO remote data
@@ -104,24 +101,20 @@ class SyncServiceBase
       return
     end
 
-    # Map remote attributes to local model fields, this should be implemented in subclasses
     process_attributes(local, remote)
 
     if local.changed?
       local.save!
       log "Updated #{@entity.name} #{remote.id}"
-
-      # Handle attaching documents if applicable to invoices
-      attach_documents(local, remote) 
+      attach_documents(local, remote)
     end
 
   rescue => e
-      log "Failed to sync #{@entity.name} #{remote.id}: #{e.message}"
+    log "Failed to sync #{@entity.name} #{remote.id}: #{e.message}"
   end
 
   # This method should be implemented in subclasses to map remote attributes to local model
   def process_attributes(local, remote)
     raise NotImplementedError, "Subclasses must implement process_attributes"
   end
-
 end
