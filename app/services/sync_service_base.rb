@@ -16,6 +16,12 @@ class SyncServiceBase
     raise "No QBO configuration found" unless qbo
     @qbo = qbo
     @entity = self.class.model_class
+    @page_size = self.class.page_size 
+  end
+
+  # Subclasses can implement this to overide the default page size
+  def self.page_size
+    @page_size = PAGE_SIZE
   end
 
   # Subclasses must implement this to specify which local model they sync (e.g. Customer, Invoice)
@@ -25,7 +31,7 @@ class SyncServiceBase
 
   # Sync all entities, or only those updated since the last sync
   def sync(full_sync: false)
-    log "Starting #{full_sync ? 'full' : 'incremental'} #{@entity.name} sync"
+    log "Starting #{full_sync ? 'full' : 'incremental'} #{@entity.name} sync with page size of: #{@page_size}"
 
     @qbo.perform_authenticated_request do |access_token|
       service_class = "Quickbooks::Service::#{@entity.name}".constantize
@@ -33,7 +39,7 @@ class SyncServiceBase
 
       query = build_query(full_sync)
 
-      service.query_in_batches(query, per_page: self.class::PAGE_SIZE) do |batch|
+      service.query_in_batches(query, per_page: @page_size) do |batch|
         entries = Array(batch)
         log "Processing batch of #{entries.size} #{@entity.name}"
 
@@ -61,6 +67,7 @@ class SyncServiceBase
 
   private
 
+  # Builds a QBO query for retrieving entities
   def build_query(full_sync)
     if full_sync
       "SELECT * FROM #{@entity.name} ORDER BY Id"
@@ -76,7 +83,7 @@ class SyncServiceBase
   end
 
   def attach_documents(local, remote)
-   # Override in subclasses if the entity has attachments (e.g. Invoice)
+    # Override in subclasses if the entity has attachments (e.g. Invoice)
   end
 
   # Determine if a remote entity should be deleted locally (e.g. if it's marked inactive in QBO)
