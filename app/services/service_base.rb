@@ -31,13 +31,7 @@ class ServiceBase
     return build_qbo_remote unless @local.present?
     return build_qbo_remote unless @local.id
     log "Fetching details for #{@entity} ##{@local.id} from QBO..."
-    qbo = QboConnectionService.current!
-    qbo.perform_authenticated_request do |access_token|
-      service_class = "Quickbooks::Service::#{@entity}".constantize
-      service = service_class.new(
-        company_id: qbo.realm_id,
-        access_token: access_token
-      )
+    with_qbo_service do |service|
       service.fetch_by_id(@local.id)
     end
   rescue => e
@@ -51,13 +45,7 @@ class ServiceBase
    # If the push is successful, it returns the remote record; otherwise, it logs the error and returns false.
   def push
     log "Pushing #{@entity} ##{@local.id} to QBO..."
-
-    remote = @qbo.perform_authenticated_request do |access_token|
-      service_class = "Quickbooks::Service::#{@entity}".constantize
-      service = service_class.new( 
-        company_id: @qbo.realm_id, 
-        access_token: access_token 
-      )
+    remote = with_qbo_service do |service|
       if @local.id.present?
         log "Updating #{@entity}"
         service.update(@local.details)
@@ -66,17 +54,29 @@ class ServiceBase
         service.create(@local.details)
       end
     end
-
     @local.id = remote.id unless @local.persisted?
     log "Push for remote ##{@local.id} completed."
-    return @local
+    @local
   end
 
   private 
 
+  # Performs authenticaed requests with QBO service
+  def with_qbo_service
+    @qbo.perform_authenticated_request do |access_token|
+      service = service_class.new( company_id: @qbo.realm_id, access_token: access_token )
+      yield service
+    end
+  end
+
   # Log messages with the entity type for better traceability
   def log(msg)
     Rails.logger.info "[#{@entity}Service] #{msg}"
+  end
+
+  # Dynamically get the Quickbooks Service Class
+  def service_class
+    @service_class ||= "Quickbooks::Service::#{@entity}".constantize
   end
 
 end
