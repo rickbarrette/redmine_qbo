@@ -14,10 +14,10 @@ class ServiceBase
   # The QBO client is used to communicate with QuickBooks Online, while the local record contains the data that needs to be pushed to QBO. 
   # If no local is provided, the service will not perform any operations.
   def initialize(qbo:, local: nil)
+    @entity = local.class.name
     raise "No QBO configuration found" unless qbo
     raise "#{@entity} record is required for push operation" unless local
     @qbo = qbo
-    @entity = local.class.name
     @local = local
   end
 
