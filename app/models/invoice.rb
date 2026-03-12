@@ -8,37 +8,17 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class Invoice < ActiveRecord::Base
-
-  include Redmine::I18n
+class Invoice < QboBaseModel
 
   has_and_belongs_to_many :issues
   belongs_to :customer
-
   validates :id, presence: true, uniqueness: true
   validates :doc_number, :txn_date, presence: true
-
   self.primary_key = :id
-
-  # Returns the last sync time formatted for display. If no sync has occurred, returns a default message.
-  def self.last_sync
-    return I18n.t(:label_qbo_never_synced) unless maximum(:updated_at)
-    format_time(maximum(:updated_at))
-  end
 
   # Return the invoice's document number as its string representation
   def to_s
     doc_number
-  end
-
-  # Sync all invoices from QuickBooks, typically triggered by a scheduled task or manual sync request
-  def self.sync
-    InvoiceSyncJob.perform_later(full_sync: true)
-  end
-
-  # Sync a single invoice by ID, typically triggered by a webhook notification or manual sync request
-  def self.sync_by_id(id)
-    InvoiceSyncJob.perform_later(id: id)
   end
 
 end

@@ -8,29 +8,10 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class Employee < ActiveRecord::Base
-  
-  include Redmine::I18n
+class Employee < QboBaseModel
 
   has_many :users
   validates_presence_of :id, :name
-
   self.primary_key = :id
-
-  # Returns the last sync time formatted for display. If no sync has occurred, returns a default message.
-  def self.last_sync
-    return I18n.t(:label_qbo_never_synced) unless maximum(:updated_at)
-    format_time(maximum(:updated_at))
-  end
-  
-  # Sync all employees, typically triggered by a scheduled task or manual sync request
-  def self.sync
-    EmployeeSyncJob.perform_later(full_sync: true)
-  end
-
-  # Sync a single employee by ID, typically triggered by a webhook notification or manual sync request
-  def self.sync_by_id(id)
-    EmployeeSyncJob.perform_later(id: id)
-  end
   
 end

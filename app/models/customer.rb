@@ -8,21 +8,18 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class Customer < ActiveRecord::Base
+class Customer < QboBaseModel
 
   include Redmine::Acts::Searchable
   include Redmine::Acts::Event  
-  include Redmine::I18n
 
   has_many :issues
   has_many :invoices
   has_many :estimates
- 
-  validates_presence_of :id, :name
+  validates_presence_of :name
   before_validation :normalize_phone_numbers
-  
   self.primary_key = :id
-
+  
   acts_as_searchable columns: %w[name phone_number mobile_phone_number ],
                      scope: ->(_context) { left_joins(:project) },
                      date_column: :updated_at
@@ -32,24 +29,6 @@ class Customer < ActiveRecord::Base
                 :type => :to_s,
                 :description => Proc.new {|o| "#{I18n.t :label_primary_phone}: #{o.phone_number} #{I18n.t:label_mobile_phone}: #{o.mobile_phone_number}"},
                 :datetime => Proc.new {|o| o.updated_at || o.created_at}
-
-  # Returns the details of the customer. If the details have already been fetched, it returns the cached version. Otherwise, it fetches the details from QuickBooks Online and caches them for future use. This method is used to access the customer's information in a way that minimizes unnecessary API calls to QBO, improving performance and reducing latency.
-  def details
-    return (@details ||= Quickbooks::Model::Customer.new) if new_record?
-
-    @details ||= begin
-      xml = Rails.cache.fetch(details_cache_key, expires_in: 10.minutes) do
-        fetch_details.to_xml_ns
-      end
-
-      Quickbooks::Model::Customer.from_xml(xml)
-    end
-  end
-
-  # Generates a unique cache key for storing this customer's QBO details.
-  def details_cache_key
-    "customer:#{id}:qbo_details:#{updated_at.to_i}"
-  end
 
   # Returns the customer's email address
   def email
@@ -63,28 +42,10 @@ class Customer < ActiveRecord::Base
     @details.email_address = s
   end
   
-
-  # Returns the last sync time formatted for display. If no sync has occurred, returns a default message.
-  def self.last_sync
-    return I18n.t(:label_qbo_never_synced) unless maximum(:updated_at)
-    format_time(maximum(:updated_at))
-  end
-  
   # Customers are not bound by a project
   # but we need to implement this method for the Redmine::Acts::Searchable interface
   def project
     nil
-  end
-
-  # Magic Method
-  # Maps Get/Set methods to QBO customer object
-  def method_missing(method_name, *args, &block)
-    if Quickbooks::Model::Customer.method_defined?(method_name)
-      details
-      @details.public_send(method_name, *args, &block)
-    else
-      super
-    end
   end
 
   # returns the customer's mobile phone
@@ -134,11 +95,6 @@ class Customer < ActiveRecord::Base
     @details.primary_phone = pn
   end
 
-  # Repsonds to missing methods by delegating to the QBO customer details object if the method is defined there. This allows for dynamic access to any attributes or methods of the QBO customer without having to explicitly define them in the Customer model, providing flexibility and reducing boilerplate code.
-  def respond_to_missing?(method_name, include_private = false)
-    Quickbooks::Model::Customer.method_defined?(method_name) || super
-  end
-
   # Seach for customers by name or phone number
   def self.search(search)
     #return none if search.blank?
@@ -160,47 +116,10 @@ class Customer < ActiveRecord::Base
     ids.index_with { |id| id }
   end
   
-  # performs a sync operation for all customers
-  def self.sync 
-    CustomerSyncJob.perform_later(full_sync: false)
-  end
-
-  # performs a sync operation for a specific customer
-  def self.sync_by_id(id) 
-    CustomerSyncJob.perform_later(id: id)
-  end
-  
   # returns a human readable string
   def to_s
     last4 = phone_number&.last(4)
     last4.present? ? "#{name} - #{last4}" : name.to_s
-  end
-
-  # Push the updates
-  def save_with_push
-    log "Starting push for customer ##{self.id}..."
-    qbo = QboConnectionService.current!
-    CustomerService.new(qbo: qbo, customer: self).push()
-    Rails.cache.delete(details_cache_key)
-    save_without_push
-  end
-
-  alias_method :save_without_push, :save
-  alias_method :save, :save_with_push
-  
-  private
-
-  # Fetches the customer's details from QuickBooks Online. If the customer has an ID, it makes an authenticated request to QBO to retrieve the customer's information. If the customer does not have an ID or if there is an error during the fetch, it returns a new instance of Quickbooks::Model::Customer with default values. This method is used to ensure that the customer object has the most up-to-date information from QBO when needed.
-  def fetch_details
-    return Quickbooks::Model::Customer.new unless id.present?
-    log "Fetching details for customer ##{id} from QBO..."
-    qbo = QboConnectionService.current!
-    CustomerService.new(qbo: qbo, customer: self).pull()
-  end
-
-  # Log messages with the entity type for better traceability
-  def log(msg)
-    Rails.logger.info "[Customer] #{msg}"
   end
   
 end
