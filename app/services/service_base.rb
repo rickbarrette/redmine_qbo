@@ -10,21 +10,16 @@
 
 class ServiceBase
 
-  # Subclasses should Initializes the service with a QBO client and an optional remote record. 
+  # Subclasses should Initializes the service with a QBO client and a local record. 
   # The QBO client is used to communicate with QuickBooks Online, while the local record contains the data that needs to be pushed to QBO. 
-  # If no remote is provided, the service will not perform any operations.
-  def initialize(qbo:, remote: nil)
+  # If no local is provided, the service will not perform any operations.
+  def initialize(qbo:, local: nil)
     raise "No QBO configuration found" unless qbo
-    raise "#{@entity} record is required for push operation" unless remote
+    raise "#{@entity} record is required for push operation" unless local
     @qbo = qbo
-    @entity = remote.class.name
-    @remote = remote
+    @entity = local.class.name
+    @local = local
   end
-
-  # # Subclasses must implement this to specify which local model they sync (e.g. Customer, Invoice)
-  # def self.model_class
-  #   raise NotImplementedError
-  # end
 
   # Subclasses must implement this to build a new QBO entity if a remote is not found
   def build_qbo_remote
@@ -33,9 +28,9 @@ class ServiceBase
 
   # Pulls the Item data from QuickBooks Online. 
   def pull
-    return build_qbo_remote unless @remote.present?
-    return build_qbo_remote unless @remote.id
-    log "Fetching details for #{@entity} ##{@remote.id} from QBO..."
+    return build_qbo_remote unless @local.present?
+    return build_qbo_remote unless @local.id
+    log "Fetching details for #{@entity} ##{@local.id} from QBO..."
     qbo = QboConnectionService.current!
     qbo.perform_authenticated_request do |access_token|
       service_class = "Quickbooks::Service::#{@entity}".constantize
@@ -43,16 +38,19 @@ class ServiceBase
         company_id: qbo.realm_id,
         access_token: access_token
       )
-      service.fetch_by_id(@remote.id)
+      service.fetch_by_id(@local.id)
     end
   rescue => e
-    log "Fetch failed for #{@remote.id}: #{e.message}"
+    log "Fetch failed for #{@local.id}: #{e.message}"
     build_qbo_remote
   end
 
-   # Pushes the Item data to QuickBooks Online. This method handles the communication with QBO, including authentication and error handling. It uses the QBO client to send the remote data and logs the process for monitoring and debugging purposes. If the push is successful, it returns the remote record; otherwise, it logs the error and returns false.
+   # Pushes the Item data to QuickBooks Online. 
+   # This method handles the communication with QBO, including authentication and error handling. 
+   # It uses the QBO client to send the remote data and logs the process for monitoring and debugging purposes. 
+   # If the push is successful, it returns the remote record; otherwise, it logs the error and returns false.
   def push
-    log "Pushing #{@entity} ##{@remote.id} to QBO..."
+    log "Pushing #{@entity} ##{@local.id} to QBO..."
 
     remote = @qbo.perform_authenticated_request do |access_token|
       service_class = "Quickbooks::Service::#{@entity}".constantize
@@ -60,16 +58,18 @@ class ServiceBase
         company_id: @qbo.realm_id, 
         access_token: access_token 
       )
-      if @remote.id.present?
-        service.update(@remote.details)
+      if @local.id.present?
+        log "Updating #{@entity}"
+        service.update(@local.details)
       else
-        service.create(@remote.details)
+        log "Creating #{@entity}"
+        service.create(@local.details)
       end
     end
 
-    @remote.id = remote.id unless @remote.persisted?
-    log "Push for remote ##{@remote.id} completed."
-    return @remote
+    @local.id = remote.id unless @local.persisted?
+    log "Push for remote ##{@local.id} completed."
+    return @local
   end
 
   private 

@@ -59,7 +59,6 @@ class SyncServiceBase
     @qbo.perform_authenticated_request do |access_token|
       service_class = "Quickbooks::Service::#{@entity.name}".constantize
       service = service_class.new(company_id: @qbo.realm_id, access_token: access_token)
-
       remote = service.fetch_by_id(id)
       persist(remote)
     end
@@ -111,7 +110,8 @@ class SyncServiceBase
     process_attributes(local, remote)
 
     if local.changed?
-      local.save!
+      local.skip_qbo_push = true
+      local.save
       log "Updated #{@entity.name} #{remote.id}"
       attach_documents(local, remote)
     end

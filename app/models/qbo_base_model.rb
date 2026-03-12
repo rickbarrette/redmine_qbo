@@ -15,6 +15,10 @@ class QboBaseModel < ActiveRecord::Base
   self.abstract_class = true
   validates_presence_of :id
 
+  attr_accessor :skip_qbo_push
+  before_validation :push_to_qbo, on: :create
+  after_commit :push_to_qbo, on: :update, unless: :skip_qbo_push?
+
   # Returns the details of the entity. 
   # If the details have already been fetched, it returns the cached version. 
   # Otherwise, it fetches the details from QuickBooks Online and caches them for future use. 
@@ -24,16 +28,14 @@ class QboBaseModel < ActiveRecord::Base
       xml = Rails.cache.fetch(details_cache_key, expires_in: 10.minutes) do
         fetch_details.to_xml_ns
       end
-      model_class = "Quickbooks::Model::#{model_name.name}".constantize
-      model_class.from_xml(xml)
+      qbo_model_class.from_xml(xml)
     end
   end
 
-   # Generates a unique cache key for storing this customer's QBO details.
+  # Generates a unique cache key for storing this customer's QBO details.
   def details_cache_key
     "#{model_name.name}:#{id}:qbo_details:#{updated_at.to_i}"
   end
-
 
   # Returns the last sync time formatted for display. 
   # If no sync has occurred, returns a default message.
@@ -45,8 +47,7 @@ class QboBaseModel < ActiveRecord::Base
   # Magic Method
   # Maps Get/Set methods to QBO entity object
   def method_missing(method_name, *args, &block)
-    model_class = "Quickbooks::Model::#{model_name.name}".constantize
-    if model_class.method_defined?(method_name)
+    if qbo_model_class.method_defined?(method_name)
       details
       @details.public_send(method_name, *args, &block)
     else
@@ -57,8 +58,7 @@ class QboBaseModel < ActiveRecord::Base
   # Repsonds to missing methods by delegating to the QBO customer details object if the method is defined there.
   # This allows for dynamic access to any attributes or methods of the QBO customer without having to explicitly define them in the Subclass model, providing flexibility and reducing boilerplate code.
   def respond_to_missing?(method_name, include_private = false)
-    model_class = "Quickbooks::Model::#{model_name.name}".constantize
-    model_class.method_defined?(method_name) || super
+    qbo_model_class.method_defined?(method_name) || super
   end
 
   # Sync all entities, typically triggered by a scheduled task or manual sync request
@@ -73,18 +73,9 @@ class QboBaseModel < ActiveRecord::Base
     job.perform_later(id: id)
   end
 
-  # Push the updates
-  def save_with_push
-    log "Starting push for #{model_name.name} ##{self.id}..."
-    qbo = QboConnectionService.current!
-    service = "#{model_name.name}Service".constantize
-    service.new(qbo: qbo, remote: self).push()
-    Rails.cache.delete(details_cache_key)
-    save_without_push
+  def skip_qbo_push?
+    !!skip_qbo_push
   end
-
-   alias_method :save_without_push, :save
-   alias_method :save, :save_with_push
 
   private
   
@@ -96,8 +87,23 @@ class QboBaseModel < ActiveRecord::Base
   def fetch_details
     log "Fetching details for #{model_name.name} ##{id} from QBO..."
     qbo = QboConnectionService.current!
-    service_class = "#{model_name.name}Service".constantize
-    service_class.new(qbo: qbo, remote: self).pull()
+    service_class.new(qbo: qbo, local: self).pull()
+  end
+
+  def push_to_qbo
+    log "Starting push for #{model_name.name} ##{id}..."
+    qbo = QboConnectionService.current!
+    reslut = service_class.new(qbo: qbo, local: self).push
+    Rails.cache.delete(details_cache_key)
+    return reslut
+  end
+
+  def qbo_model_class
+    @qbo_model_class ||= "Quickbooks::Model::#{model_name.name}".constantize
+  end
+
+  def service_class
+    @service_class ||= "#{model_name.name}Service".constantize
   end
 
 end
