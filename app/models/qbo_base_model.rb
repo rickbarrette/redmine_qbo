@@ -55,7 +55,7 @@ class QboBaseModel < ActiveRecord::Base
     end
   end
 
-  # Repsonds to missing methods by delegating to the QBO customer details object if the method is defined there.
+  # Repsonds to missing methods by delegating to the QBO entity calss if the method is defined there.
   # This allows for dynamic access to any attributes or methods of the QBO customer without having to explicitly define them in the Subclass model, providing flexibility and reducing boilerplate code.
   def respond_to_missing?(method_name, include_private = false)
     qbo_model_class.method_defined?(method_name) || super
@@ -73,12 +73,15 @@ class QboBaseModel < ActiveRecord::Base
     job.perform_later(id: id)
   end
 
+  # Flag used to update local without pushing to QBO.
+  # This is used to prevent loops with the webhook
   def skip_qbo_push?
     !!skip_qbo_push
   end
 
   private
   
+  # Log messages with a standarized prefix
   def log(msg)
     Rails.logger.info "[#{model_name.name}] #{msg}"
   end
@@ -90,6 +93,7 @@ class QboBaseModel < ActiveRecord::Base
     service_class.new(qbo: qbo, local: self).pull()
   end
 
+  # Pushs the entity's details from QuickBooks Online.
   def push_to_qbo
     log "Starting push for #{model_name.name} ##{id}..."
     qbo = QboConnectionService.current!
@@ -98,10 +102,12 @@ class QboBaseModel < ActiveRecord::Base
     return reslut
   end
 
+  # Dynamically get the Quickbooks Model Class
   def qbo_model_class
     @qbo_model_class ||= "Quickbooks::Model::#{model_name.name}".constantize
   end
 
+  # Dynamically get the Service Class
   def service_class
     @service_class ||= "#{model_name.name}Service".constantize
   end
