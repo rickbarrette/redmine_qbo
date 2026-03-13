@@ -22,6 +22,6 @@ class EmployeeSyncService < SyncServiceBase
     !remote.active?
   end
 
-  map_attribute :name, ->(remote) { remote.display_name }
+  map_attribute :name, :display_name
 
 end
