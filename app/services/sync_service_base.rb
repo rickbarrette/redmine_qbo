@@ -32,17 +32,11 @@ class SyncServiceBase
   # Sync all entities, or only those updated since the last sync
   def sync(full_sync: false)
     log "Starting #{full_sync ? 'full' : 'incremental'} #{@entity.name} sync with page size of: #{@page_size}"
-
-    @qbo.perform_authenticated_request do |access_token|
-      service_class = "Quickbooks::Service::#{@entity.name}".constantize
-      service = service_class.new(company_id: @qbo.realm_id, access_token: access_token)
-
-      query = build_query(full_sync)
-
+    with_qbo_service do |service|
+      query = build_query(full_sync)  
       service.query_in_batches(query, per_page: @page_size) do |batch|
         entries = Array(batch)
         log "Processing batch of #{entries.size} #{@entity.name}"
-
         entries.each do |remote|
           persist(remote)
         end
@@ -55,10 +49,7 @@ class SyncServiceBase
   # Sync a single entity by its QBO ID (webhook usage)
   def sync_by_id(id)
     log "Syncing #{@entity.name} with ID #{id}"
-
-    @qbo.perform_authenticated_request do |access_token|
-      service_class = "Quickbooks::Service::#{@entity.name}".constantize
-      service = service_class.new(company_id: @qbo.realm_id, access_token: access_token)
+    with_qbo_service do |service|
       remote = service.fetch_by_id(id)
       persist(remote)
     end
@@ -123,5 +114,18 @@ class SyncServiceBase
   # This method should be implemented in subclasses to map remote attributes to local model
   def process_attributes(local, remote)
     raise NotImplementedError, "Subclasses must implement process_attributes"
+  end
+
+  # Dynamically get the Quickbooks Service Class
+  def service_class
+    @service_class ||= "Quickbooks::Service::#{@entity}".constantize
+  end
+
+  # Performs authenticaed requests with QBO service
+  def with_qbo_service
+    @qbo.perform_authenticated_request do |access_token|
+      service = service_class.new( company_id: @qbo.realm_id, access_token: access_token )
+      yield service
+    end
   end
 end
