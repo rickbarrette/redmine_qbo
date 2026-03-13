@@ -14,6 +14,7 @@ class Estimate < QboBaseModel
   belongs_to :customer 
   validates_presence_of :doc_number, :id
   self.primary_key = :id
+  qbo_sync push: false
 
   # returns a human readable string
   def to_s

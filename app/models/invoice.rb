@@ -15,6 +15,7 @@ class Invoice < QboBaseModel
   validates :id, presence: true, uniqueness: true
   validates :doc_number, :txn_date, presence: true
   self.primary_key = :id
+  qbo_sync push: false
 
   # Return the invoice's document number as its string representation
   def to_s

@@ -19,6 +19,7 @@ class Customer < QboBaseModel
   validates_presence_of :name
   before_validation :normalize_phone_numbers
   self.primary_key = :id
+  qbo_sync push: true
   
   acts_as_searchable columns: %w[name phone_number mobile_phone_number ],
                      scope: ->(_context) { left_joins(:project) },

@@ -13,5 +13,6 @@ class Employee < QboBaseModel
   has_many :users
   validates_presence_of :id, :name
   self.primary_key = :id
+  qbo_sync push: false
   
 end

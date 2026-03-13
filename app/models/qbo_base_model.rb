@@ -14,10 +14,10 @@ class QboBaseModel < ActiveRecord::Base
 
   self.abstract_class = true
   validates_presence_of :id
-
+  class_attribute :qbo_push_enabled, default: true
   attr_accessor :skip_qbo_push
-  before_validation :push_to_qbo, on: :create
-  after_commit :push_to_qbo, on: :update, unless: :skip_qbo_push?
+  before_validation :push_to_qbo, on: :create, if: :push_to_qbo?
+  after_commit :push_to_qbo, on: :update, if: :push_to_qbo?
 
   # Returns the details of the entity. 
   # If the details have already been fetched, it returns the cached version. 
@@ -55,6 +55,13 @@ class QboBaseModel < ActiveRecord::Base
     end
   end
 
+  def push_to_qbo?
+    log "qbo_push_enabled #{self.class.qbo_push_enabled}"
+    log "skip_qbo_push #{skip_qbo_push}"
+
+    self.class.qbo_push_enabled && skip_qbo_push != true
+  end
+
   # Repsonds to missing methods by delegating to the QBO entity calss if the method is defined there.
   # This allows for dynamic access to any attributes or methods of the QBO customer without having to explicitly define them in the Subclass model, providing flexibility and reducing boilerplate code.
   def respond_to_missing?(method_name, include_private = false)
@@ -76,7 +83,11 @@ class QboBaseModel < ActiveRecord::Base
   # Flag used to update local without pushing to QBO.
   # This is used to prevent loops with the webhook
   def skip_qbo_push?
-    !!skip_qbo_push
+     !!skip_qbo_push
+  end
+
+  def self.qbo_sync(push: true)
+    self.qbo_push_enabled = push
   end
 
   private
