@@ -22,8 +22,8 @@ class CustomerSyncService < SyncServiceBase
     !remote.active?
   end
 
-  map_attribute :name, ->(remote) { remote.display_name }
-  map_attribute :phone_number, ->(remote) { remote.primary_phone&.free_form_number&.gsub(/\D/, '') }
-  map_attribute :mobile_phone_number, ->(remote) { remote.mobile_phone&.free_form_number&.gsub(/\D/, '') }
+  map_attribute :name, :display_name
+  map_phone :phone_number, :primary_phone
+  map_phone :mobile_phone_number, :mobile_phone
 
 end

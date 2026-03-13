@@ -90,13 +90,110 @@ class SyncServiceBase
     end
   end
 
+  # Attribute Mapping DSL
+  #
+  # This DSL defines how attributes from a QuickBooks Online (QBO) entity
+  # are mapped onto a local ActiveRecord model during synchronization.
+  #
+  # Each mapping registers a lambda in `attribute_map`. When a remote QBO
+  # object is processed, the lambda is executed to extract and transform
+  # the value that will be assigned to the local model attribute.
+  #
+  # The DSL supports several mapping patterns:
+  #
+  # 1. Direct attribute mapping (same name)
+  #
+  #      map_attribute :doc_number
+  #
+  #    Equivalent to:
+  #
+  #      local.doc_number = remote.doc_number
+  #
+  # 2. Renamed attribute mapping
+  #
+  #      map_attribute :total_amount, :total
+  #
+  #    Equivalent to:
+  #
+  #      local.total_amount = remote.total
+  #
+  # 3. Custom transformation logic
+  #
+  #      map_attribute :qbo_updated_at do |remote|
+  #        remote.meta_data&.last_updated_time
+  #      end
+  #
+  #    Useful for nested fields or computed values.
+  #
+  # 4. Bulk attribute mapping
+  #
+  #      map_attributes :doc_number, :txn_date, :due_date
+  #
+  #    Convenience helper that maps multiple attributes with identical names.
+  #
+  # 5. Foreign key / reference mapping
+  #
+  #      map_belongs_to :customer
+  #
+  #    Resolves a QBO reference object (e.g. `customer_ref.value`) and finds
+  #    the associated local ActiveRecord model.
+  #
+  # 6. Specialized helpers
+  #
+  #      map_phone :phone_number, :primary_phone
+  #
+  #    Extracts and normalizes phone numbers by stripping non-digit characters.
+  #
+  # Internally, the mappings are stored in `attribute_map` and executed by the
+  # SyncService during `process_attributes`, which iterates through each mapping
+  # and assigns the computed value to the local record.
+  #
+  # This design keeps synchronization services declarative, readable, and easy
+  # to extend while centralizing transformation logic in a single DSL.
   class << self
-    def map_attribute(local, remote = nil, &block)
-      attribute_map[local] = block || remote
+
+    def map_attributes(*attrs)
+      attrs.each do |attr|
+        map_attribute(attr)
+      end
+    end
+
+
+    def map_attribute(local_attr, remote_attr = nil, &block)
+      attribute_map[local_attr] =
+        if block_given?
+          block
+        elsif remote_attr
+          ->(remote) do
+            remote_attr.to_s.split('.').reduce(remote) do |obj, method|
+              obj&.public_send(method)
+            end
+          end
+        else
+          ->(remote) { remote.public_send(local_attr) }
+        end
     end
 
     def attribute_map
       @attribute_map ||= {}
+    end
+
+    def map_belongs_to(local_attr, ref: nil, model: nil)
+      ref ||= "#{local_attr}_ref"
+      model ||= local_attr.to_s.classify.constantize
+
+      attribute_map[local_attr] = lambda do |remote|
+        ref_obj = remote.public_send(ref)
+        id = ref_obj&.value
+        id ? model.find_by(id: id) : nil
+      end
+    end
+
+    def map_phone(local_attr, remote_attr)
+      attribute_map[local_attr] = lambda do |remote|
+        phone = remote.public_send(remote_attr)
+        phone&.free_form_number&.gsub(/\D/, '')
+      end
     end
   end
 
@@ -108,7 +205,7 @@ class SyncServiceBase
   # Create or update a local entity record based on the QBO remote data
   def persist(remote)
     local = @entity.find_or_initialize_by(id: remote.id)
-
+    
     if destroy_local?(remote)
       if local.persisted?
         local.destroy
@@ -118,11 +215,12 @@ class SyncServiceBase
     end
 
     process_attributes(local, remote)
-
-    if local.changed?
+    
+    if local.new_record? || local.changed?
+      was_new = local.new_record?
       local.skip_qbo_push = true
-      local.save
-      log "Updated #{@entity.name} #{remote.id}"
+      local.save!
+      log "#{was_new ? 'Created' : 'Updated'} #{@entity.name} #{remote.id}"
       attach_documents(local, remote)
     end
 
@@ -133,9 +231,13 @@ class SyncServiceBase
   # Maps remote attributes to local model
   def process_attributes(local, remote)
     log "Processing #{@entity} ##{remote.id}"
-    self.class.attribute_map.each do |local_attr, remote_attr|
-      value = extract_value(remote, remote_attr)
-      local.public_send("#{local_attr}=", value)
+
+    self.class.attribute_map.each do |local_attr, mapper|
+      value = mapper.call(remote)
+
+      if local.public_send(local_attr) != value
+        local.public_send("#{local_attr}=", value)
+      end
     end
   end
 

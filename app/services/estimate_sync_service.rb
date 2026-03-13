@@ -17,6 +17,7 @@ class EstimateSyncService < SyncServiceBase
     Estimate
   end
 
-  map_attribute :customer, ->(remote) { Customer.find_by(id: remote.customer_ref&.value) }
+  map_attributes :doc_number, :txn_date
+  map_belongs_to :customer
 
 end

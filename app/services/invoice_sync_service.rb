@@ -22,7 +22,9 @@ class InvoiceSyncService < SyncServiceBase
     InvoiceAttachmentService.new(local, remote).attach
   end
 
-  map_attribute :customer, ->(remote) { Customer.find_by(id: remote.customer_ref&.value) }
-  map_attribute :total_amount, ->(remote) { remote.total }
-  map_attribute :qbo_updated_at, ->(remote) { remote.meta_data&.last_updated_time }
+  map_attributes :balance, :doc_number, :due_date, :txn_date
+  map_attribute :total_amount, :total
+  map_attribute :qbo_updated_at, "meta_data.last_updated_time"
+  map_belongs_to :customer
+
 end
