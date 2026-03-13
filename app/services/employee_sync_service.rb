@@ -17,14 +17,11 @@ class EmployeeSyncService < SyncServiceBase
     Employee
   end
 
-  # Determine if the remote entity should be deleted locally (e.g. if it's marked inactive in QBO)
-  def destroy_remote?(remote)
+  # Determine if the local entity should be deleted (e.g. if it's marked inactive in QBO)
+  def destroy_local?(remote)
     !remote.active?
   end
 
-  # Map relevant attributes from the QBO Employee to the local Employee model
-  def process_attributes(local, remote)
-    local.name = remote.display_name
-  end
+  map_attribute :name, ->(remote) { remote.display_name }
 
 end

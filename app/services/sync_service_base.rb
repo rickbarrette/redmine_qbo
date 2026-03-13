@@ -57,6 +57,10 @@ class SyncServiceBase
 
   private
 
+  def attach_documents(local, remote)
+    # Override in subclasses if the entity has attachments (e.g. Invoice)
+  end
+
   # Builds a QBO query for retrieving entities
   def build_query(full_sync)
     if full_sync
@@ -72,13 +76,28 @@ class SyncServiceBase
     end
   end
 
-  def attach_documents(local, remote)
-    # Override in subclasses if the entity has attachments (e.g. Invoice)
+  # Determine if a remote entity should be deleted locally (e.g. if it's marked inactive in QBO)
+  def destroy_local?(remote)
+    false
   end
 
-  # Determine if a remote entity should be deleted locally (e.g. if it's marked inactive in QBO)
-  def destroy_remote?(remote)
-    false
+  def extract_value(remote, remote_attr)
+    case remote_attr
+    when Proc
+      remote_attr.call(remote)
+    else
+      remote.public_send(remote_attr)
+    end
+  end
+
+  class << self
+    def map_attribute(local, remote = nil, &block)
+      attribute_map[local] = block || remote
+    end
+
+    def attribute_map
+      @attribute_map ||= {}
+    end
   end
 
   # Log messages with the entity type for better traceability
@@ -90,7 +109,7 @@ class SyncServiceBase
   def persist(remote)
     local = @entity.find_or_initialize_by(id: remote.id)
 
-    if destroy_remote?(remote)
+    if destroy_local?(remote)
       if local.persisted?
         local.destroy
         log "Deleted #{@entity.name} #{remote.id}"
@@ -111,9 +130,13 @@ class SyncServiceBase
     log "Failed to sync #{@entity.name} #{remote.id}: #{e.message}"
   end
 
-  # This method should be implemented in subclasses to map remote attributes to local model
+  # Maps remote attributes to local model
   def process_attributes(local, remote)
-    raise NotImplementedError, "Subclasses must implement process_attributes"
+    log "Processing #{@entity} ##{remote.id}"
+    self.class.attribute_map.each do |local_attr, remote_attr|
+      value = extract_value(remote, remote_attr)
+      local.public_send("#{local_attr}=", value)
+    end
   end
 
   # Dynamically get the Quickbooks Service Class

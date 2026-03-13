@@ -17,11 +17,6 @@ class EstimateSyncService < SyncServiceBase
     Estimate
   end
 
-  # Map relevant attributes from the QBO Estimate to the local Estimate model
-  def process_attributes(local, remote)
-    local.doc_number = remote.doc_number
-    local.txn_date = remote.txn_date
-    local.customer = Customer.find_by(id: remote.customer_ref&.value)
-  end
+  map_attribute :customer, ->(remote) { Customer.find_by(id: remote.customer_ref&.value) }
 
 end

@@ -16,20 +16,13 @@ class InvoiceSyncService < SyncServiceBase
   def self.model_class
     Invoice
   end
-  
-  # Map relevant attributes from the QBO Invoice to the local Invoice model
-  def process_attributes(local, remote)
-    local.doc_number      = remote.doc_number
-    local.txn_date        = remote.txn_date
-    local.due_date        = remote.due_date
-    local.total_amount    = remote.total
-    local.balance         = remote.balance
-    local.qbo_updated_at  = remote.meta_data&.last_updated_time
-    local.customer = Customer.find_by(id: remote.customer_ref&.value)
-  end
 
   # Attach QBO Invoices to the local Issues
   def attach_documents(local, remote)
     InvoiceAttachmentService.new(local, remote).attach
   end
+
+  map_attribute :customer, ->(remote) { Customer.find_by(id: remote.customer_ref&.value) }
+  map_attribute :total_amount, ->(remote) { remote.total }
+  map_attribute :qbo_updated_at, ->(remote) { remote.meta_data&.last_updated_time }
 end
