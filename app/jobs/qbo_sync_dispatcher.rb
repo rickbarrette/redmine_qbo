@@ -11,10 +11,10 @@
 class QboSyncDispatcher
 
   SYNC_JOBS = [
-    CustomerSyncJob,
-    EstimateSyncJob,
-    InvoiceSyncJob,
-    EmployeeSyncJob
+    Customer,
+    Estimate,
+    Invoice,
+    Employee
   ].freeze
 
   # Dispatches all synchronization jobs to perform a full sync of QuickBooks entities with the local database. Each job is enqueued with the `full_sync` flag set to true.
@@ -26,10 +26,10 @@ class QboSyncDispatcher
     Redmine::Hook.call_hook( :qbo_full_sync ).each do |context|
         next unless context
         jobs.push context
-        log "Added additionals QBO Sync Job for #{contex.to_s}"
+        log "Added additionals QBO Sync Job for #{context.to_s}"
     end
 
-    jobs.each { |job| job.perform_later(full_sync: true) }
+    jobs.each { |job| QboSyncJob.perform_later(entity: job, full_sync: true) }
   end
 
   private

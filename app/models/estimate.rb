@@ -21,9 +21,9 @@ class Estimate < QboBaseModel
     return self[:doc_number]
   end
 
-  # sync only one estimate
+  # sync only one estimate by document number
   def self.sync_by_doc_number(number)
-    EstimateSyncJob.perform_later(doc_number: number)
+    QboSyncJob.perform_later(entity: model_name.name, doc_number: number)
   end
   
 end

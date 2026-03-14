@@ -70,14 +70,12 @@ class QboBaseModel < ActiveRecord::Base
 
   # Sync all entities, typically triggered by a scheduled task or manual sync request
   def self.sync
-    job = "#{model_name.name}SyncJob".constantize
-    job.perform_later(full_sync: true)
+    QboSyncJob.perform_later(entity: model_name.name, full_sync: true)
   end
 
   # Sync a single entity by ID, typically triggered by a webhook notification or manual sync request
   def self.sync_by_id(id)
-    job = "#{model_name.name}SyncJob".constantize
-    job.perform_later(id: id)
+    QboSyncJob.perform_later(entity: model_name.name, id: id)
   end
 
   # Flag used to update local without pushing to QBO.
