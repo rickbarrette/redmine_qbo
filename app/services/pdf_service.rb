@@ -15,8 +15,6 @@ class PdfService
   def initialize(entity: entity)
     raise "An entity to sync is required" unless entity
     @entity = entity
-    @qbo = QboConnectionService.current!
-    raise "No QBO configuration found" unless @qbo
   end
 
   # Fetches the PDF for the given entity IDs. If multiple IDs are provided, their PDFs are combined into a single document.

@@ -17,20 +17,11 @@ class InvoicePushService
   # Push invoice changes to QBO if the invoice is linked to any issues with custom field changes that need to be synced
   def push
     return if @invoice.qbo_sync_locked?
-
     log "Pushing invoice ##{@invoice.id} to QBO due to linked issue custom field changes"
-
     @invoice.update_column(:qbo_sync_locked, true)
-
-    qbo = QboConnectionService.current!
-
-    qbo.perform_authenticated_request do |access_token|
-      service = Quickbooks::Service::Invoice.new( company_id: qbo.realm_id, access_token: access_token)
-
+    remote = QboConnectionService.with_qbo_service(entity: Invoice) do |service|
       remote = service.fetch_by_id(@invoice.id)
-
       # modify remote object here if needed
-
       service.update(remote)
     end
   rescue => e

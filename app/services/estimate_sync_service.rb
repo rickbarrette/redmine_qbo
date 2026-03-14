@@ -13,7 +13,7 @@ class EstimateSyncService < SyncServiceBase
   # sync only one estimate
   def sync_by_doc_number(number)
     log "Syncing estimate by doc number #{number}"
-    with_qbo_service do |service|
+    QboConnectionService.with_qbo_service(entity: @entity) do |service|
       persist(service.find_by( :doc_number, number).first)
     end
   end

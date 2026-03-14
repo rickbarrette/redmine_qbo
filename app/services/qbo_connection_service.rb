@@ -10,6 +10,11 @@
 
 class QboConnectionService
 
+  # Returns the current QBO connection record. Raises an error if no connection exists.
+  def self.current!
+    Qbo.first || raise("QBO not connected")
+  end
+
   # Replaces the existing QBO connection with new credentials. Deletes all existing records and creates a new one with the provided token, refresh token, and realm ID. Refreshes the token immediately after creation.
   def self.replace!(token:, refresh_token:, realm_id:)
     Qbo.transaction do
@@ -24,9 +29,14 @@ class QboConnectionService
     end
   end
 
-  # Returns the current QBO connection record. Raises an error if no connection exists.
-  def self.current!
-    Qbo.first || raise("QBO not connected")
+  # Performs authenticaed requests with QBO service
+  def self.with_qbo_service(entity: nil)
+    qbo = current!
+    raise "An entity to sync is required" unless entity
+    service_class ||= "Quickbooks::Service::#{entity}".constantize
+    qbo.perform_authenticated_request do |access_token|
+      service = service_class.new( company_id: qbo.realm_id, access_token: access_token )
+      yield service
+    end
   end
-
 end

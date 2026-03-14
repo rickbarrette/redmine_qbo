@@ -12,9 +12,7 @@ class SyncServiceBase
   PAGE_SIZE = 1000
 
   # Subclasses should initialize with a QBO client instance
-  def initialize(qbo:)
-    raise "No QBO configuration found" unless qbo
-    @qbo = qbo
+  def initialize()
     @entity = self.class.model_class
     @page_size = self.class.page_size 
   end
@@ -32,7 +30,7 @@ class SyncServiceBase
   # Sync all entities, or only those updated since the last sync
   def sync(full_sync: false)
     log "Starting #{full_sync ? 'full' : 'incremental'} #{@entity.name} sync with page size of: #{@page_size}"
-    with_qbo_service do |service|
+    QboConnectionService.with_qbo_service(entity: @entity) do |service|
       query = build_query(full_sync)  
       service.query_in_batches(query, per_page: @page_size) do |batch|
         entries = Array(batch)
@@ -49,7 +47,7 @@ class SyncServiceBase
   # Sync a single entity by its QBO ID (webhook usage)
   def sync_by_id(id)
     log "Syncing #{@entity.name} with ID #{id}"
-    with_qbo_service do |service|
+    QboConnectionService.with_qbo_service(entity: @entity) do |service|
       remote = service.fetch_by_id(id)
       persist(remote)
     end
@@ -238,19 +236,6 @@ class SyncServiceBase
       if local.public_send(local_attr) != value
         local.public_send("#{local_attr}=", value)
       end
-    end
-  end
-
-  # Dynamically get the Quickbooks Service Class
-  def service_class
-    @service_class ||= "Quickbooks::Service::#{@entity}".constantize
-  end
-
-  # Performs authenticaed requests with QBO service
-  def with_qbo_service
-    @qbo.perform_authenticated_request do |access_token|
-      service = service_class.new( company_id: @qbo.realm_id, access_token: access_token )
-      yield service
     end
   end
 end

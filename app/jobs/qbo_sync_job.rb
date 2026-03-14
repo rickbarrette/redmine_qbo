@@ -16,11 +16,9 @@ class QboSyncJob < ApplicationJob
   def perform(full_sync: false, id: nil, entity: nil, doc_number: nil)
     raise "An entity to sync is required" unless entity
     @entity = entity
-    qbo = QboConnectionService.current!
-    raise "No QBO configuration found" unless qbo
 
     log "Starting #{full_sync ? 'full' : 'incremental'} sync for #{entity} ##{id || doc_number || 'all'}..."
-    service = "#{entity}SyncService".constantize.new(qbo: qbo)
+    service = "#{entity}SyncService".constantize.new
 
     if id.present?
       service.sync_by_id(id)

@@ -13,11 +13,9 @@ class ServiceBase
   # Subclasses should Initializes the service with a QBO client and a local record. 
   # The QBO client is used to communicate with QuickBooks Online, while the local record contains the data that needs to be pushed to QBO. 
   # If no local is provided, the service will not perform any operations.
-  def initialize(qbo:, local: nil)
+  def initialize(local: nil)
     @entity = local.class.name
-    raise "No QBO configuration found" unless qbo
     raise "#{@entity} record is required for push operation" unless local
-    @qbo = qbo
     @local = local
   end
 
@@ -31,7 +29,7 @@ class ServiceBase
     return build_qbo_remote unless @local.present?
     return build_qbo_remote unless @local.id
     log "Fetching details for #{@entity} ##{@local.id} from QBO..."
-    with_qbo_service do |service|
+    QboConnectionService.with_qbo_service(entity: @entity) do |service|
       service.fetch_by_id(@local.id)
     end
   rescue => e
@@ -45,7 +43,7 @@ class ServiceBase
    # If the push is successful, it returns the remote record; otherwise, it logs the error and returns false.
   def push
     log "Pushing #{@entity} ##{@local.id} to QBO..."
-    remote = with_qbo_service do |service|
+    remote = QboConnectionService.with_qbo_service(entity: @entity) do |service|
       if @local.id.present?
         log "Updating #{@entity}"
         service.update(@local.details)
@@ -61,22 +59,9 @@ class ServiceBase
 
   private 
 
-  # Performs authenticaed requests with QBO service
-  def with_qbo_service
-    @qbo.perform_authenticated_request do |access_token|
-      service = service_class.new( company_id: @qbo.realm_id, access_token: access_token )
-      yield service
-    end
-  end
-
   # Log messages with the entity type for better traceability
   def log(msg)
     Rails.logger.info "[#{@entity}Service] #{msg}"
-  end
-
-  # Dynamically get the Quickbooks Service Class
-  def service_class
-    @service_class ||= "Quickbooks::Service::#{@entity}".constantize
   end
 
 end

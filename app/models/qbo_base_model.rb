@@ -98,15 +98,13 @@ class QboBaseModel < ActiveRecord::Base
   # Fetches the entity's details from QuickBooks Online. 
   def fetch_details
     log "Fetching details for #{model_name.name} ##{id} from QBO..."
-    qbo = QboConnectionService.current!
-    service_class.new(qbo: qbo, local: self).pull()
+    service_class.new(local: self).pull()
   end
 
   # Pushs the entity's details from QuickBooks Online.
   def push_to_qbo
     log "Starting push for #{model_name.name} ##{id}..."
-    qbo = QboConnectionService.current!
-    reslut = service_class.new(qbo: qbo, local: self).push
+    reslut = service_class.new(local: self).push
     Rails.cache.delete(details_cache_key)
     return reslut
   end
