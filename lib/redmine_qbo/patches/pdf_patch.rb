@@ -260,7 +260,7 @@ module RedmineQbo
 
           # Check to see if there is an estimate attached, then combine them
           if issue.estimate
-            e_pdf, ref = EstimatePdfService.new(qbo: QboConnectionService.current!).fetch_pdf(doc_ids: [issue.estimate.id])
+            e_pdf, ref = PdfService.new(entity: Estimate).fetch_pdf(doc_ids: [issue.estimate.id])
             pdf = CombinePDF.parse(pdf.output, allow_optional_content: true)
             pdf << CombinePDF.parse(e_pdf)
             return pdf.to_pdf

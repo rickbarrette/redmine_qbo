@@ -7,19 +7,16 @@
 #The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-class PdfServiceBase
+class PdfService
   
   require 'combine_pdf'
 
   # Subclasses should initialize with a QBO client instance
-  def initialize(qbo:)
-    @qbo = qbo
-    @entity = self.class.model_class
-  end
-
-  # Subclasses must implement this to specify which document model to download pdf (e.g. Estimate, Invoice)
-  def self.model_class
-    raise NotImplementedError
+  def initialize(entity: entity)
+    raise "An entity to sync is required" unless entity
+    @entity = entity
+    @qbo = QboConnectionService.current!
+    raise "No QBO configuration found" unless @qbo
   end
 
   # Fetches the PDF for the given entity IDs. If multiple IDs are provided, their PDFs are combined into a single document.
