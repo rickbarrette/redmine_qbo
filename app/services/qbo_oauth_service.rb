@@ -10,7 +10,8 @@
 
 class QboOauthService
 
-  # Generates the QuickBooks OAuth authorization URL with the specified callback URL. The URL includes necessary parameters such as response type, state, and scope.
+  # Generates the QuickBooks OAuth authorization URL with the specified callback URL.
+  # The URL includes necessary parameters such as response type, state, and scope.
   def self.authorization_url(callback_url:)
     client.auth_code.authorize_url(
       redirect_uri: callback_url,
@@ -20,7 +21,8 @@ class QboOauthService
     )
   end
 
-  # Exchanges the authorization code for access and refresh tokens. Creates or replaces the QBO connection record with the new credentials and refreshes the token immediately after creation.
+  # Exchanges the authorization code for access and refresh tokens. 
+  # Creates or replaces the QBO connection record with the new credentials and refreshes the token immediately after creation.
   def self.exchange!(code:, callback_url:, realm_id:)
     resp = client.auth_code.get_token(code, redirect_uri: callback_url)
     QboConnectionService.replace!( token: resp.token, refresh_token: resp.refresh_token, realm_id: realm_id )
