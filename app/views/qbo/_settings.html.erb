@@ -107,5 +107,5 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <br/>
     
     <div>
-        <b><%=t(:label_last_sync)%> </b> <%= Qbo.last_sync if Qbo.exists? %> <%= link_to t(:label_sync_now), qbo_sync_path %>
+        <b><%=t(:label_last_sync)%> </b> <%= Qbo.last_sync if Qbo.exists? %> <%= link_to t(:label_sync_now), qbo_sync_path(full_sync: true) %>
 </div>

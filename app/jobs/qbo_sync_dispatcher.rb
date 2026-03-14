@@ -17,9 +17,17 @@ class QboSyncDispatcher
     Employee
   ].freeze
 
-  # Dispatches all synchronization jobs to perform a full sync of QuickBooks entities with the local database. Each job is enqueued with the `full_sync` flag set to true.
-  def self.full_sync!
+  # Dispatches all synchronization jobs to perform a full sync of QuickBooks entities with the local database. 
+  # Each job is enqueued with the `full_sync` flag set to true.
+  def self.sync!(full_sync: false)
+    log "Manual Sync initated for #{full_sync ? "full sync" : "incremental sync"}"
+    enque_jobs full_sync: full_sync
+  end
 
+  private
+
+  # Dynamically enques all sync jobs
+  def self.enque_jobs(full_sync: full_sync)
     jobs = SYNC_JOBS.dup
 
     # Allow other plugins to add addtional sync jobs via Hooks
@@ -29,10 +37,8 @@ class QboSyncDispatcher
         log "Added additionals QBO Sync Job for #{context.to_s}"
     end
 
-    jobs.each { |job| QboSyncJob.perform_later(entity: job, full_sync: true) }
+    jobs.each { |job| QboSyncJob.perform_later(entity: job, full_sync: full_sync) }
   end
-
-  private
 
   def self.log(msg)
     Rails.logger.info "[QboSyncDispatcher] #{msg}"

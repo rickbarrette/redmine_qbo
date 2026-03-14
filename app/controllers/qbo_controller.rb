@@ -46,9 +46,13 @@ class QboController < ApplicationController
     redirect_to issue || root_path, flash: { error: e.message }
   end
 
-  # Manual sync endpoint to trigger a full synchronization of QuickBooks entities with the local database. Enqueues all relevant sync jobs and redirects to the home page with a notice that syncing has started.
+  # Manual sync endpoint to trigger synchronization of QuickBooks entities
+  # with the local database. Supports full or partial sync depending on
+  # the `full_sync` boolean parameter.
   def sync
-    QboSyncDispatcher.full_sync!
+    full_sync = ActiveModel::Type::Boolean.new.cast(params[:full_sync])
+    QboSyncDispatcher.sync!(full_sync: full_sync)
+
     redirect_to :home, flash: { notice: I18n.t(:label_syncing) }
   end
 
