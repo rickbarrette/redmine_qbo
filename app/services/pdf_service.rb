@@ -20,12 +20,8 @@ class PdfService
   # Fetches the PDF for the given entity IDs. If multiple IDs are provided, their PDFs are combined into a single document.
   def fetch_pdf(doc_ids:)
     log "Fetching PDFs for #{@entity} IDs: #{doc_ids.join(', ')}"
-    @qbo.perform_authenticated_request do |access_token|
-      service_class = "Quickbooks::Service::#{@entity.name}".constantize
-      service = service_class.new(company_id: @qbo.realm_id, access_token: access_token)
-      
+    QboConnectionService.with_qbo_service(entity: @entity) do |service|
       return single_pdf(service, doc_ids.first) if doc_ids.size == 1
-
       combined_pdf(service, doc_ids)
     end
   end
