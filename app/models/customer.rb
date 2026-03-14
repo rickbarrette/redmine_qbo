@@ -33,14 +33,12 @@ class Customer < QboBaseModel
 
   # Returns the customer's email address
   def email
-    details
-    return @details&.email_address&.address
+    return details&.email_address&.address
   end
   
   # Updates the customer's email address
   def email=(s)
-    details
-    @details.email_address = s
+    details.email_address = s
   end
   
   # Customers are not bound by a project
@@ -51,22 +49,19 @@ class Customer < QboBaseModel
 
   # returns the customer's mobile phone
   def mobile_phone
-    details
-    return @details&.mobile_phone&.free_form_number
+    return details&.mobile_phone&.free_form_number
   end
   
   # Updates the custome's mobile phone number
   def mobile_phone=(n)
-    details
     pn = Quickbooks::Model::TelephoneNumber.new
     pn.free_form_number = n
-    @details.mobile_phone = pn
+    details.mobile_phone = pn
   end
 
   # Updates Both local DB name & QBO display_name
   def name=(s)
-    details
-    @details.display_name = s
+    details.display_name = s
     super
   end
 
@@ -78,22 +73,19 @@ class Customer < QboBaseModel
 
   # Sets the notes for the customer
   def notes=(s)
-    details
-    @details.notes = s
+    details.notes = s
   end
 
   # returns the customer's primary phone
   def primary_phone
-    details
-    return @details&.primary_phone&.free_form_number
+    return details&.primary_phone&.free_form_number
   end
   
   # Updates the customer's primary phone number
   def primary_phone=(n)
-    details
     pn = Quickbooks::Model::TelephoneNumber.new
     pn.free_form_number = n
-    @details.primary_phone = pn
+    details.primary_phone = pn
   end
 
   # Seach for customers by name or phone number
