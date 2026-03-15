@@ -27,6 +27,11 @@ class InvoiceController < ApplicationController
     redirect_back fallback_location: root_path, flash: { error: I18n.t(:notice_invoice_not_found) }
   end
 
+  def sync
+    Invoice.sync
+    redirect_to :home, flash: { notice: I18n.t(:label_syncing) }
+  end
+
   private
 
   # Logs messages with a consistent prefix for easier debugging.

@@ -14,6 +14,8 @@ get 'qbo/oauth_callback', to: 'qbo#oauth_callback'
 
 #manual sync
 get 'qbo/sync', to: 'qbo#sync'
+get 'invoices/sync', to: 'invoice#sync'
+get 'estimates/sync', to: 'estimate#sync'
 
 #webhook
 post 'qbo/webhook', to: 'qbo#webhook'
@@ -36,4 +38,5 @@ get 'filter_invoices_by_customer' => 'customers#filter_invoices_by_customer'
 
 resources :customers do
   get :autocomplete_customer_name, on: :collection
+  get :sync
 end

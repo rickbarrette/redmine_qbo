@@ -9,7 +9,7 @@
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 # This controller class will handle map management
-class CustomersController < ApplicationController
+clasclass CustomersController < ApplicationController
 
   include AuthHelper
   helper :issues
@@ -32,38 +32,36 @@ class CustomersController < ApplicationController
 
   autocomplete :customer, :name, full: true, extra_data: [:id]
 
+  def address_to_s(address)
+    return if address.nil?
+
+    lines = [
+      address.line1,
+      address.line2,
+      address.line3,
+      address.line4,
+      address.line5
+    ].compact_blank
+
+    city_line = [
+      address.city,
+      address.country_sub_division_code,
+      address.postal_code
+    ].compact_blank.join(" ")
+
+    lines << city_line unless city_line.blank?
+
+    lines.join("\n")
+  end
+
+  def add_customer
+    global_check_permission(:add_customers)
+  end
+
   def allowed_params
     params.require(:customer).permit(:name, :email, :primary_phone, :mobile_phone, :phone_number, :notes)
   end
 
-  # getter method for a customer's invoices
-  # used for customer autocomplete field / issue form
-  def filter_invoices_by_customer
-    @filtered_invoices = Invoice.all.where(customer_id: params[:selected_customer])
-  end
-
-  # getter method for a customer's estimates
-  # used for customer autocomplete field / issue form
-  def filter_estimates_by_customer
-    @filtered_estimates = Estimate.all.where(customer_id: params[:selected_customer])
-  end
-
-  # display a list of all customers
-  def index
-    if params[:search]
-      @customers = Customer.search(params[:search]).order(:name).paginate(page: params[:page])
-      if only_one_non_zero?(@customers)
-        redirect_to @customers.first
-      end
-    end
-  end
-
-  # initialize a new customer
-  def new
-    @customer = Customer.new
-  end
-
-  # create a new customer
   def create
     @customer = Customer.new(allowed_params)
     @customer.save
@@ -76,7 +74,79 @@ class CustomersController < ApplicationController
     redirect_to new_customer_path
   end
 
-  # display a specific customer
+  def edit
+    @customer = Customer.find_by_id(params[:id])
+    return render_404 unless @customer
+  rescue => e
+    log "Failed to edit customer"
+    flash[:error] = e.message
+    render_404
+  end
+
+  def filter_estimates_by_customer
+    @filtered_estimates = Estimate.all.where(customer_id: params[:selected_customer])
+  end
+
+  def filter_invoices_by_customer
+    @filtered_invoices = Invoice.all.where(customer_id: params[:selected_customer])
+  end
+
+  def index
+    if params[:search]
+      @customers = Customer.search(params[:search]).order(:name).paginate(page: params[:page])
+      if only_one_non_zero?(@customers)
+        redirect_to @customers.first
+      end
+    end
+  end
+
+  def load_issue_data
+    @journals = @issue.journals.preload(:details).preload(user: :email_address).reorder(:created_on, :id).to_a
+
+    @journals.each_with_index { |j, i| j.indice = i + 1 }
+    @journals.reject!(&:private_notes?) unless User.current.allowed_to?(:view_private_notes, @issue.project)
+    Journal.preload_journals_details_custom_fields(@journals)
+    @journals.select! { |journal| journal.notes? || journal.visible_details.any? }
+    @journals.reverse! if User.current.wants_comments_in_reverse_order?
+
+    @changesets = @issue.changesets.visible.preload(:repository, :user).to_a
+    @changesets.reverse! if User.current.wants_comments_in_reverse_order?
+
+    @relations = @issue.relations.select { |r| r.other_issue(@issue)&.visible? }
+    @allowed_statuses = @issue.new_statuses_allowed_to(User.current)
+    @priorities = IssuePriority.active
+    @time_entry = TimeEntry.new(issue: @issue, project: @issue.project)
+    @relation   = IssueRelation.new
+  end
+
+  def log(msg)
+    Rails.logger.info "[CustomersController] #{msg}"
+  end
+
+  def new
+    @customer = Customer.new
+  end
+
+  def only_one_non_zero?(array)
+    found_non_zero = false
+    array.each do |val|
+      if val != 0
+        return false if found_non_zero
+        found_non_zero = true
+      end
+    end
+    found_non_zero
+  end
+
+  def share
+    issue = Issue.find(params[:id])
+    token = issue.share_token
+    redirect_to view_path(token.token)
+  rescue ActiveRecord::RecordNotFound
+    flash[:error] = t(:notice_issue_not_found)
+    render_404
+  end
+
   def show
     @customer = Customer.find_by_id(params[:id])
     return render_404 unless @customer
@@ -109,17 +179,11 @@ class CustomersController < ApplicationController
     render_404
   end
 
-  # return an HTML form for editing a customer
-  def edit
-    @customer = Customer.find_by_id(params[:id])
-    return render_404 unless @customer
-  rescue => e
-    log "Failed to edit customer"
-    flash[:error] = e.message
-    render_404
+  def sync
+    Customer.sync
+    redirect_to :home, flash: { notice: I18n.t(:label_syncing) }
   end
 
-  # update a specific customer
   def update
     @customer = Customer.find_by_id(params[:id])
     @customer.update(allowed_params)
@@ -131,108 +195,21 @@ class CustomersController < ApplicationController
     redirect_to edit_customer_path
   end
 
-  # creates new customer view tokens, removes expired tokens & redirects to newly created customer view with new token.
-  def share
-    issue = Issue.find(params[:id])
-    token = issue.share_token
-    redirect_to view_path(token.token)
-  rescue ActiveRecord::RecordNotFound
-    flash[:error] = t(:notice_issue_not_found)
-    render_404
-  end
-  
-  # displays an issue for a customer with a provided security CustomerToken
   def view
     User.current = User.anonymous
-
-    # Load only active, non-expired token
     @token = CustomerToken.active.find_by(token: params[:token])
     return render_403 unless @token
-
-    # Load associated issue
     @issue = @token.issue
     return render_403 unless @issue
-
-    # Optional: enforce token belongs to the issue's customer
     return render_403 unless @issue.customer_id == @token.issue.customer_id
-
-    # Store token in session for subsequent requests if needed
     session[:token] = @token.token
-
     load_issue_data
   rescue ActiveRecord::RecordNotFound
     render_403
   end
 
-  private
-
-  def load_issue_data
-    @journals = @issue.journals.preload(:details).preload(user: :email_address).reorder(:created_on, :id).to_a
-
-    @journals.each_with_index { |j, i| j.indice = i + 1 }
-    @journals.reject!(&:private_notes?) unless User.current.allowed_to?(:view_private_notes, @issue.project)
-    Journal.preload_journals_details_custom_fields(@journals)
-    @journals.select! { |journal| journal.notes? || journal.visible_details.any? }
-    @journals.reverse! if User.current.wants_comments_in_reverse_order?
-
-    @changesets = @issue.changesets.visible.preload(:repository, :user).to_a
-    @changesets.reverse! if User.current.wants_comments_in_reverse_order?
-
-    @relations = @issue.relations.select { |r| r.other_issue(@issue)&.visible? }
-    @allowed_statuses = @issue.new_statuses_allowed_to(User.current)
-    @priorities = IssuePriority.active
-    @time_entry = TimeEntry.new(issue: @issue, project: @issue.project)
-    @relation   = IssueRelation.new
-  end
-
-  # redmine permission - add customers
-  def add_customer
-    global_check_permission(:add_customers)
-  end
-
-  # redmine permission - view customers
   def view_customer
     global_check_permission(:view_customers)
-  end
-
-  # checks to see if there is only one item  in an array
-  # @return true if array only has one item
-  def only_one_non_zero?( array )
-    found_non_zero = false
-    array.each do |val|
-      if val!=0
-        return false if found_non_zero
-        found_non_zero = true
-      end
-    end
-    found_non_zero
-  end
-
-  # format a quickbooks address to a human readable string
-  def address_to_s(address)
-    return if address.nil?
-
-    lines = [
-      address.line1,
-      address.line2,
-      address.line3,
-      address.line4,
-      address.line5
-    ].compact_blank
-
-    city_line = [
-      address.city,
-      address.country_sub_division_code,
-      address.postal_code
-    ].compact_blank.join(" ")
-
-    lines << city_line unless city_line.blank?
-
-    lines.join("\n")
-  end
-
-  def log(msg)
-    Rails.logger.info "[CustomersController] #{msg}"
   end
 
 end
