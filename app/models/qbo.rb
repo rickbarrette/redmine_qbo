@@ -14,6 +14,26 @@ class Qbo < ActiveRecord::Base
   include Redmine::I18n
 
   validate :single_record_only, on: :create
+
+  # Returns the last sync time formatted for display. If no sync has occurred, returns a default message.
+  def self.last_sync
+    qbo = QboConnectionService.current!
+    format_time(qbo.last_sync)
+  rescue
+    return I18n.t(:label_qbo_never_synced)
+  end
+
+  def self.oauth2_access_token_expires_at
+    QboConnectionService.current!.oauth2_access_token_expires_at
+  rescue
+    return I18n.t(:label_qbo_never_synced)
+  end
+
+  def self.oauth2_refresh_token_expires_at
+    QboConnectionService.current!.oauth2_refresh_token_expires_at
+  rescue
+    return I18n.t(:label_qbo_never_synced)
+  end
   
   # Updates last sync time stamp
   def self.update_time_stamp
@@ -24,14 +44,6 @@ class Qbo < ActiveRecord::Base
     qbo.save
   end
   
-  # Returns the last sync time formatted for display. If no sync has occurred, returns a default message.
-  def self.last_sync
-    qbo = QboConnectionService.current!
-    format_time(qbo.last_sync)
-  rescue
-    return I18n.t(:label_qbo_never_synced)
-  end
-
   private
 
   # Logs a message with a QBO-specific prefix for easier identification in the logs.
