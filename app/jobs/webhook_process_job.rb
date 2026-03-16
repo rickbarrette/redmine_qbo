@@ -47,8 +47,10 @@ class WebhookProcessJob < ActiveJob::Base
     # Allow other plugins to add addtional qbo entities via Hooks
     Redmine::Hook.call_hook( :qbo_additional_entities ).each do |context|
         next unless context
-        entities.push context
-        log "Added additional QBO entities: #{context}"
+        Array(context).each do |entity|
+          jobs.push(entity)
+          log "Added additional QBO entity #{entity}"
+        end
     end
     return unless entities.include?(name)
 

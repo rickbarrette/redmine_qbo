@@ -33,8 +33,10 @@ class QboSyncDispatcher
     # Allow other plugins to add addtional sync jobs via Hooks
     Redmine::Hook.call_hook( :qbo_full_sync ).each do |context|
         next unless context
-        jobs.push context
-        log "Added additionals QBO Sync Job for #{context.to_s}"
+        Array(context).each do |entity|
+          jobs.push(entity)
+          log "Added additional QBO Sync Job for #{entity.to_s}"
+        end
     end
 
     jobs.each { |job| QboSyncJob.perform_later(entity: job, full_sync: full_sync) }
