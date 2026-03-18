@@ -14,18 +14,13 @@ get 'qbo/oauth_callback', to: 'qbo#oauth_callback'
 
 #manual sync
 get 'qbo/sync', to: 'qbo#sync'
-get 'customers/sync', to: 'customers#sync'
-get 'employees/sync', to: 'employee#sync'
-get 'invoices/sync', to: 'invoice#sync'
-get 'estimates/sync', to: 'estimate#sync'
 
 #webhook
 post 'qbo/webhook', to: 'qbo#webhook'
 
 # Estimate & Invoice PDF
-get 'estimates/sync', to: 'estimate#sync'
-get 'estimates/doc/', to: 'estimate#doc', as: :estimate_doc
-get 'invoices/:id', to: 'invoice#show', as: :invoice
+get 'estimates/doc/', to: 'estimates#doc', as: :estimate_doc
+get 'invoices/:id', to: 'invoices#show', as: :invoice
 
 #manual billing
 get 'bill/:id', to: 'qbo#bill', as: :bill
@@ -40,5 +35,18 @@ get 'filter_invoices_by_customer' => 'customers#filter_invoices_by_customer'
 
 resources :customers do
   get :autocomplete_customer_name, on: :collection
+  get :sync
+end
+
+resources :estimates do
+  get :sync
+  get :doc, as: :estimate_doc
+end
+
+resources :employees do
+  get :sync
+end
+
+resources :invoices do
   get :sync
 end

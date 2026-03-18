@@ -7,13 +7,28 @@
 #The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-class EmployeeController < ApplicationController
+class InvoicesController < ApplicationController
   include AuthHelper
 
   before_action :require_user, unless: -> { session[:token].nil? }
+  skip_before_action :verify_authenticity_token, :check_if_login_required, unless: -> { session[:token].nil? }
+
+  # Displays the invoice PDF in the browser or redirects with an error if not found.
+  def show
+    log "Processing request for #{request.original_url}"
+
+    invoice_ids = Array(params[:invoice_ids] || params[:id])
+    pdf, ref = PdfService.new(entity: Invoice).fetch_pdf(doc_ids: invoice_ids)
+
+    send_data pdf, filename: "invoice #{ref}.pdf", disposition: :inline, type: "application/pdf"
+
+  rescue StandardError => e
+    log "Invoice PDF failure: #{e.message}"
+    redirect_back fallback_location: root_path, flash: { error: I18n.t(:notice_invoice_not_found) }
+  end
 
   def sync
-    Employee.sync
+    Invoice.sync
     redirect_to :home, flash: { notice: I18n.t(:label_syncing) }
   end
 
@@ -21,6 +36,6 @@ class EmployeeController < ApplicationController
 
   # Logs messages with a consistent prefix for easier debugging.
   def log(msg)
-    Rails.logger.info "[EmployeeController] #{msg}"
+    Rails.logger.info "[InvoiceController] #{msg}"
   end
 end
