@@ -24,6 +24,11 @@ class EstimateController < ApplicationController
     render_pdf(@estimate)
   end
 
+  def sync
+    Estimate.sync
+    redirect_to :home, flash: { notice: I18n.t(:label_syncing) }
+  end
+
   private
 
   # Loads the estimate based on ID or doc number, with a fallback to sync if not found locally.

@@ -1,111 +1,79 @@
-<!--
-The MIT License (MIT)
-
-Copyright (c) 2016 - 2026 rick barrette
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
--->
-
-<!-- somewhere in your document include the Javascript -->
 <script type="text/javascript" src="https://appcenter.intuit.com/Content/IA/intuit.ipp.anywhere.js"></script>
-
-<!-- configure the Intuit object: 'grantUrl' is a URL in your application which kicks off the flow, see below -->
 <script>
   intuit.ipp.anywhere.setup({menuProxy: '/path/to/blue-dot', grantUrl: '<%= qbo_authenticate_path %>'});
 </script>
 
-<table >
-  <tbody>
+<div class="box tabular">
+  <p>
+    <label><%= t(:label_client_id) %></label>
+    <%= text_field_tag 'settings[settingsOAuthConsumerKey]', settings['settingsOAuthConsumerKey'], size: 50 %>
+  </p>
+
+  <p>
+    <label><%= t(:label_client_secret) %></label>
+    <%= password_field_tag 'settings[settingsOAuthConsumerSecret]', settings['settingsOAuthConsumerSecret'], size: 50 %>
+  </p>
   
-    <tr>
-      <th><%=t(:label_client_id)%></th>
-      <td>
-        <input 
-          type="text" 
-          style="width:350px" 
-          id="settingsOAuthConsumerKey" 
-          value="<%= settings['settingsOAuthConsumerKey'] %>" 
-          name="settings[settingsOAuthConsumerKey]" >
-      </td>
-    </tr>
+  <p>
+    <label><%= t(:label_webhook_token) %></label>
+    <%= text_field_tag 'settings[settingsWebhookToken]', settings['settingsWebhookToken'], size: 50 %>
+  </p>
 
-    <tr>
-      <th><%=t(:label_client_secret)%></th>
-      <td>
-        <input 
-          type="text" 
-          style="width:350px" 
-          id="settingsOAuthConsumerSecret"
-          value="<%= settings['settingsOAuthConsumerSecret'] %>"
-          name="settings[settingsOAuthConsumerSecret]" >
-      </td>
-    </tr>
-    
-    <tr>
-      <th><%=t(:label_webhook_token)%></th>
-      <td>
-        <input 
-          type="text" 
-          style="width:350px" 
-          id="settingsWebhookToken"
-          value="<%= settings['settingsWebhookToken'] %>"
-          name="settings[settingsWebhookToken]" >
-      </td>
-    </tr>
+  <p>
+    <label><%= t(:label_sandbox) %></label>
+    <%= check_box_tag 'settings[sandbox]', 1, settings[:sandbox] %>
+  </p>
 
-    <tr>
-      <th><%=t(:label_sandbox)%></th>
-      <td>
-        <%= check_box_tag 'settings[sandbox]', @settings[:sandbox], @settings[:sandbox] %>
-      </td>
-    </tr>
+  <hr />
 
-     <tr>
-        <th><%=t(:label_oauth_expires)%></th>
-        <td><%= Qbo.oauth2_access_token_expires_at %>
-      </tr>
-      
-      <tr>
-        <th><%=t(:label_oauth2_refresh_token_expires_at)%></th>
-        <td><%= Qbo.oauth2_refresh_token_expires_at %>
-     </tr>
+  <p>
+    <label><%= t(:label_oauth_expires) %></label>
+    <span class="icon <%= Qbo.oauth2_access_token_expires_at&.future? ? 'icon-ok' : 'icon-warning' %>">
+      <%= Qbo.oauth2_access_token_expires_at || 'N/A' %>
+    </span>
+  </p>
 
-  </tbody>
-</table>
+  <p>
+    <label><%= t(:label_customer_count) %></label>
+    <%= Customer.count %> 
+    <em style="color: #777; font-size: 0.9em; margin-left: 8px;">(@ <%= Customer.last_sync %>)</em>
+  </p>
 
-<br/>
-<%=t(:label_oauth_note)%>
-<br/>
-<br/>
+  <p>
+    <label><%= t(:label_employee_count) %></label>
+    <%= Employee.count %> 
+    <em style="color: #777; font-size: 0.9em; margin-left: 8px;">(@ <%= Employee.last_sync %>)</em>
+  </p>
 
-<!-- this will display a button that the user clicks to start the flow -->
-<ipp:connectToIntuit></ipp:connectToIntuit>
+  <p>
+    <label><%= t(:label_invoice_count) %></label>
+    <%= Invoice.count %> 
+    <em style="color: #777; font-size: 0.9em; margin-left: 8px;">(@ <%= Item.last_sync %>)</em>
+  </p>
 
-<br/>
-<br/>
+  <p>
+    <label><%= t(:label_estimate_count) %></label>
+    <%= Estimate.count %> 
+    <em style="color: #777; font-size: 0.9em; margin-left: 8px;">(@ <%= Account.last_sync %>)</em>
+  </p>
 
-<div>
-    <b><%=t(:label_customer_count)%>:</b> <%= Customer.count%> @ <%= Customer.last_sync %>
-    </div>
-      
-    <div>
-        <b><%=t(:label_employee_count)%>:</b> <%= Employee.count %> @ <%= Employee.last_sync %>
-    </div>
-    
-    <div>
-        <b><%=t(:label_invoice_count)%>:</b> <%= Invoice.count %> @ <%= Invoice.last_sync%>
-    </div>
-    
-    <div>
-        <b><%=t(:label_estimate_count)%>:</b> <%= Estimate.count %> @ <%= Estimate.last_sync %>
-    </div>
-      
-    <br/>
-    
-    <div>
-        <b><%=t(:label_last_sync)%> </b> <%= Qbo.last_sync if Qbo.exists? %> <%= link_to t(:label_sync_now), qbo_sync_path(full_sync: true) %>
+  <p>
+    <label><%= t(:label_last_sync) %> (QBO)</label>
+    <%= Qbo.exists? ? Qbo.last_sync : 'Never synced' %>
+  </p>
 </div>
+
+<fieldset class="box">
+  <legend>Management & Synchronization</legend>
+  
+  <div style="margin-bottom: 20px;">
+    <ipp:connectToIntuit></ipp:connectToIntuit>
+  </div>
+
+  <div style="margin-bottom: 15px;">
+    <%= link_to t(:label_sync_now_customers), customers_sync_path(full_sync: true), class: 'button icon icon-reload' %>
+    <%= link_to t(:label_sync_now_employees), employees_sync_path, class: 'button icon icon-reload' %>
+    <%= link_to t(:label_sync_now_invoices), invoices_sync_path(full_sync: true), class: 'button icon icon-reload' %>
+    <%= link_to t(:label_sync_now_estimate), estimates_sync_path, class: 'button icon icon-reload' %>
+  </div>
+</fieldset>

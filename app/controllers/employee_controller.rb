@@ -7,38 +7,20 @@
 #The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+class EmployeeController < ApplicationController
+  include AuthHelper
 
-#authentication
-get 'qbo/authenticate', to: 'qbo#authenticate'
-get 'qbo/oauth_callback', to: 'qbo#oauth_callback'
+  before_action :require_user, unless: -> { session[:token].nil? }
 
-#manual sync
-get 'qbo/sync', to: 'qbo#sync'
-get 'customers/sync', to: 'customers#sync'
-get 'employees/sync', to: 'employee#sync'
-get 'invoices/sync', to: 'invoice#sync'
-get 'estimates/sync', to: 'estimate#sync'
+  def sync
+    Employee.sync
+    redirect_to :home, flash: { notice: I18n.t(:label_syncing) }
+  end
 
-#webhook
-post 'qbo/webhook', to: 'qbo#webhook'
+  private
 
-# Estimate & Invoice PDF
-get 'estimates/:id', to: 'estimate#show', as: :estimate
-get 'estimates/doc/', to: 'estimate#doc', as: :estimate_doc
-get 'invoices/:id', to: 'invoice#show', as: :invoice
-
-#manual billing
-get 'bill/:id', to: 'qbo#bill', as: :bill
-
-#customer issue view
-get 'customers/view/:token', to: 'customers#view', as: :view
-get 'customers/share/:id', to: 'customers#share', as: :share
-
-#java script routes
-get 'filter_estimates_by_customer' => 'customers#filter_estimates_by_customer'
-get 'filter_invoices_by_customer' => 'customers#filter_invoices_by_customer'
-
-resources :customers do
-  get :autocomplete_customer_name, on: :collection
-  get :sync
+  # Logs messages with a consistent prefix for easier debugging.
+  def log(msg)
+    Rails.logger.info "[EmployeeController] #{msg}"
+  end
 end
