@@ -30,8 +30,6 @@ class CustomersController < ApplicationController
   before_action :view_customer, except: [:new, :view]
   skip_before_action :verify_authenticity_token, :check_if_login_required, only: [:view]
 
-  autocomplete :customer, :name, full: true, extra_data: [:id]
-
   def address_to_s(address)
     return if address.nil?
 
@@ -60,6 +58,19 @@ class CustomersController < ApplicationController
 
   def allowed_params
     params.require(:customer).permit(:name, :email, :primary_phone, :mobile_phone, :phone_number, :notes)
+  end
+
+  # Used for autocomplete form
+  def autocomplete
+    term = ActiveRecord::Base.sanitize_sql_like(params[:q].to_s)
+
+    items = Customer.where("name LIKE :t OR phone_number LIKE :t OR mobile_phone_number LIKE :t", t: "%#{term}%")
+      .order(:name)
+      .limit(20)
+
+    render json: items.map { |i|
+      { id: i.id, name: i.name, phone_number: i.phone_number, mobile_phone_number: i.mobile_phone_number }
+    }
   end
 
   def create

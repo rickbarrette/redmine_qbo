@@ -1,0 +1,5 @@
+/* Keep Redmine default look, just enhance metadata */
+.ui-autocomplete .autocomplete-meta {
+  color: #888;
+  font-size: 0.9em;
+}

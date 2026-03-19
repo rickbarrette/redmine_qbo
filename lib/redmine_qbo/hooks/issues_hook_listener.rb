@@ -23,13 +23,13 @@ module RedmineQbo
         project = context[:project]
 
         # Customer Name Text Box with database backed autocomplete
-        # onchange event will update the hidden customer_id field
-        search_customer = f.autocomplete_field :customer,
-          autocomplete_customer_name_customers_path,
-          selected: issue.customer,
-          update_elements: { 
-            id: '#issue_customer_id', 
-            value: '#issue_customer' 
+        # onchange event will update the hidden customer_id field        
+        search_customer = f.text_field :customer,
+          placeholder: l(:field_customer),
+          class: "customer-name",
+          autocomplete: "off",
+          data: {
+            autocomplete_url: "/customers/autocomplete"
           }
 
         # We need to handle 3 cases for the onchange event of the customer name field:
