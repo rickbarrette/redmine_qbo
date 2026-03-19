@@ -55,11 +55,11 @@
 
         select: function(event, ui) {
           $input.val(ui.item.value);  // visible text
-          $("#issue_customer_id").val(ui.item.id); // hidden ID
+          $("#customer_id").val(ui.item.id); // hidden ID
 
           // trigger Redmine form update safely
           setTimeout(function() {
-            $("#issue_customer_id").trigger("change");
+            $("#customer_id").trigger("change");
           }, 0);
 
           return false;
@@ -68,7 +68,7 @@
         change: function(event, ui) {
           // clear hidden field if no valid selection
           if (!ui.item && !$input.val()) {
-            $("#issue_customer_id").val("");
+            $("#customer_id").val("");
           }
         }
       });

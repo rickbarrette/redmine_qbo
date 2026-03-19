@@ -46,7 +46,7 @@ module RedmineQbo
         # This hidden field is used for the customer ID for the issue
         # the onchange event will reload the issue form via ajax to update the available estimates
         customer_id = f.hidden_field :customer_id,
-          id: "issue_customer_id",
+          id: "customer_id",
           onchange: js_path.html_safe
 
         # Generate the drop down list of quickbooks estimates owned by the selected customer
