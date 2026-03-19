@@ -22,9 +22,9 @@ get 'employees/sync', to: 'employees#sync'
 post 'qbo/webhook', to: 'qbo#webhook'
 
 # Estimate & Invoice PDF
-get 'estimates/:id', to: 'estimate#show', as: :estimate
-get 'estimates/doc/', to: 'estimate#doc', as: :estimate_doc
-get 'invoices/:id', to: 'invoice#show', as: :invoice
+get 'estimates/:id', to: 'estimates#show', as: :estimate
+get 'estimates/doc/', to: 'estimates#doc', as: :estimate_doc
+get 'invoices/:id', to: 'invoices#show', as: :invoice
 
 #manual billing
 get 'bill/:id', to: 'qbo#bill', as: :bill
