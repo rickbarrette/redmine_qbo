@@ -25,7 +25,6 @@ module RedmineQbo
         # Customer Name Text Box with database backed autocomplete
         # onchange event will update the hidden customer_id field        
         search_customer = f.text_field :customer,
-          placeholder: l(:field_customer),
           class: "customer-name",
           autocomplete: "off",
           data: {
