@@ -6,7 +6,3 @@ gem 'roxml'
 gem 'will_paginate'
 gem 'rexml'
 gem 'combine_pdf'
-
-group :assets do
-  gem 'coffee-rails'
-end
