@@ -30,4 +30,26 @@ module RedmineQbo
     RedmineQbo::Hooks::UsersShowHookListener
     RedmineQbo::Hooks::ViewHookListener
   end
+
+  def self.settings
+    Setting.plugin_redmine_qbo
+  end
+
+  def self.oauth_consumer_key
+    settings[:oauth_consumer_key]
+  end
+  
+  def self.oauth_consumer_secret
+    settings[:oauth_consumer_secret]
+  end
+
+  def self.sandbox_mode?
+    settings[:sandbox] ? true : false
+  end
+
+  def self.webhook_token_secret
+    settings[:webhook_token]
+  end
+
+
 end

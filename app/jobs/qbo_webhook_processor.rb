@@ -14,7 +14,7 @@ class QboWebhookProcessor
   def self.process!(request:)
     body = request.raw_post
     signature = request.headers['intuit-signature']
-    secret = Setting.plugin_redmine_qbo['settingsWebhookToken']
+    secret = RedmineQbo.webhook_token_secret
 
     raise "Invalid signature" unless valid_signature?(body, signature, secret)
 

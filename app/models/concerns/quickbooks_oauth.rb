@@ -75,11 +75,8 @@ module QuickbooksOauth
     # This method will construct and return an instance of the OAuth2::Client class that is configured with the consumer key, consumer secret and the appropriate URLs for the Intuit OAuth2 service.  It will also set the sandbox mode based on the plugin settings.  This method is used by the instance method oauth_client to create a new OAuth2 client for each instance of the model that includes this concern.
     def construct_oauth2_client
 
-      oauth_consumer_key = Setting.plugin_redmine_qbo['settingsOAuthConsumerKey']
-      oauth_consumer_secret = Setting.plugin_redmine_qbo['settingsOAuthConsumerSecret']
-
       # Are we are playing in the sandbox?
-      Quickbooks.sandbox_mode = Setting.plugin_redmine_qbo[:sandbox] ? true : false
+      Quickbooks.sandbox_mode = RedmineQbo.sandbox_mode?
       log "Sandbox mode: #{Quickbooks.sandbox_mode}"
 
       options = {
@@ -87,7 +84,7 @@ module QuickbooksOauth
         authorize_url: "https://appcenter.intuit.com/connect/oauth2",
         token_url: "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer"
       }
-      OAuth2::Client.new(oauth_consumer_key, oauth_consumer_secret, options)
+      OAuth2::Client.new(RedmineQbo.oauth_consumer_key, RedmineQbo.oauth_consumer_secret, options)
     end
 
   end

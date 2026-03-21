@@ -6,17 +6,17 @@
 <div class="box tabular">
   <p>
     <label><%= t(:label_client_id) %></label>
-    <%= text_field_tag 'settings[settingsOAuthConsumerKey]', settings['settingsOAuthConsumerKey'], size: 50 %>
+    <%= text_field_tag 'settings[oauth_consumer_key]', settings[:oauth_consumer_key], size: 50 %>
   </p>
 
   <p>
     <label><%= t(:label_client_secret) %></label>
-    <%= password_field_tag 'settings[settingsOAuthConsumerSecret]', settings['settingsOAuthConsumerSecret'], size: 50 %>
+    <%= password_field_tag 'settings[oauth_consumer_secret]', settings[:oauth_consumer_secret], size: 50 %>
   </p>
   
   <p>
     <label><%= t(:label_webhook_token) %></label>
-    <%= text_field_tag 'settings[settingsWebhookToken]', settings['settingsWebhookToken'], size: 50 %>
+    <%= text_field_tag 'settings[webhook_token]', settings[:webhook_token], size: 50 %>
   </p>
 
   <p>
