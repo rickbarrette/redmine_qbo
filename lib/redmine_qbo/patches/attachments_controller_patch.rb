@@ -8,41 +8,32 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require_dependency 'attachments_controller'
-
 module RedmineQbo
   module Patches
-
     module AttachmentsControllerPatch
+      module Helper
+        # Check if login is globally required to access the application
+        def check_if_login_required
+          # Return true if the user is already logged in
+          return true if User.current.logged?
 
-      def self.included(base)
+          # Pull up the attachment and verify if we have a valid token for the issue
+          attachment = Attachment.find_by(id: params[:id])
+          return require_login if attachment.nil?
 
-        base.class_eval do
+          token = CustomerToken.where("token = ? AND expires_at > ?", session[:token], Time.current).first
+          return true if token&.issue_id == attachment.container_id
 
-          # check if login is globally required to access the application
-          def check_if_login_required
-            # no check needed if user is already logged in
-            return true if User.current.logged?
-            
-            # Pull up the attachmet, & verify if we have a valid token for the Issue
-            attachment = Attachment.find(params[:id])
-            token = CustomerToken.where("token = ? and expires_at > ?", session[:token], Time.now)
-            token = token.first
-            unless token.nil?
-              return true if token.issue_id == attachment.container_id
-            end
-            
-            require_login if Setting.login_required?
-          end
-          
+          # Default to requiring login if all else fails
+          require_login if Setting.login_required?
         end
-
       end
 
-    end   
-
-    # Add module to AttachmentsController
-    AttachmentsController.send(:include, AttachmentsControllerPatch)
-
+      def self.apply
+        AttachmentsController.class_eval do
+          helper Helper
+        end
+      end
+    end
   end
 end

@@ -8,11 +8,10 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require_dependency 'issue_query'
-
 module RedmineQbo
   module Patches
     module QueryPatch
+      extend ActiveSupport::Concern
 
       def base_scope
         scope = super
@@ -59,12 +58,6 @@ module RedmineQbo
 
         Issue.joins(:customer).sanitize_sql_for_conditions([sql, pattern])
       end
-
-
     end
-
-    # Add module to Issue
-    IssueQuery.send(:prepend, QueryPatch)
-
   end
 end
