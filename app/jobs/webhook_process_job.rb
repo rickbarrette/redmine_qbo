@@ -48,7 +48,7 @@ class WebhookProcessJob < ActiveJob::Base
     Redmine::Hook.call_hook( :qbo_additional_entities ).each do |context|
         next unless context
         Array(context).each do |entity|
-          jobs.push(entity)
+          entities.push(entity)
           log "Added additional QBO entity #{entity}"
         end
     end
