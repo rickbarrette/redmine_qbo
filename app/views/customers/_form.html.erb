@@ -7,7 +7,7 @@
         <div class="clearfix">
           <%=t(:label_display_name)%> 
           <div class="input">
-            <%= f.text_field :name, required: true, autocomplete: "off" %>
+            <%= f.text_field :name, required: true, class: "customer-name", autocomplete: "off", data: { autocomplete_url: "/customers/autocomplete" } %>
           </div>
         </div>
         
