@@ -89,17 +89,6 @@ Supported automation:
 
 Invoices containing an Issue reference (e.g. `#123`) automatically attach to the corresponding Issue.
 
-### Custom Field Synchronization
-
-Invoice custom fields can be mapped to Issue custom fields.
-
-Example use case:
-
-*   Mileage In/Out recorded in Redmine
-    
-*   Automatically synchronized to the QuickBooks invoice.
-    
-
 ### Customer Synchronization
 
 Customer records are automatically updated in the local database when changes occur in QuickBooks.
