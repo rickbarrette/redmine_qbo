@@ -29,8 +29,6 @@ class InvoiceAttachmentService
         issue.save! if issue.changed?
         log "Attached invoice ##{@invoice.id} to issue ##{issue.id}"
       end
-
-      InvoiceCustomFieldSyncService.new(issue, @invoice, @remote).sync
     end
   end
 

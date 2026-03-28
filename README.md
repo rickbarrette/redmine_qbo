@@ -121,7 +121,6 @@ Available hooks:
 |--|--|--|
 View Hook|:pdf_left, { issue: issue }  | Used to add text to left side of PDF
 View Hook|:pdf_right, { issue: issue }  | Used to add text to right side of PDF
-Hook|process_invoice_custom_fields, { issue: issue, invoice: invoice }  | Used to process invoice custom fields
 View Hook|:show_customer_view_right, { customer: customer } | Used to show partials on right side of customer view
 Hook| :qbo_additional_entities | Used to add additional entites to be processed by the WebhookProcessJob
 Hook| :qbo_full_sync | Used to add a Class to be called by the QboSyncDispatcher
