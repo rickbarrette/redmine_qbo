@@ -15,10 +15,7 @@ module RedmineQbo
 
       # View User
       def view_users_form(context={})
-        
-        # Update the users
-        #Employee.update_all
-    
+
         # Check to see if there is a quickbooks user attached to the issue
         @selected = context[:user]&.employee&.id
 
