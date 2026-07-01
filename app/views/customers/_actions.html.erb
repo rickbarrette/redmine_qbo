@@ -8,4 +8,9 @@
 <br/>
 <br/>
 
+<%= link_to t(:label_create_payment), "https://qbo.intuit.com/app/recvpayment?nameId=#{@customer.id}", target: :_blank %>
+
+<br/>
+<br/>
+
 <%= button_to t(:label_edit_customer), edit_customer_path(@customer), method: :get%> 
