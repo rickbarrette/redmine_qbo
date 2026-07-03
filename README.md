@@ -142,7 +142,7 @@ https://redmine.yourdomain.com/qbo/webhook
 
 # Installation
 
-## 1\. Clone the Plugin
+## 1. Clone the Plugin
 
 Install the plugin into your Redmine plugins directory.
 
@@ -157,7 +157,7 @@ Use a **tagged release** for stability.
 
 ---
 
-## 2\. Install Dependencies
+## 2. Install Dependencies
 
 ```bash
 bundle install
@@ -167,7 +167,7 @@ Required for **Redmine 6 / Rails 7 compatibility**.
 
 ---
 
-## 3\. Run Database Migrations
+## 3. Run Database Migrations
 
 ```bash
 bundle exec rake redmine:plugins:migrate RAILS_ENV=production
@@ -175,7 +175,7 @@ bundle exec rake redmine:plugins:migrate RAILS_ENV=production
 
 ---
 
-## 4\. Restart Redmine
+## 4. Restart Redmine
 
 Restart your Redmine server so the plugin and hooks are loaded.
 
