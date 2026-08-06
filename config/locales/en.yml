@@ -51,6 +51,7 @@ en:
   label_error: "Error"
   label_estimate_404: "Estimate not found"
   label_estimate_count: "Estimate Count"
+  label_estimate: "Estimate"
   label_estimates: "Estimates"
   label_hours: "Hours"
   label_invoice_404: "Invoice not found"
