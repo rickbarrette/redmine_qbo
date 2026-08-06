@@ -37,6 +37,7 @@ en:
   label_create_payment: "Create Payment"
   label_customer_count: "Customer Count"
   label_customer_link_expires: "This customer link expires in"
+  label_customer: "Customer"
   label_customers: "Customers"
   label_delete: "Delete"
   label_deposit_into: "Deposit to Account"
