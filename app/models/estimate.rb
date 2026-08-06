@@ -16,6 +16,10 @@ class Estimate < QboBaseModel
   self.primary_key = :id
   qbo_sync push: false
 
+  def name
+    to_s
+  end
+
   # returns a human readable string
   def to_s
     return self[:doc_number]
