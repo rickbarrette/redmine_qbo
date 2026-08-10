@@ -14,9 +14,9 @@ module RedmineQbo
       extend ActiveSupport::Concern
 
       prepended do
-        belongs_to :customer, class_name: 'Customer', foreign_key: :customer_id, optional: true
-        belongs_to :customer_token, primary_key: :id, optional: true
-        belongs_to :estimate, primary_key: :id, optional: true
+        belongs_to :customer
+        belongs_to :customer_token
+        belongs_to :estimate
         has_and_belongs_to_many :invoices
 
         before_save :titlize_subject
