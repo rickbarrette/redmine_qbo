@@ -10,7 +10,7 @@
 
 class Estimate < QboBaseModel
 
-  has_and_belongs_to_many :issues
+  has_many :issues
   belongs_to :customer 
   validates_presence_of :doc_number, :id
   self.primary_key = :id
