@@ -20,6 +20,9 @@ class Customer < QboBaseModel
   before_validation :normalize_phone_numbers
   self.primary_key = :id
   qbo_sync push: true
+
+  # Normalize the local database column :name
+  normalizes :name, with: ->(name) { name.to_s.strip.titleize }
   
   acts_as_searchable columns: %w[name phone_number mobile_phone_number ],
                      scope: ->(_context) { left_joins(:project) },
@@ -61,8 +64,9 @@ class Customer < QboBaseModel
 
   # Updates Both local DB name & QBO display_name
   def name=(s)
-    details.display_name = s
-    super
+    super(s)
+    # Write the normalized value from Active Record to QBO details
+    details.display_name = self.name
   end
 
   # Normalizes phone numbers by removing non-digit characters. This method is called before validation to ensure that phone numbers are stored in a consistent format, which can help with searching and integration with external systems like QuickBooks Online.
