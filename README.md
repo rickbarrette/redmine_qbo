@@ -108,6 +108,8 @@ Available hooks:
 
 |Type|Hook|Note
 |--|--|--|
+View Hook|:customer_actions_top, { customer: @customer }| Used to add action links to customer view
+View Hook|:customer_actions_bottom, { customer: @customer} | Used to add action links to customer view
 View Hook|:pdf_left, { issue: issue }  | Used to add text to left side of PDF
 View Hook|:pdf_right, { issue: issue }  | Used to add text to right side of PDF
 View Hook|:show_customer_view_right, { customer: customer } | Used to show partials on right side of customer view

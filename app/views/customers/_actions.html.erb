@@ -1,7 +1,4 @@
-<%= link_to t(:label_appointment), "https://calendar.google.com/calendar/render?action=TEMPLATE&text=#{@customer.name}+-&details=#{ link_to t(:customer_details), "https://#{Setting.host_name}#{customer_path @customer.id}"}%0A#{@customer.primary_phone}%3Cbr/%3E+&dates=#{Time.now.strftime("%Y%m%d")}T090000/#{Time.now.strftime("%Y%m%d")}T170000", target: :_blank, id: :appointment_link %>
-
-<br/>
-<br/>
+<%= call_hook :customer_actions_top, { customer: @customer } %>
 
 <%= link_to t(:label_create_estimate), "https://qbo.intuit.com/app/estimate?nameId=#{@customer.id}", target: :_blank %>
 
@@ -12,5 +9,7 @@
 
 <br/>
 <br/>
+
+<%= call_hook :customer_actions_bottom, { customer: @customer } %>
 
 <%= button_to t(:label_edit_customer), edit_customer_path(@customer), method: :get%> 
