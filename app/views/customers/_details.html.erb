@@ -2,57 +2,53 @@
   <tbody>
 
     <tr>
-      <th><%=t(:label_name)%></th>
+      <th><%= t(:label_name) %></th>
       <td><%= customer.name %></td>
     </tr>
 
     <tr>
-      <th><%=t(:label_email)%></th>
+      <th><%= t(:label_email) %></th>
       <td><%= customer.email %></td>
     </tr>
     
     <tr>
-      <th><%=t(:label_primary_phone)%></th>
+      <th><%= t(:label_primary_phone) %></th>
       <td><%= number_to_phone(customer&.primary_phone&.gsub(/[^\d]/, '').to_i, area_code: true) %></td>
     </tr>
     
     <tr>
-      <th><%=t(:label_mobile_phone)%></th>
+      <th><%= t(:label_mobile_phone) %></th>
       <td><%= number_to_phone(customer&.mobile_phone&.gsub(/[^\d]/, '').to_i, area_code: true) %></td>
     </tr>
     
-     <tr>
-        <th><%=t(:label_billing_address)%></th>
-        <td><pre><%= @billing_address %></pre></td>
-    </tr>
-    
-     <tr>
-        <th><%=t(:label_shipping_address)%></th>
-        <td><pre><%= @shipping_address %></pre></td>
+    <tr>
+      <th><%= t(:label_billing_address) %></th>
+      <td><pre><%= @billing_address %></pre></td>
     </tr>
     
     <tr>
-        <th><%=t(:label_account_balance)%></th>
-        <td>$<%= customer.balance %></td>
+      <th><%= t(:label_shipping_address) %></th>
+      <td><pre><%= @shipping_address %></pre></td>
     </tr>
     
     <tr>
-      <th colspan="2"><h4><%=t(:field_notes)%></hr></th>
+      <th><%= t(:label_account_balance) %></th>
+      <td>$<%= customer.balance %></td>
     </tr>
+    
+    <% if customer.notes.present? %>
+      <tr>
+        <th colspan="2"><h4><%= t(:field_notes) %></h4></th>
+      </tr>
 
-    <tr>
-      <td colspan="2">
-       <pre id="note-display" style="text-align: left; white-space: pre-wrap; font-family: inherit;">
-          <%= customer.notes %>
-        </pre>
-      </td>
-    </tr>
-
-    <script>
-        const preElement = document.getElementById('note-display');
-        // This takes the text, trims the edges, and puts it back
-        preElement.textContent = preElement.textContent.trim();
-      </script>
+      <tr>
+        <td colspan="2">
+          <div class="wiki">
+            <%= textilizable(customer, :notes) %>
+          </div>
+        </td>
+      </tr>
+    <% end %>
 
   </tbody>
 </table> 

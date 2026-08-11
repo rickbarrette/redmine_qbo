@@ -32,20 +32,17 @@
           </div>
         </div>
         
-        <div class="clearfix">
+       <div class="clearfix">
           <%=t(:field_notes)%>: 
           <div class="input">
-            <p>  
-              <%= content_tag :span, id: "issue_description_and_toolbar" do %>
-              <%= f.text_area :notes,
-                    cols: 60,
-                    rows: 10,
-                    accesskey: accesskey(:edit),
-                    class: 'wiki-edit',
-                    no_label: true %>
-              <% end %>
-            </p>
-            <%= wikitoolbar_for :issue_description %>
+             <p>
+                <%= f.text_area :notes,
+                                rows: 8,
+                                class: 'wiki-edit',
+                                style: 'width: 95%;',
+                                id: 'customer_appointment_description' %>
+                <%= wikitoolbar_for 'customer_appointment_description' %>
+              </p>
           </div>
         </div>
         
