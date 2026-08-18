@@ -1,7 +1,7 @@
 <%= call_hook :customer_actions_top, { customer: @customer } %>
 
 <p>
-    <%= link_to t(:label_new_issue), new_issue_path(issue: { customer_id: @customer.id }), target: :_blank %>
+    <%= link_to t(:label_new_issue), new_issue_path(issue: { customer_id: @customer.id }), id: "dynamic-new-issue-link", target: :_blank %>
 </p>
 
 <p>
@@ -15,3 +15,59 @@
 <%= call_hook :customer_actions_bottom, { customer: @customer } %>
 
 <%= button_to t(:label_edit_customer), edit_customer_path(@customer), method: :get%> 
+
+<script>
+  function handleSingleSelect(event, className) {
+    if (event.target.checked) {
+      // Uncheck all other checkboxes of the same type
+      document.querySelectorAll('.' + className).forEach(cb => {
+        if (cb !== event.target) {
+          cb.checked = false;
+        }
+      });
+    }
+    updateLink();
+  }
+
+  // Bind single-select behavior to checkboxes once the DOM is loaded
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.estimate-checkbox').forEach(cb => {
+      cb.addEventListener('change', (e) => handleSingleSelect(e, 'estimate-checkbox'));
+    });
+    document.querySelectorAll('.vehicle-checkbox').forEach(cb => {
+      cb.addEventListener('change', (e) => handleSingleSelect(e, 'vehicle-checkbox'));
+    });
+  });
+
+  function updateLink() {
+    const link = document.getElementById('dynamic-new-issue-link');
+    if (!link) return;
+
+    // Cache the pristine base URL on first run
+    if (!link.dataset.baseUrl) {
+      link.dataset.baseUrl = link.getAttribute('href');
+    }
+
+    // Build base URL object
+    let url = new URL(link.dataset.baseUrl, window.location.origin);
+
+    // 1. Handle Single Estimate
+    const checkedEstimate = document.querySelector('.estimate-checkbox:checked');
+    if (checkedEstimate) {
+      url.searchParams.set('issue[estimate_id]', checkedEstimate.value);
+    } else {
+      url.searchParams.delete('issue[estimate_id]');
+    }
+
+    // 2. Handle Single Vehicle
+    const checkedVehicle = document.querySelector('.vehicle-checkbox:checked');
+    if (checkedVehicle) {
+      url.searchParams.set('issue[vehicle_id]', checkedVehicle.value);
+    } else {
+      url.searchParams.delete('issue[vehicle_id]');
+    }
+
+    // Update the link's href attribute
+    link.setAttribute('href', url.toString());
+  }
+</script>
