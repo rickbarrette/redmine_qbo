@@ -65,6 +65,7 @@ en:
   label_model: "Model"
   label_name: "Name"
   label_new_customer: "New Customer"
+  label_new_issue: "New Issue"
   label_qbo_never_synced: "Never Synced"
   label_no_customers: "There are no customers matching the search term(s)."
   label_no_estimates: "No Estimates"
