@@ -11,27 +11,51 @@
 module RedmineQbo
   module Patches
     module AttachmentsControllerPatch
-      module Helper
-        # Check if login is globally required to access the application
-        def check_if_login_required
-          # Return true if the user is already logged in
-          return true if User.current.logged?
-
-          # Pull up the attachment and verify if we have a valid token for the issue
-          attachment = Attachment.find_by(id: params[:id])
-          return require_login if attachment.nil?
-
-          token = CustomerToken.where("token = ? AND expires_at > ?", session[:token], Time.current).first
-          return true if token&.issue_id == attachment.container_id
-
-          # Default to requiring login if all else fails
-          require_login if Setting.login_required?
-        end
-      end
-
       def self.apply
         AttachmentsController.class_eval do
-          helper Helper
+          # 1. PREPEND: Must run before ANY of Redmine's ApplicationController filters
+          prepend_before_action :set_customer_token_thread
+
+          # 2. Skip global login redirects if the user holds a valid token for this file
+          skip_before_action :check_if_login_required, if: :valid_customer_token?
+          skip_before_action :check_project_privacy, raise: false, if: :valid_customer_token?
+
+          # Note: We do NOT need to skip :read_authorize anymore. 
+          # Because we patched Attachment#visible?, read_authorize will pass naturally!
+
+          private
+
+          def set_customer_token_thread
+            if session[:token].present?
+              Thread.current[:customer_token] = CustomerToken.active.find_by(token: session[:token])
+            end
+          end
+
+          def valid_customer_token?
+            token = Thread.current[:customer_token]
+            return false unless token
+
+            # Handle "Download All" zip requests (object_type=issues, object_id=ID)
+            if params[:action] == 'download_all'
+              return params[:object_type] == 'issues' && params[:object_id].to_i == token.issue_id
+            end
+
+            # Handle normal single attachment requests (show, download, thumbnail)
+            attachment = Attachment.find_by(id: params[:id])
+            return false unless attachment
+
+            # Allow if attachment belongs directly to the Issue
+            if attachment.container_type == 'Issue' && attachment.container_id == token.issue_id
+              return true
+            end
+            
+            # Allow if attachment belongs to a Journal (comment) on the Issue
+            if attachment.container_type == 'Journal' && attachment.container.journalized_type == 'Issue' && attachment.container.journalized_id == token.issue_id
+              return true
+            end
+            
+            false
+          end
         end
       end
     end
