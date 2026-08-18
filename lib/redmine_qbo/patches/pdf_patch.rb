@@ -176,6 +176,10 @@ module RedmineQbo
                             edit_section_links: false,
                             headings: false,
                             inline_attachments: false)
+                            
+        # Apply the fix here
+        text = sanitize_html_for_pdf(text)
+
         pdf.RDMwriteFormattedCell(190, 5, '', '', text, issue.attachments, "LRB")
       end
 
@@ -275,6 +279,10 @@ module RedmineQbo
             pdf.ln unless journal.details.empty?
             pdf.SetFontStyle('', 8)
             text = textilizable(journal, :notes, only_path: false, edit_section_links: false, headings: false, inline_attachments: false)
+            
+            # Apply the fix here
+            text = sanitize_html_for_pdf(text)
+            
             pdf.RDMwriteFormattedCell(190, 5, '', '', text, issue.attachments, "")
           end
           pdf.ln
@@ -307,6 +315,40 @@ module RedmineQbo
         else
           pdf.output
         end
+      end
+
+      private
+
+      # NEW HELPER: Aggressively cleans up HTML so RBPDF doesn't crash on tables
+      def sanitize_html_for_pdf(text)
+        clean_text = text.to_s.dup
+        
+        # 1. RBPDF layout engine hates div wrappers. Strip all opening and closing divs.
+        clean_text.gsub!(/<\/?div[^>]*>/i, '')
+        
+        # 2. Rebuild tables into a completely flat, pure HTML structure that TCPDF supports
+        clean_text.gsub!(/<table[^>]*>.*?<\/table>/mi) do |match|
+          table_html = match.dup
+          
+          # Strip thead and tbody tags completely
+          table_html.gsub!(/<\/?thead[^>]*>/i, '')
+          table_html.gsub!(/<\/?tbody[^>]*>/i, '')
+          
+          # TCPDF cell width calculations crash on <th> tags. Convert them to <td> + bold.
+          table_html.gsub!(/<th([^>]*)>/i, '<td\1><strong>')
+          table_html.gsub!(/<\/th>/i, '</strong></td>')
+          
+          # Remove all newlines and spaces between tags to prevent stray text nodes crashing the parser
+          table_html.gsub!(/>\s+</m, '><')
+          table_html.gsub!(/\r?\n/, '')
+          
+          # Inject a standardized <table> tag with borders so the table actually renders visibly
+          table_html.sub!(/<table[^>]*>/i, '<table border="1" cellpadding="4" style="border-collapse: collapse;">')
+          
+          table_html
+        end
+        
+        clean_text
       end
 
     end
