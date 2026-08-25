@@ -61,12 +61,43 @@ class CustomersController < ApplicationController
 
   # Used for autocomplete form
   def autocomplete
-    term = ActiveRecord::Base.sanitize_sql_like(params[:q].to_s)
+    # Support both existing 'q' param and new 'name'/'phone' params
+    name_query = (params[:name] || params[:q] || params[:term]).to_s.strip
+    phone_query = params[:phone].to_s.gsub(/\D/, '')
 
-    items = Customer.where("name LIKE :t OR phone_number LIKE :t OR mobile_phone_number LIKE :t", t: "%#{term}%")
-      .order(:name)
-      .limit(20)
+    sql_matches = []
 
+    # 1. Check for phone number matches via SQL
+    if phone_query.present?
+      sql_matches += Customer.where("phone_number LIKE :p OR mobile_phone_number LIKE :p", p: "%#{phone_query}%")
+    end
+
+    # 2. Check for exact or partial name matches via SQL
+    if name_query.present?
+      safe_name = ActiveRecord::Base.sanitize_sql_like(name_query)
+      sql_matches += Customer.where("name LIKE :t", t: "%#{safe_name}%")
+    end
+
+    sql_matches = sql_matches.uniq
+
+    # 3. Handle spelling errors using built-in string distance
+    fuzzy_matches = []
+    if name_query.present?
+      require 'did_you_mean/jaro_winkler'
+      
+      # Only scan records we haven't already matched
+      unmatched = Customer.all - sql_matches
+      
+      fuzzy_matches = unmatched.select do |c|
+        # 0.6 is the threshold. 1.0 is an exact match.
+        DidYouMean::JaroWinkler.distance(c.name.to_s.downcase, name_query.downcase) > 0.6
+      end
+    end
+
+    # Combine results and limit to top 20
+    items = (sql_matches + fuzzy_matches).first(20)
+
+    # Return JSON formatted for both existing usage and new jQuery UI requirements
     render json: items.map { |i|
       { id: i.id, name: i.name, phone_number: i.phone_number, mobile_phone_number: i.mobile_phone_number }
     }
