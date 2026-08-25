@@ -8,7 +8,6 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-# This controller class will handle map management
 class CustomersController < ApplicationController
 
   include AuthHelper
@@ -26,8 +25,8 @@ class CustomersController < ApplicationController
   include SortHelper
   helper :timelog
 
-  before_action :add_customer, only: :new
-  before_action :view_customer, except: [:new, :view]
+  before_action :add_customer, only: [:new, :create]
+  before_action :view_customer, except: [:new, :create, :view]
   skip_before_action :verify_authenticity_token, :check_if_login_required, only: [:view]
 
   def address_to_s(address)
@@ -75,14 +74,28 @@ class CustomersController < ApplicationController
 
   def create
     @customer = Customer.new(allowed_params)
-    @customer.save
-    log "Customer ##{@customer.id} created successfully."
-    flash[:notice] = t :notice_customer_created
-    redirect_to @customer
+
+    respond_to do |format|
+      if @customer.save
+        log "Customer ##{@customer.id} created successfully."
+        format.html { redirect_to @customer, notice: l(:notice_successful_create) }
+        format.json { render json: { id: @customer.id, name: @customer.name }, status: :created }
+      else
+        format.html { render :new }
+        format.json { render json: { errors: @customer.errors.full_messages }, status: :unprocessable_entity }
+      end
+    end
   rescue => e
     log "Failed to create customer: #{e.message}"
-    flash[:error] = e.message
-    redirect_to new_customer_path
+    respond_to do |format|
+      format.html {
+        flash[:error] = e.message
+        redirect_to new_customer_path
+      }
+      format.json {
+        render json: { errors: [e.message] }, status: :internal_server_error
+      }
+    end
   end
 
   def edit
@@ -136,6 +149,10 @@ class CustomersController < ApplicationController
 
   def new
     @customer = Customer.new
+    
+    if request.xhr?
+      render partial: 'form', layout: false, locals: { hide_submit: true, hide_toolbar: true }
+    end
   end
 
   def only_one_non_zero?(array)

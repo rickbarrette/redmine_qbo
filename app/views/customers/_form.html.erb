@@ -32,23 +32,27 @@
           </div>
         </div>
         
-       <div class="clearfix">
-          <%=t(:field_notes)%>: 
+        <div class="clearfix">
+          <%= t(:field_notes) %>: 
           <div class="input">
-             <p>
-                <%= f.text_area :notes,
-                                rows: 8,
-                                class: 'wiki-edit',
-                                style: 'width: 95%;',
-                                id: 'customer_appointment_description' %>
-                <%= wikitoolbar_for 'customer_appointment_description' %>
-              </p>
+            <p>
+              <%= f.text_area :notes,
+                              rows: 8,
+                              class: 'wiki-edit',
+                              style: 'width: 95%;',
+                              id: 'customer_notes' %>
+              <% unless local_assigns[:hide_toolbar] %>
+                <%= wikitoolbar_for 'customer_notes' %>
+              <% end %>
+            </p>
           </div>
         </div>
         
-       <div class="actions">
-        <%= f.submit %>
-       </div>
+       <% unless local_assigns[:hide_submit] %>
+          <div class="actions">
+            <%= f.submit %>
+          </div>
+        <% end %>
       <% end %>
 
     </fieldset>
