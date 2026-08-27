@@ -29,6 +29,15 @@ module RedmineQbo
     RedmineQbo::Hooks::IssuesHookListener
     RedmineQbo::Hooks::UsersShowHookListener
     RedmineQbo::Hooks::ViewHookListener
+
+    # If the SubtaskFieldCopier plugin is installed, register our fields
+    if defined?(SubtaskFieldCopier)
+      SubtaskFieldCopier.registered_fields << :customer
+      SubtaskFieldCopier.registered_fields << :estimate
+      
+      # Ensure there are no duplicates in case of hot-reloads in development mode
+      SubtaskFieldCopier.registered_fields.uniq!
+    end
   end
 
   def self.settings
