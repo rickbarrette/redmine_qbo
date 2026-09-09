@@ -30,12 +30,13 @@ Redmine::Plugin.register :redmine_qbo do
   # set per_page globally
   WillPaginate.per_page = 20
 
-  # Permissions for security
-  permission :view_customers, customers: :index, public: false
-  permission :add_customers, customers: :new, public: false
+  # Global Permissions
+  permission :view_customers, { customers: [:index, :show] }, global: true
+  permission :add_customers, { customers: [:new, :create] }, global: true
+  permission :edit_customers, { customers: [:edit, :update] }, global: true
   
   # Register top menu items
-  menu :top_menu, :customers, { controller: :customers, action: :index }, caption: :label_customers, if: Proc.new {User.current.logged?}
+  menu :top_menu, :customers, { controller: :customers, action: :index }, caption: :label_customers, if: Proc.new {User.current.allowed_to?(:view_customers, nil, global: true)}
     
   Redmine::Search.map do |search|
     search.register :customers

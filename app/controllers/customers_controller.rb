@@ -25,6 +25,8 @@ class CustomersController < ApplicationController
   include SortHelper
   helper :timelog
 
+  # This tells Redmine to check global permissions for the current controller/action
+  before_action :authorize_global
   before_action :add_customer, only: [:new, :create]
   before_action :view_customer, except: [:new, :create, :view]
   skip_before_action :verify_authenticity_token, :check_if_login_required, only: [:view]

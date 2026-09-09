@@ -1,6 +1,9 @@
 <% if User.current.logged? %>
 
-    <%= render partial: 'customers/sidebar' %>
+    <% if User.current.allowed_to?(:view_customers, nil, global: true) %>
+        <%= render partial: 'customers/sidebar' %>
+    <% end %>
+
     <%= render partial: 'estimates/sidebar' %>
 
 <% end %>

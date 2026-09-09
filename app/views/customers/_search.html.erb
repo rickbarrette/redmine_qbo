@@ -2,5 +2,7 @@
     <%= text_field_tag :search, params[:search], class: "customer-name", placeholder: t(:label_search_customers), autocomplete: "off", data: { autocomplete_url: "/customers/autocomplete" } %>
     <%= submit_tag t(:label_search) %>
 <% end %>
-<%= button_to t(:label_new_customer), new_customer_path, method: :get%>
+<% if User.current.allowed_to?(:add_customers, nil, global: true) %>
+    <%= button_to t(:label_new_customer), new_customer_path, method: :get%>
+<% end %>
 <%= button_to(t(:label_sync), qbo_sync_path, method: :get) if User.current.admin?%>
