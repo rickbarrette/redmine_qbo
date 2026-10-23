@@ -1,60 +1,44 @@
-<div class="row">
-  <div class="span6 columns">
-    <fieldset>
+<%= form_for @customer do |f| %>
+  <%= error_messages_for 'customer' %>
 
-      <%= form_for @customer do |f| %> 
-       
-        <div class="clearfix">
-          <%=t(:label_display_name)%> 
-          <div class="input">
-            <%= f.text_field :name, required: true, class: "customer-name", autocomplete: "off", data: { autocomplete_url: "/customers/autocomplete" } %>
-          </div>
-        </div>
-        
-        <div class="clearfix">
-          <%=t(:label_primary_phone)%>
-          <div class="input">
-            <%= f.telephone_field :primary_phone, autocomplete: "off" %>
-          </div>
-        </div>
-        
-       <div class="clearfix">
-          <%=t(:label_mobile_phone)%>:
-          <div class="input">
-            <%= f.telephone_field :mobile_phone, autocomplete: "off" %>
-          </div>
-        </div>
-        
-        <div class="clearfix">
-          <%=t(:label_email)%>:
-          <div class="input">
-            <%= f.email_field :email, autocomplete: "off" %>
-          </div>
-        </div>
-        
-        <div class="clearfix">
-          <%= t(:field_notes) %>: 
-          <div class="input">
-            <p>
-              <%= f.text_area :notes,
-                              rows: 8,
-                              class: 'wiki-edit',
-                              style: 'width: 95%;',
-                              id: 'customer_notes' %>
-              <% unless local_assigns[:hide_toolbar] %>
-                <%= wikitoolbar_for 'customer_notes' %>
-              <% end %>
-            </p>
-          </div>
-        </div>
-        
-       <% unless local_assigns[:hide_submit] %>
-          <div class="actions">
-            <%= f.submit %>
-          </div>
+  <div class="box tabular">
+
+      <p>
+        <%= f.label :name, t(:label_display_name) %>
+        <%= f.text_field :name, required: true, class: "customer-name", autocomplete: "off", data: { autocomplete_url: "/customers/autocomplete" } %>
+      </p>
+
+      <p>
+        <%= f.label :primary_phone, t(:label_primary_phone) %>
+        <%= f.telephone_field :primary_phone, autocomplete: "off" %>
+      </p>
+
+      <p>
+        <%= f.label :mobile_phone, t(:label_mobile_phone) %>
+        <%= f.telephone_field :mobile_phone, autocomplete: "off" %>
+      </p>
+
+      <p>
+        <%= f.label :email, t(:label_email) %>
+        <%= f.email_field :email, autocomplete: "off" %>
+      </p>
+
+      <p>
+        <%= f.label :notes, t(:field_notes) %>
+        <%= f.text_area :notes,
+                        rows: 8,
+                        class: 'wiki-edit',
+                        style: 'width: 99%;',
+                        id: 'customer_notes' %>
+        <% unless local_assigns[:hide_toolbar] %>
+          <%= wikitoolbar_for 'customer_notes' %>
         <% end %>
-      <% end %>
-
-    </fieldset>
+      </p>
   </div>
-</div>
+
+  <% unless local_assigns[:hide_submit] %>
+    <p class="buttons">
+      <%= submit_tag t(:button_save) %>
+    </p>
+  <% end %>
+<% end %>
