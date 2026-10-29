@@ -8,84 +8,37 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+require 'csv'
 require 'did_you_mean'
+require 'text'
 
 # Finds customers by name and/or phone, tolerant of the ways duplicates sneak in:
-# - nicknames:   "Bill Smith" finds "William Smith", "Bob" finds "Robert"
-# - typos:       "Willaim Smtih" finds "William Smith"
-# - word order:  "Smith William" or "Smith, William" finds "William Smith"
-# - partial:     "will smi" finds "William Smith" while typing
-# - phone:       any 4+ digits, in any format, matched against both phone numbers
+# - nicknames:    "Bill Smith" finds "William Smith", "Bob" finds "Robert" (about 2,800 pairs, see data/nicknames)
+# - sound-alikes: "Jon" finds "John", "Smyth" finds "Smith", "Cathy" finds "Kathy" (Double Metaphone)
+# - typos:        "Willaim Smtih" finds "William Smith"
+# - word order:   "Smith, William" finds "William Smith"
+# - partial:      "will smi" finds "William Smith" while typing
+# - phone:        any 4+ digits, in any format, matched against both phone numbers
 #
-# Results are ranked best match first. Only id, name and phone numbers are loaded (and cached until
-# a customer changes), so searching stays fast as the customer list grows.
+# Results are ranked best match first. Only id, name and phone numbers are loaded, and the prepared
+# search data is cached until a customer changes, so searching stays fast as the customer list grows.
 class CustomerSearchService
   DEFAULT_LIMIT = 20
 
   # Lowest score (0..1) a customer needs to be returned
   MIN_SCORE = 0.72
 
-  # Groups of interchangeable first names. A name may appear in more than one group (e.g. "chris").
-  NICKNAME_GROUPS = [
-    %w[william bill billy will willy willie liam],
-    %w[robert bob bobby rob robbie bert],
-    %w[richard rick ricky rich richie dick],
-    %w[james jim jimmy jamie],
-    %w[john jack johnny jon],
-    %w[jonathan jon jonny],
-    %w[michael mike mikey mick],
-    %w[thomas tom tommy],
-    %w[joseph joe joey],
-    %w[charles charlie chuck chas],
-    %w[edward ed eddie ted ned],
-    %w[anthony tony],
-    %w[christopher chris kit],
-    %w[christine christina chris tina],
-    %w[daniel dan danny],
-    %w[david dave davey],
-    %w[matthew matt],
-    %w[andrew andy drew],
-    %w[steven stephen steve stevie],
-    %w[benjamin ben benny],
-    %w[samuel sam sammy],
-    %w[samantha sam],
-    %w[alexander alex al xander],
-    %w[alexandra alex lexi],
-    %w[albert al bert],
-    %w[nicholas nick nicky],
-    %w[patrick pat],
-    %w[patricia pat patty trish],
-    %w[peter pete],
-    %w[timothy tim timmy],
-    %w[kenneth ken kenny],
-    %w[ronald ron ronnie],
-    %w[donald don donnie],
-    %w[gregory greg],
-    %w[jeffrey jeff],
-    %w[gerald jerry gerry],
-    %w[lawrence larry],
-    %w[raymond ray],
-    %w[frederick fred freddie],
-    %w[theodore ted teddy theo],
-    %w[douglas doug],
-    %w[joshua josh],
-    %w[zachary zach zack],
-    %w[nathaniel nathan nate],
-    %w[elizabeth liz lizzie beth betty eliza],
-    %w[margaret maggie meg peggy],
-    %w[katherine catherine kathryn kate katie kathy cathy kat],
-    %w[jennifer jen jenny],
-    %w[rebecca becky becca],
-    %w[susan sue susie],
-    %w[deborah debra deb debbie],
-    %w[victoria vicky tori],
-    %w[jessica jess jessie]
-  ].freeze
+  # Bundled nickname data (Apache 2.0, see data/nicknames/README.md)
+  NICKNAMES_CSV = File.expand_path('../../data/nicknames/names.csv', __dir__)
 
-  # name => indexes of the groups it belongs to
-  NICKNAME_INDEX = NICKNAME_GROUPS.each_with_index.with_object(Hash.new { |h, k| h[k] = [] }) do |(group, index), map|
-    group.each { |name| map[name] << index }
-  end.freeze
+  # Groups missing from the bundled data. Add more here: every name in a group matches every other.
+  EXTRA_NICKNAME_GROUPS = [
+    %w[william liam],
+    %w[alexander xander],
+    %w[alexandra lexi],
+    %w[theodore theo],
+    %w[christopher kit]
+  ].freeze
 
   # Words that don't help tell customers apart
   STOP_WORDS = %w[and the llc inc co corp company].freeze
@@ -98,17 +51,32 @@ class CustomerSearchService
     Customer.where(id: ids).in_order_of(:id, ids)
   end
 
-  # [[id, name, phone_number, mobile_phone_number], ...], cached until any customer changes
+  # Prepared search rows for every customer, cached until any customer changes. Kept in this process's
+  # memory as well, so each keystroke doesn't reload it from the Rails cache.
   def self.candidates
-    key = ['customer_search_candidates', Customer.count, Customer.maximum(:updated_at).to_i]
-    Rails.cache.fetch(key, expires_in: 12.hours) do
-      Customer.pluck(:id, :name, :phone_number, :mobile_phone_number)
+    key = ['customer_search_candidates', 2, Customer.count, Customer.maximum(:updated_at).to_i]
+    cached_key, cached_rows = @candidates
+    return cached_rows if cached_key == key
+
+    rows = Rails.cache.fetch(key, expires_in: 12.hours) do
+      prepare(Customer.pluck(:id, :name, :phone_number, :mobile_phone_number))
+    end
+    @candidates = [key, rows]
+    rows
+  end
+
+  # [[id, name, phone, mobile], ...] -> [[id, name, phone_digits, tokens, sound_codes], ...]
+  def self.prepare(rows)
+    rows.map do |id, name, phone_number, mobile_number|
+      words = tokens(name)
+      phones = [phone_number, mobile_number].compact.map { |n| n.to_s.gsub(/\D/, '') }.reject(&:empty?)
+      [id, name.to_s, phones, words, words.map { |w| sound_codes(w) }]
     end
   end
 
-  # Pure ranking (no database), so it can be tested on its own.
+  # Pure ranking over prepared rows (no database), so it can be tested on its own.
   # Returns [[id, score], ...] best first. A query of mostly digits is also treated as a phone number.
-  def self.rank(rows, name: nil, phone: nil, limit: DEFAULT_LIMIT)
+  def self.rank(prepared, name: nil, phone: nil, limit: DEFAULT_LIMIT)
     name = name.to_s.strip
     phone_digits = phone.to_s.gsub(/\D/, '')
 
@@ -119,15 +87,18 @@ class CustomerSearchService
       name = ''
     end
 
-    query_tokens = tokens(name)
-    return [] if query_tokens.empty? && phone_digits.length < 4
+    query_words = tokens(name)
+    return [] if query_words.empty? && phone_digits.length < 4
 
-    scored = rows.filter_map do |id, customer_name, phone_number, mobile_number|
+    query = query_words.map { |w| [w, sound_codes(w)] }
+    memo = {} # word-pair scores for this search; customer names repeat words a lot ("smith", "john")
+
+    scored = prepared.filter_map do |id, customer_name, phones, words, codes|
       score = [
-        phone_digits.length >= 4 ? phone_score(phone_digits, [phone_number, mobile_number]) : 0.0,
-        query_tokens.any? ? name_score(query_tokens, customer_name) : 0.0
+        phone_digits.length >= 4 ? phone_score(phone_digits, phones) : 0.0,
+        query.any? ? name_score(query, words, codes, memo) : 0.0
       ].max
-      [id, score, customer_name.to_s] if score >= MIN_SCORE
+      [id, score, customer_name] if score >= MIN_SCORE
     end
 
     scored.sort_by { |id, score, customer_name| [-score, customer_name.downcase, id] }
@@ -144,8 +115,15 @@ class CustomerSearchService
     meaningful.empty? ? words : meaningful
   end
 
-  def self.phone_score(digits, numbers)
-    numbers.compact.map { |n| n.to_s.gsub(/\D/, '') }.reject(&:empty?).map do |number|
+  # Double Metaphone codes (primary and alternate) for a word; empty for very short or numeric words
+  def self.sound_codes(word)
+    return [] if word.length < 3 || word.match?(/\d/)
+
+    Text::Metaphone.double_metaphone(word).compact.reject(&:empty?).uniq
+  end
+
+  def self.phone_score(digits, phones)
+    phones.map do |number|
       if number == digits || number.end_with?(digits) && digits.length >= 7 then 1.0
       elsif number.include?(digits) then 0.9
       else 0.0
@@ -155,41 +133,101 @@ class CustomerSearchService
 
   # Each query word is matched to its best word in the customer's name; the score is the average.
   # A query word with no match at all halves the score, so "bill jones" won't match "william smith".
-  def self.name_score(query_tokens, customer_name)
-    name_tokens = tokens(customer_name)
-    return 0.0 if name_tokens.empty?
+  def self.name_score(query, words, codes, memo = {})
+    return 0.0 if words.empty?
 
-    best = query_tokens.map { |q| name_tokens.map { |c| token_score(q, c) }.max }
+    best = query.map do |q_word, q_codes|
+      scores = (memo[q_word] ||= {})
+      words.each_with_index.map do |c_word, i|
+        scores.fetch(c_word) { scores[c_word] = word_score(q_word, q_codes, c_word, codes[i]) }
+      end.max
+    end
     score = best.sum / best.size
     score *= 0.5 if best.any?(&:zero?)
 
-    # Also compare the names with spaces removed, for "Mc Donald" vs "McDonald"
-    joined = DidYouMean::JaroWinkler.distance(query_tokens.join, name_tokens.join)
+    return score if score >= 0.9 # already a strong match; skip the whole-name comparison
+
+    # Also compare the names with spaces removed, for "Mc Donald" vs "McDonald". Only worth it when the
+    # strings could reach the 0.92 bar at all: same first letter and nearly the same length.
+    query_joined = query.map(&:first).join
+    name_joined = words.join
+    return score unless query_joined[0] == name_joined[0] && (query_joined.length - name_joined.length).abs <= 2
+
+    joined = DidYouMean::JaroWinkler.distance(query_joined, name_joined)
     [score, joined >= 0.92 ? joined * 0.9 : 0.0].max
   end
 
-  def self.token_score(query, candidate)
+  def self.word_score(query, query_codes, candidate, candidate_codes)
     return 1.0 if query == candidate
     return 0.95 if nicknames?(query, candidate)
     return 0.9 if query.length >= 2 && candidate.start_with?(query)          # still typing: "wil" -> "william"
     return 0.85 if query.length >= 2 && nickname_prefix?(query, candidate)  # "bil" -> "william" via "bill"
+
+    similarity = DidYouMean::JaroWinkler.distance(query, candidate)
+
+    # Sounds the same ("jon"/"john", "smyth"/"smith"). The similarity check keeps unrelated words that
+    # happen to share a code (e.g. "john" and "ann" via the Spanish-J alternate) from matching.
+    return 0.88 if similarity >= 0.7 && (query_codes & candidate_codes).any?
+
     return 0.8 if query.length >= 4 && candidate.include?(query)            # "donald" in "mcdonald"
     return 0.7 if query.length == 1 && candidate.start_with?(query)         # an initial
 
     # Typos. Short words need to be closer to count.
-    similarity = DidYouMean::JaroWinkler.distance(query, candidate)
     threshold = [query.length, candidate.length].min <= 4 ? 0.9 : 0.85
     similarity >= threshold ? similarity * 0.9 : 0.0
   end
 
+  # Nickname matching treats the data as connections between names (the file lists both directions,
+  # e.g. "william -> bill" and "bill -> william"). Two names match if they are connected directly, or both
+  # connect to a LONGER name they're short for: "bill" and "will" via "william". Requiring the shared
+  # name to be longer stops unrelated full names linking through a short one: "bill" is listed for both
+  # William and Robert, but that doesn't make William match Robert.
   def self.nicknames?(a, b)
-    (NICKNAME_INDEX.fetch(a, []) & NICKNAME_INDEX.fetch(b, [])).any?
+    related_names(a).include?(b)
   end
 
-  # A partly typed nickname of the candidate's name, e.g. "bil" for "william"
+  # A partly typed nickname of the candidate's name, e.g. "bil" for "william" (via "bill")
   def self.nickname_prefix?(query, candidate)
-    NICKNAME_INDEX.fetch(candidate, []).any? do |index|
-      NICKNAME_GROUPS[index].any? { |name| name != candidate && name.start_with?(query) }
+    related_names(candidate).any? { |name| name.start_with?(query) }
+  end
+
+  # All names interchangeable with name, cached per process
+  def self.related_names(name)
+    cache = (@related_names_cache ||= {})
+    cache[name] ||= begin
+      graph = nickname_graph
+      direct = graph.fetch(name, EMPTY)
+      through_full_names = direct.select { |full| full.length > name.length }.flat_map do |full|
+        graph.fetch(full, EMPTY).select { |other| other.length < full.length }
+      end
+      ((direct + through_full_names).uniq - [name]).freeze
+    end
+  end
+
+  EMPTY = [].freeze
+
+  # name => [connected names], built once per process from the bundled data plus EXTRA_NICKNAME_GROUPS
+  def self.nickname_graph
+    @nickname_graph ||= begin
+      graph = Hash.new { |h, k| h[k] = [] }
+      connect = lambda do |a, b|
+        next if a.empty? || b.empty? || a == b
+
+        graph[a] << b
+        graph[b] << a
+      end
+
+      if File.exist?(NICKNAMES_CSV)
+        CSV.foreach(NICKNAMES_CSV, headers: true) do |row|
+          connect.call(row['name1'].to_s.strip.downcase, row['name2'].to_s.strip.downcase)
+        end
+      end
+
+      EXTRA_NICKNAME_GROUPS.each do |group|
+        group.combination(2) { |a, b| connect.call(a, b) }
+      end
+
+      graph.transform_values { |names| names.uniq.freeze }.to_h.freeze
     end
   end
 end
