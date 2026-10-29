@@ -10,9 +10,14 @@
 class EstimatesController < ApplicationController
   include AuthHelper
 
-  before_action :require_user, unless: -> { session[:token].nil? }
-  skip_before_action :verify_authenticity_token, :check_if_login_required, unless: -> { session[:token].nil? }
+  # PDFs: logged-in users, or a customer with a share link (limited to their issue's estimate).
+  # Redmine's own login check is replaced by require_login_or_customer_token for these actions.
+  skip_before_action :check_if_login_required, only: [:show, :doc]
+  before_action :require_login_or_customer_token, only: [:show, :doc]
   before_action :load_estimate, only: [:show, :doc]
+
+  # Syncing is admin-only
+  before_action :require_admin, only: :sync
   
   # Displays the estimate PDF in the browser or redirects with an error if not found.
   def doc
@@ -34,11 +39,30 @@ class EstimatesController < ApplicationController
   # Loads the estimate based on ID or doc number, with a fallback to sync if not found locally.
   def load_estimate
     log "Attempting to load Estimate with params: #{params.inspect}"
+
+    # Share-link customers may only open the estimate attached to their issue (checked before any sync)
+    return load_customer_estimate if customer_token_only?
+
     @estimate = find_estimate || sync_and_find_estimate
 
     unless @estimate
       redirect_back fallback_location: root_path, flash: { error: I18n.t(:notice_estimate_not_found) }
     end
+  end
+
+  # For share-link customers: only the estimate attached to the token's issue, by ID or doc number.
+  def load_customer_estimate
+    estimate = customer_token.issue&.estimate
+    requested =
+      if params[:search].present?
+        estimate && estimate.doc_number.to_s == params[:search].to_s
+      else
+        estimate && estimate.id.to_s == params[:id].to_s
+      end
+
+    return render_403 unless requested
+
+    @estimate = estimate
   end
 
   # Attempts to find the estimate locally by ID or doc number.

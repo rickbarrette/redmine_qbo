@@ -14,7 +14,7 @@ module RedmineQbo
       def self.apply
         AttachmentsController.class_eval do
           # 1. PREPEND: Must run before ANY of Redmine's ApplicationController filters
-          prepend_before_action :set_customer_token_thread
+          prepend_before_action :load_customer_token
 
           # 2. Skip global login redirects if the user holds a valid token for this file
           skip_before_action :check_if_login_required, if: :valid_customer_token?
@@ -25,14 +25,14 @@ module RedmineQbo
 
           private
 
-          def set_customer_token_thread
-            if session[:token].present?
-              Thread.current[:customer_token] = CustomerToken.active.find_by(token: session[:token])
-            end
+          # Kept on the controller instance (one per request) rather than Thread.current, which is reused
+          # across requests by the web server and could carry one customer's token into another request.
+          def load_customer_token
+            @customer_token = session[:token].present? ? CustomerToken.active.find_by(token: session[:token]) : nil
           end
 
           def valid_customer_token?
-            token = Thread.current[:customer_token]
+            token = @customer_token
             return false unless token
 
             # Handle "Download All" zip requests (object_type=issues, object_id=ID)

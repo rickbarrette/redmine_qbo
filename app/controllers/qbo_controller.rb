@@ -11,16 +11,31 @@
 class QboController < ApplicationController
   include AuthHelper
 
-  before_action :require_user, except: :webhook
+  # Connecting to QuickBooks and syncing are admin-only. Billing needs the "Bill issues" permission.
+  # The webhook is called by Intuit, not a user, and is verified by its signature instead.
+  before_action :require_admin, except: [:webhook, :bill]
+  before_action :require_login, only: :bill
   skip_before_action :verify_authenticity_token, :check_if_login_required, only: :webhook
+
+  # Session key for the OAuth "state" value, which ties the callback to the admin who started connecting
+  OAUTH_STATE_SESSION_KEY = :qbo_oauth_state
 
   # Initiates the OAuth authentication process by redirecting the user to the QuickBooks authorization URL. The callback URL is generated based on the application's settings and routes.
   def authenticate
-    redirect_to QboOauthService.authorization_url(callback_url: callback_url)
+    state = SecureRandom.urlsafe_base64(32)
+    session[OAUTH_STATE_SESSION_KEY] = state
+    redirect_to QboOauthService.authorization_url(callback_url: callback_url, state: state), allow_other_host: true
   end
 
   # Handles the OAuth callback from QuickBooks. Exchanges the authorization code for access and refresh tokens, saves the connection details, and redirects to the sync page with a success notice. If any error occurs during the process, logs the error and redirects back to the plugin settings page with an error message.
   def oauth_callback
+    # Only accept a callback for a connection this admin started (prevents swapping in another QBO company)
+    expected_state = session.delete(OAUTH_STATE_SESSION_KEY).to_s
+    unless expected_state.present? && ActiveSupport::SecurityUtils.secure_compare(expected_state, params[:state].to_s)
+      log "OAuth callback rejected: state did not match"
+      return redirect_to plugin_settings_path(:redmine_qbo), flash: { error: I18n.t(:notice_qbo_oauth_state_mismatch) }
+    end
+
     QboOauthService.exchange!(code: params[:code], callback_url: callback_url, realm_id: params[:realmId])
 
     redirect_to qbo_sync_path, flash: { notice: I18n.t(:label_connected) }
@@ -32,8 +47,10 @@ class QboController < ApplicationController
 
   # Manual billing endpoint to trigger the billing process for a specific issue. Validates the issue and its associations, enqueues a job to bill the issue's time entries, and redirects back to the issue with a notice. If validation fails, redirects back with an error message.
   def bill
-    issue = Issue.find_by(id: params[:id])
-    raise I18n.t(:notice_error_issue_not_found) unless issue
+    issue = Issue.visible.find_by(id: params[:id])
+    return render_404 unless issue
+    return deny_access unless User.current.allowed_to?(:bill_issues, issue.project)
+
     raise I18n.t(:notice_billing_error_no_customer) unless issue.customer
     raise I18n.t(:notice_billing_error_no_employee) unless issue.assigned_to&.employee_id.present?
     raise I18n.t(:notice_billing_error_no_qbo) unless Qbo.exists?

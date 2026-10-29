@@ -11,6 +11,9 @@
 # English strings go here for Rails i18n
 # Usage I18n.t(:label)
 en:
+  notice_qbo_oauth_state_mismatch: "QuickBooks connection was not completed: the request could not be verified. Please try connecting again."
+  permission_bill_issues: "Bill issue time to QuickBooks"
+  permission_share_issues_with_customers: "Share issues with customers"
   button_bulk_pdf: "Bulk PDF"
   customer_details: "Customer Details"
   field_billed: "Billed"

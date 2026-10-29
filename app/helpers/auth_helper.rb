@@ -10,47 +10,53 @@
 
 module AuthHelper
 
-  def require_user
-    return unless session[:token].nil?
-    if !User.current.logged?
-      flash[:error] = t :notice_forbidden
-      render_403
-    end
+  # The active customer share token stored in the session by customers#view, if any.
+  def customer_token
+    return @customer_token if defined?(@customer_token)
+
+    @customer_token = session[:token].present? ? CustomerToken.active.find_by(token: session[:token]) : nil
   end
-  
+
+  # True when the visitor is a customer using a share link rather than a logged-in user.
+  def customer_token_only?
+    !User.current.logged? && customer_token.present?
+  end
+
+  # Logged-in users pass. Customers with an active share link pass too (each controller then limits them
+  # to their own issue's documents). Everyone else is sent to the login page.
+  def require_login_or_customer_token
+    return true if User.current.logged?
+    return true if customer_token
+
+    require_login
+  end
+
   def allowed_to?(action)
     return false if User.current.nil?
-    project = Project.find(params[:project_id])
+    project = Project.find_by(id: params[:project_id])
     return false if project.nil?
-    return true if User.current.allowed_to?(action, project)
-    false
+    User.current.allowed_to?(action, project)
   end
-  
+
   def check_permission(permission)
     if !allowed_to?(permission)
       flash[:error] = t :notice_forbidden
       render_403
     end
   end
-  
-  
+
   def global_check_permission(permission)
     if !globaly_allowed_to?(permission)
       flash[:error] = t :notice_forbidden
       render_403
     end
   end
-  
-  def globaly_allowed_to?( action)
+
+  # True if the user has the permission through any of their roles (or is an admin)
+  def globaly_allowed_to?(action)
     return false if User.current.nil?
 
-    projects = Project.all
-    projects.each { |p|
-      if User.current.allowed_to?(action, p)
-        return true
-      end
-    }
-    false
+    User.current.allowed_to?(action, nil, global: true)
   end
-    
+
 end

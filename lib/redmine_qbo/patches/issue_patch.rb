@@ -32,12 +32,13 @@ module RedmineQbo
         BillIssueTimeJob.perform_later(id)
       end
 
-      # Titlize the subject for consistent formatting in billing descriptions
+      # Capitalize each word of the subject for consistent billing descriptions, without lowercasing
+      # the rest of the word (keeps LED, JL, 4x4 as typed). Only runs when the subject changes.
       def titlize_subject
+        return unless subject.present? && will_save_change_to_subject?
+
         log "Titlizing subject for issue ##{id}"
-        self.subject = subject.split(/\s+/).map do |word|
-          (word =~ /[A-Z]/ && word =~ /[0-9]/) ? word : word.capitalize
-        end.join(' ')
+        self.subject = RedmineQbo::TitleCase.call(subject)
       end
 
       # Generate a shareable token linking this issue to the customer for QuickBooks

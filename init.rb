@@ -31,9 +31,15 @@ Redmine::Plugin.register :redmine_qbo do
   WillPaginate.per_page = 20
 
   # Global Permissions
-  permission :view_customers, { customers: [:index, :show] }, global: true
+  # autocomplete and the filter_* actions feed the customer, estimate and invoice pickers on issue forms
+  permission :view_customers, { customers: [:index, :show, :autocomplete,
+                                            :filter_estimates_by_customer, :filter_invoices_by_customer] }, global: true
   permission :add_customers, { customers: [:new, :create] }, global: true
   permission :edit_customers, { customers: [:edit, :update] }, global: true
+  permission :share_issues_with_customers, { customers: [:share] }, global: true
+
+  # Project permissions
+  permission :bill_issues, { qbo: [:bill] }
   
   # Register top menu items
   menu :top_menu, :customers, { controller: :customers, action: :index }, caption: :label_customers, if: Proc.new {User.current.allowed_to?(:view_customers, nil, global: true)}

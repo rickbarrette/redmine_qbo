@@ -10,7 +10,8 @@
 class EmployeesController < ApplicationController
   include AuthHelper
 
-  before_action :require_user, unless: -> { session[:token].nil? }
+  # Syncing is admin-only
+  before_action :require_admin
 
   def sync
     Employee.sync

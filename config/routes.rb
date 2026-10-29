@@ -27,7 +27,7 @@ get 'estimates/doc/', to: 'estimates#doc', as: :estimate_doc
 get 'invoices/:id', to: 'invoices#show', as: :invoice
 
 #manual billing
-get 'bill/:id', to: 'qbo#bill', as: :bill
+post 'bill/:id', to: 'qbo#bill', as: :bill
 
 #customer issue view
 get 'customers/view/:token', to: 'customers#view', as: :view

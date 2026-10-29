@@ -10,14 +10,19 @@
 class InvoicesController < ApplicationController
   include AuthHelper
 
-  before_action :require_user, unless: -> { session[:token].nil? }
-  skip_before_action :verify_authenticity_token, :check_if_login_required, unless: -> { session[:token].nil? }
+  # PDFs: logged-in users, or a customer with a share link (limited to their issue's invoices).
+  # Redmine's own login check is replaced by require_login_or_customer_token for this action.
+  skip_before_action :check_if_login_required, only: :show
+  before_action :require_login_or_customer_token, only: :show
+  before_action :authorize_customer_invoices, only: :show
+
+  # Syncing is admin-only
+  before_action :require_admin, only: :sync
 
   # Displays the invoice PDF in the browser or redirects with an error if not found.
   def show
     log "Processing request for #{request.original_url}"
 
-    invoice_ids = Array(params[:invoice_ids] || params[:id])
     pdf, ref = PdfService.new(entity: Invoice).fetch_pdf(doc_ids: invoice_ids)
 
     send_data pdf, filename: "invoice #{ref}.pdf", disposition: :inline, type: "application/pdf"
@@ -33,6 +38,18 @@ class InvoicesController < ApplicationController
   end
 
   private
+
+  def invoice_ids
+    @invoice_ids ||= Array(params[:invoice_ids] || params[:id]).map(&:to_s).reject(&:blank?)
+  end
+
+  # Share-link customers may only open invoices attached to their issue
+  def authorize_customer_invoices
+    return true unless customer_token_only?
+
+    allowed = customer_token.issue&.invoice_ids.to_a.map(&:to_s)
+    render_403 if invoice_ids.empty? || (invoice_ids - allowed).any?
+  end
 
   # Logs messages with a consistent prefix for easier debugging.
   def log(msg)

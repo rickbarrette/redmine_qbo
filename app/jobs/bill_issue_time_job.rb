@@ -17,22 +17,35 @@ class BillIssueTimeJob < ActiveJob::Base
     issue = Issue.find(issue_id)
 
     log "Starting billing for issue ##{issue.id}"
+    failure = nil
+
     issue.with_lock do
-      unbilled_entries = issue.time_entries.where(billed: [false, nil]).lock
+      unbilled_entries = issue.time_entries.where(billed: [false, nil]).lock.includes(:activity).to_a
       return if unbilled_entries.blank?
 
       totals = aggregate_hours(unbilled_entries)
       return if totals.blank?
       log "Aggregated hours for billing: #{totals.inspect}"
 
-      qbo = QboConnectionService.current!
-      qbo.perform_authenticated_request do |access_token|
-        create_time_activities(issue, totals, access_token, qbo)
+      # Activities already sent to QBO (or deliberately skipped) in this run. If QBO fails part way, or the
+      # token refresh re-runs the block, finished activities are not sent again.
+      done = []
+      begin
+        qbo = QboConnectionService.current!
+        qbo.perform_authenticated_request do |access_token|
+          create_time_activities(issue, totals, access_token, qbo, done)
+        end
+      rescue => e
+        failure = e
       end
 
-      # Only mark billed AFTER successful QBO creation
-      unbilled_entries.update_all(billed: true)
+      # Mark billed only the entries whose activity was finished, and commit that even if a later
+      # activity failed, so a retry only sends what's left
+      finished = unbilled_entries.select { |entry| done.include?(entry.activity&.name) }
+      TimeEntry.where(id: finished.map(&:id)).update_all(billed: true) if finished.any?
     end
+
+    raise failure if failure
 
     log "Completed billing for issue ##{issue.id}"
     Qbo.update_time_stamp
@@ -45,25 +58,34 @@ class BillIssueTimeJob < ActiveJob::Base
 
   # Aggregate time entries by activity name and sum their hours
   def aggregate_hours(entries)
-    entries.includes(:activity)
-           .group_by { |e| e.activity&.name }
+    entries.group_by { |e| e.activity&.name }
            .transform_values { |rows| rows.sum(&:hours) }
            .compact
   end
 
   # Create TimeActivity records in QBO for each activity type with the appropriate hours and link them to the issue's assigned employee and customer
-  def create_time_activities(issue, totals, access_token, qbo)
+  # Adds each activity name to done once it has been created in QBO (or skipped because it can't be billed).
+  def create_time_activities(issue, totals, access_token, qbo, done)
     log "Creating TimeActivity records in QBO for issue ##{issue.id}"
    
     time_service = Quickbooks::Service::TimeActivity.new( company_id: qbo.realm_id,  access_token: access_token)
     item_service = Quickbooks::Service::Item.new( company_id: qbo.realm_id, access_token: access_token )
     
     totals.each do |activity_name, hours_float|
-      next if activity_name.blank?
-      next if hours_float.to_f <= 0
+      next if done.include?(activity_name)
+
+      # Not billable: skipped, and marked billed as before
+      if activity_name.blank? || hours_float.to_f <= 0
+        done << activity_name
+        next
+      end
 
       item = find_item(item_service, activity_name)
-      next unless item
+      unless item
+        log "No QBO item named #{activity_name.inspect}; skipping"
+        done << activity_name
+        next
+      end
 
       hours, minutes = convert_hours(hours_float)
 
@@ -82,6 +104,7 @@ class BillIssueTimeJob < ActiveJob::Base
       log "Creating TimeActivity for #{activity_name} (#{hours}h #{minutes}m)"
 
       time_service.create(time_entry)
+      done << activity_name
     end
   end
 

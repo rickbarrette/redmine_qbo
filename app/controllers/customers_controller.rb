@@ -26,9 +26,11 @@ class CustomersController < ApplicationController
   helper :timelog
 
   # This tells Redmine to check global permissions for the current controller/action
-  before_action :authorize_global
+  # customers#view is the public share-link page: it is authorized by its token, not by Redmine permissions
+  before_action :authorize_global, except: [:view]
   before_action :add_customer, only: [:new, :create]
-  before_action :view_customer, except: [:new, :create, :view]
+  before_action :view_customer, except: [:new, :create, :view, :share, :sync]
+  before_action :require_admin, only: :sync
   skip_before_action :verify_authenticity_token, :check_if_login_required, only: [:view]
 
   def address_to_s(address)
@@ -61,45 +63,12 @@ class CustomersController < ApplicationController
     params.require(:customer).permit(:name, :email, :primary_phone, :mobile_phone, :phone_number, :notes)
   end
 
-  # Used for autocomplete form
+  # Used for autocomplete forms. Fuzzy matching (nicknames, typos, word order, phone digits) helps
+  # staff spot an existing customer before creating a duplicate. See CustomerSearchService.
   def autocomplete
-    # Support both existing 'q' param and new 'name'/'phone' params
     name_query = (params[:name] || params[:q] || params[:term]).to_s.strip
-    phone_query = params[:phone].to_s.gsub(/\D/, '')
+    items = CustomerSearchService.call(name: name_query, phone: params[:phone])
 
-    sql_matches = []
-
-    # 1. Check for phone number matches via SQL
-    if phone_query.present?
-      sql_matches += Customer.where("phone_number LIKE :p OR mobile_phone_number LIKE :p", p: "%#{phone_query}%")
-    end
-
-    # 2. Check for exact or partial name matches via SQL
-    if name_query.present?
-      safe_name = ActiveRecord::Base.sanitize_sql_like(name_query)
-      sql_matches += Customer.where("name LIKE :t", t: "%#{safe_name}%")
-    end
-
-    sql_matches = sql_matches.uniq
-
-    # 3. Handle spelling errors using built-in string distance
-    fuzzy_matches = []
-    if name_query.present?
-      require 'did_you_mean/jaro_winkler'
-      
-      # Only scan records we haven't already matched
-      unmatched = Customer.all - sql_matches
-      
-      fuzzy_matches = unmatched.select do |c|
-        # 0.6 is the threshold. 1.0 is an exact match.
-        DidYouMean::JaroWinkler.distance(c.name.to_s.downcase, name_query.downcase) > 0.6
-      end
-    end
-
-    # Combine results and limit to top 20
-    items = (sql_matches + fuzzy_matches).first(20)
-
-    # Return JSON formatted for both existing usage and new jQuery UI requirements
     render json: items.map { |i|
       { id: i.id, name: i.name, phone_number: i.phone_number, mobile_phone_number: i.mobile_phone_number }
     }
@@ -150,7 +119,7 @@ class CustomersController < ApplicationController
 
   def index
     if params[:search]
-      @customers = Customer.search(params[:search]).order(:name).paginate(page: params[:page])
+      @customers = CustomerSearchService.call(name: params[:search], limit: 200).paginate(page: params[:page])
       if only_one_non_zero?(@customers)
         redirect_to @customers.first
       end
@@ -200,8 +169,10 @@ class CustomersController < ApplicationController
   end
 
   def share
-    issue = Issue.find(params[:id])
+    issue = Issue.visible.find(params[:id])
     token = issue.share_token
+    return render_403 unless token
+
     redirect_to view_path(token.token)
   rescue ActiveRecord::RecordNotFound
     flash[:error] = t(:notice_issue_not_found)
@@ -247,9 +218,14 @@ class CustomersController < ApplicationController
 
   def update
     @customer = Customer.find_by_id(params[:id])
-    @customer.update(allowed_params)
-    flash[:notice] = t :notice_customer_updated
-    redirect_to @customer
+    return render_404 unless @customer
+
+    if @customer.update(allowed_params)
+      flash[:notice] = t :notice_customer_updated
+      redirect_to @customer
+    else
+      render :edit, status: :unprocessable_entity
+    end
   rescue => e
     log "Failed to update customer: #{e.message}"
     flash[:error] = e.message
@@ -262,7 +238,6 @@ class CustomersController < ApplicationController
     return render_403 unless @token
     @issue = @token.issue
     return render_403 unless @issue
-    return render_403 unless @issue.customer_id == @token.issue.customer_id
     session[:token] = @token.token
     load_issue_data
   rescue ActiveRecord::RecordNotFound

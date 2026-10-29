@@ -48,13 +48,13 @@
   <p>
     <label><%= t(:label_invoice_count) %></label>
     <%= Invoice.count %> 
-    <em style="color: #777; font-size: 0.9em; margin-left: 8px;">(@ <%= Item.last_sync %>)</em>
+    <em style="color: #777; font-size: 0.9em; margin-left: 8px;">(@ <%= Invoice.last_sync %>)</em>
   </p>
 
   <p>
     <label><%= t(:label_estimate_count) %></label>
     <%= Estimate.count %> 
-    <em style="color: #777; font-size: 0.9em; margin-left: 8px;">(@ <%= Account.last_sync %>)</em>
+    <em style="color: #777; font-size: 0.9em; margin-left: 8px;">(@ <%= Estimate.last_sync %>)</em>
   </p>
 
   <p>

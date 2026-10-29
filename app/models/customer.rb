@@ -21,8 +21,8 @@ class Customer < QboBaseModel
   self.primary_key = :id
   qbo_sync push: true
 
-  # Normalize the local database column :name
-  normalizes :name, with: ->(name) { name.to_s.strip.titleize }
+  # Normalize the local database column :name (capitalize each word, keep acronyms like LLC as typed)
+  normalizes :name, with: ->(name) { RedmineQbo::TitleCase.call(name.to_s.strip) }
   
   acts_as_searchable columns: %w[name phone_number mobile_phone_number ],
                      scope: ->(_context) { left_joins(:project) },

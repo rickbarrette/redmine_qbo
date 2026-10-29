@@ -16,11 +16,16 @@ module RedmineQbo
         def watcher_link(issue, user)
           links = ''
           
-          # Admin users can bill time
-          links << link_to(I18n.t(:label_bill_time), bill_path(issue.id), method: :get, class: 'icon icon-email-add') if user.admin?
+          # Users with the "Bill issues" permission can bill time (POST, so it can't be triggered by a plain link)
+          if user.allowed_to?(:bill_issues, issue.project)
+            links << link_to(I18n.t(:label_bill_time), bill_path(issue.id), method: :post,
+                             data: { confirm: I18n.t(:text_are_you_sure) }, class: 'icon icon-email-add')
+          end
 
-          # Logged-in users can share the issue
-          links << link_to(I18n.t(:label_share), share_path(issue.id), method: :get, target: :_blank, class: 'icon icon-shared') if user.logged?
+          # Users with the "Share issues with customers" permission can create a customer link
+          if user.allowed_to?(:share_issues_with_customers, nil, global: true)
+            links << link_to(I18n.t(:label_share), share_path(issue.id), method: :get, target: :_blank, class: 'icon icon-shared')
+          end
 
           # Append to the original watcher links
           (links.html_safe + super).html_safe

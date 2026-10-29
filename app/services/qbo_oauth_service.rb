@@ -12,11 +12,12 @@ class QboOauthService
 
   # Generates the QuickBooks OAuth authorization URL with the specified callback URL.
   # The URL includes necessary parameters such as response type, state, and scope.
-  def self.authorization_url(callback_url:)
+  # The state value must be stored by the caller and checked when the callback arrives.
+  def self.authorization_url(callback_url:, state:)
     client.auth_code.authorize_url(
       redirect_uri: callback_url,
       response_type: "code",
-      state: SecureRandom.hex(12),
+      state: state,
       scope: "com.intuit.quickbooks.accounting"
     )
   end
