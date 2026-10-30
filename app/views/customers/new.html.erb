@@ -1,2 +1,5 @@
-<h2><%=t(:label_new_customer)%></h2> 
+<h2><%= link_to l(:label_customers), customers_path %> &#187; <%= l(:label_new_customer) %></h2>
+
 <%= render partial: 'customers/form' %>
+
+<% html_title(l(:label_new_customer)) -%>

@@ -1,3 +1,5 @@
-<h1><%=t(:label_edit_customer)%></h1> 
-<br/> 
+<h2><%= link_to l(:label_customers), customers_path %> &#187; <%= link_to @customer.to_s, customer_path(@customer) %></h2>
+
 <%= render partial: 'customers/form' %>
+
+<% html_title(l(:label_edit_customer)) -%>
