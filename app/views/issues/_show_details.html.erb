@@ -7,7 +7,10 @@
   
     <div class="estimate_id attribute">
       <div class="label"><span><%=t(:field_estimate)%></span>:</div>
-      <div class="value"><%= estimate_link %></div>
+      <div class="value">
+        <%= estimate_link %>
+        <%= call_hook :view_estimate_actions, { estimate: issue.estimate } if issue.estimate %>
+      </div>
     </div>
          
     <div class="invoice_id attribute">

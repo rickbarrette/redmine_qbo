@@ -4,8 +4,14 @@
               id: 'dynamic-new-issue-link', class: 'icon icon-add', target: :_blank %>
   <%# Plugins add their customer actions here (e.g. redmine_qbo_calendar's Add appointment) %>
   <%= call_hook :view_customers_show_contextual, { customer: @customer } %>
-  <%= link_to sprite_icon('document', l(:label_create_estimate)), "https://qbo.intuit.com/app/estimate?nameId=#{@customer.id}",
-              class: 'icon icon-document', target: :_blank %>
+  <%# A plugin can replace the Create Estimate link (e.g. redmine_qbo_estimates writes estimates in Redmine) %>
+  <% estimate_link = call_hook(:view_customers_show_estimate_link, { customer: @customer }) %>
+  <% if estimate_link.present? %>
+    <%= estimate_link %>
+  <% else %>
+    <%= link_to sprite_icon('document', l(:label_create_estimate)), "https://qbo.intuit.com/app/estimate?nameId=#{@customer.id}",
+                class: 'icon icon-document', target: :_blank %>
+  <% end %>
   <%= link_to sprite_icon('add', l(:label_create_payment)), "https://qbo.intuit.com/app/recvpayment?nameId=#{@customer.id}",
               class: 'icon icon-add', target: :_blank %>
   <% if User.current.allowed_to?(:edit_customers, nil, global: true) %>
