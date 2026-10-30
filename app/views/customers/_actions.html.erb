@@ -14,10 +14,6 @@
 
 <%= call_hook :customer_actions_bottom, { customer: @customer } %>
 
-<% if User.current.allowed_to?(:edit_customers, nil, global: true) %>
-  <%= button_to t(:label_edit_customer), edit_customer_path(@customer), method: :get%> 
-<% end %>
-
 <script>
   function handleSingleSelect(event, className) {
     if (event.target.checked) {
