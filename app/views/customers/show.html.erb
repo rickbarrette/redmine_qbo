@@ -1,4 +1,13 @@
 <div class="contextual">
+  <%# New issue for this customer; picks up the estimate / vehicle ticked on this page %>
+  <%= link_to sprite_icon('add', l(:label_new_issue)), new_issue_path(issue: { customer_id: @customer.id }),
+              id: 'dynamic-new-issue-link', class: 'icon icon-add', target: :_blank %>
+  <%# Plugins add their customer actions here (e.g. redmine_qbo_calendar's Add appointment) %>
+  <%= call_hook :view_customers_show_contextual, { customer: @customer } %>
+  <%= link_to sprite_icon('document', l(:label_create_estimate)), "https://qbo.intuit.com/app/estimate?nameId=#{@customer.id}",
+              class: 'icon icon-document', target: :_blank %>
+  <%= link_to sprite_icon('add', l(:label_create_payment)), "https://qbo.intuit.com/app/recvpayment?nameId=#{@customer.id}",
+              class: 'icon icon-add', target: :_blank %>
   <% if User.current.allowed_to?(:edit_customers, nil, global: true) %>
     <%= link_to sprite_icon('edit', l(:button_edit)), edit_customer_path(@customer),
                 class: 'icon icon-edit', accesskey: accesskey(:edit) %>
@@ -16,17 +25,7 @@
 
         <!-- Customer Info -->
 
-        <div class="splitcontent">
-          <div class="splitcontentleft">
-            <h4><%=t(:field_customer)%>:</h4>
-            <%= render partial: 'customers/details', locals: {customer: @customer} %>
-          </div>
-
-          <div class="splitcontentleft">
-            <h4><%=t(:label_actions)%>:</h4>
-            <%= render partial: 'customers/actions', locals: {customer: @customer} %>
-          </div>
-        </div>
+        <%= render partial: 'customers/details', locals: {customer: @customer} %>
 
 
         <!-- QBO Info -->
@@ -58,3 +57,5 @@
 
 <h3><%=@closed_issues.count%> <%=t(:label_closed_issues)%> - <%= @closed_hours.round(1)%> <%=t(:label_hours)%></h3>
 <%= render partial: 'issues/list_simple', locals: {issues: @closed_issues} %>
+
+<%= render partial: 'customers/new_issue_link_script' %>

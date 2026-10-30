@@ -1,19 +1,7 @@
-<%= call_hook :customer_actions_top, { customer: @customer } %>
-
-<p>
-    <%= link_to t(:label_new_issue), new_issue_path(issue: { customer_id: @customer.id }), id: "dynamic-new-issue-link", target: :_blank %>
-</p>
-
-<p>
-  <%= link_to t(:label_create_estimate), "https://qbo.intuit.com/app/estimate?nameId=#{@customer.id}", target: :_blank %>
-</p>
-
-<p>
-  <%= link_to t(:label_create_payment), "https://qbo.intuit.com/app/recvpayment?nameId=#{@customer.id}", target: :_blank %>
-</p>
-
-<%= call_hook :customer_actions_bottom, { customer: @customer } %>
-
+<%#
+  Adds the estimate and vehicle ticked on the customer page to the "New issue" link
+  (#dynamic-new-issue-link in the contextual area). One of each can be ticked.
+%>
 <script>
   function handleSingleSelect(event, className) {
     if (event.target.checked) {
