@@ -13,6 +13,12 @@ module RedmineQbo
     module PdfPatch
       extend ActiveSupport::Concern
 
+      # Rows returned by the :pdf_left / :pdf_right hooks are [label, text], or
+      # [label, text, { html: "..." }] to draw the value as simple HTML (e.g. part of it in <b>).
+      # text is still required: it sizes the row. Other plugins can check this constant before
+      # sending HTML values, so they keep working with older versions of this plugin.
+      PDF_HTML_VALUES = true
+
       def issue_to_pdf(issue, assoc={})
         pdf = setup_pdf(issue)
 
@@ -136,8 +142,8 @@ module RedmineQbo
           hr1 = pdf.get_string_height(35, item_right ? "#{item_right.first}:" : "")
           
           pdf.SetFontStyle('', 9)
-          hl2 = pdf.get_string_height(60, item_left ? item_left.last.to_s : "")
-          hr2 = pdf.get_string_height(60, item_right ? item_right.last.to_s : "")
+          hl2 = pdf.get_string_height(60, item_left ? item_left[1].to_s : "")
+          hr2 = pdf.get_string_height(60, item_right ? item_right[1].to_s : "")
           
           height = [hl1, hr1, hl2, hr2].max
 
@@ -162,7 +168,13 @@ module RedmineQbo
         pdf.RDMMultiCell(35, height, item ? "#{item.first}:" : "", border_label, '', 0, 0)
         
         pdf.SetFontStyle('', 9)
-        pdf.RDMMultiCell(60, height, item ? item.last.to_s : "", border_val, '', 0, ln_type)
+        html = item && item[2].is_a?(Hash) ? item[2][:html].presence : nil
+        if html
+          # Plugin-supplied HTML value, drawn directly (RDMwriteHTMLCell would run wiki formatting on it)
+          pdf.writeHTMLCell(60, height, '', '', html, border_val, ln_type, 0)
+        else
+          pdf.RDMMultiCell(60, height, item ? item[1].to_s : "", border_val, '', 0, ln_type)
+        end
       end
 
       def render_description(pdf, issue)
