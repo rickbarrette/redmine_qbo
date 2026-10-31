@@ -47,7 +47,6 @@ module RedmineQboBilling
         customer_name: customer&.name,
         email: writer.customer_email(customer),
         billing_address: writer.customer_address(customer),
-        vin: RedmineQboBilling.default_vin(customer),
         txn_date: user.today.iso8601,
         sales_person: user.name,
         customer_memo: Company.invoice_message,
@@ -73,8 +72,7 @@ module RedmineQboBilling
         form.billing_address = source.billing_address.presence || form.billing_address
         # The estimate's VIN, or else a plugin's for the estimate's work orders (e.g. their vehicle)
         form.vin = source.vin.presence ||
-                   RedmineQboBilling.default_vin(customer, issues: Issue.where(estimate_id: source.id.to_s).to_a) ||
-                   form.vin
+                   RedmineQboBilling.default_vin(customer, issues: Issue.where(estimate_id: source.id.to_s).to_a)
         form.mileage = source.mileage
         # The estimate's writer sells the job; with no one on the estimate, whoever writes the invoice
         form.sales_person = source.sales_person.presence || user.name
@@ -363,6 +361,8 @@ module RedmineQboBilling
           issue: linked_issue&.then { |i| "#{i.tracker} ##{i.id}: #{i.subject}" },
           # Lines from this estimate go next to the invoice's time for the same issue
           issue_id: issue_reference(lines.detect { |l| l.description.present? }&.description) || linked_issue&.id&.to_s,
+          # The estimate's own VIN, used when its work orders give none
+          vin: writer.custom_value(e, Company.vin_field, Company::VIN_NAME).to_s.strip,
           lines: lines.map { |l| line_hash(l) }
         }
       end

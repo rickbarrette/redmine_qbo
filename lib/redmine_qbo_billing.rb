@@ -43,10 +43,11 @@ module RedmineQboBilling
     []
   end
 
-  # The VIN a new estimate or invoice starts with, from plugins answering
+  # The VIN for a document's work orders, from plugins answering
   #   :qbo_billing_default_vin, { customer:, issues: } => a VIN or nil (e.g. redmine_qbo_vehicles: the work
-  #   orders' vehicle when they share one, else the customer's only vehicle)
-  # issues are the work orders behind the document (e.g. the issues linked to the estimate it's made from).
+  #   orders' vehicle when they share one)
+  # Used for an invoice made from an estimate that has no VIN (issues: the estimate's work orders). New
+  # estimates and invoices start with a blank VIN.
   def self.default_vin(customer, issues: [])
     return nil unless customer
 

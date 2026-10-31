@@ -36,7 +36,6 @@ module RedmineQboBilling
         customer_name: customer&.name,
         email: customer_email(customer),
         billing_address: customer_address(customer),
-        vin: RedmineQboBilling.default_vin(customer),
         txn_date: user.today.iso8601,
         expiration_date: default_expiration_date(user.today)&.iso8601,
         sales_person: user.name,
@@ -141,6 +140,20 @@ module RedmineQboBilling
 
       sync_local(saved)
       saved
+    end
+
+    # The VIN on an estimate, read with QuickBooks' newer custom fields (a plain fetch, e.g. Estimate#details,
+    # leaves them out). Cached for a minute, since creating issues asks once per issue.
+    def vin_for(estimate_id)
+      return nil if estimate_id.blank?
+
+      Rails.cache.fetch("redmine_qbo:estimate_vin:#{estimate_id}", expires_in: 1.minute) do
+        remote = QboEstimateService.with_service { |service| service.fetch_by_id(estimate_id) }
+        remote ? custom_value(remote, Company.vin_field, Company::VIN_NAME).to_s.strip : ''
+      end.presence
+    rescue StandardError => e
+      Rails.logger.warn "[RedmineQboBilling] Could not read estimate #{estimate_id}'s VIN: #{e.message}"
+      nil
     end
 
     # Emails the estimate; QuickBooks uses its own estimate email template

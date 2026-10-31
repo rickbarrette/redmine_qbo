@@ -283,15 +283,12 @@ $(function () {
       loadedEmail = info.email || '';
       $('#qbo-estimate-address').text(info.billing_address || '');
 
-      // VINs plugins suggest for this customer (e.g. their vehicles); one fills an empty VIN box
-      var options = info.vin_options || [];
+      // VINs plugins suggest for this customer (e.g. their vehicles), offered in the VIN box's list; the box
+      // itself stays as it is (a new document starts blank)
       var $list = $('#qbo-estimate-vins').empty();
-      options.forEach(function (option) {
+      (info.vin_options || []).forEach(function (option) {
         $('<option>').attr('value', option.vin).text(option.name).appendTo($list);
       });
-      if ($vin.length && !$vin.prop('disabled') && !$vin.val().trim() && options.length === 1) {
-        $vin.val(options[0].vin);
-      }
     });
   });
 
@@ -383,16 +380,25 @@ $(function () {
       return ids;
     };
 
-    // VIN and mileage from the work orders (via plugins such as redmine_qbo_vehicles):
-    // one vehicle fills the VIN box; the highest mileage fills the mileage box
-    var updateVehicleFields = function (issueIds) {
+    // VIN and mileage from the work orders (via plugins such as redmine_qbo_vehicles): one vehicle fills the
+    // VIN box; the highest mileage fills the mileage box. Imported estimates whose work orders give no VIN
+    // add their own.
+    var updateVehicleFields = function (issueIds, importedEstimates) {
       var values = (importData && importData.issue_values) || {};
       var vins = [], mileage = null;
+      var addVin = function (vin) {
+        vin = (vin || '').trim().toUpperCase();
+        if (vin && vins.indexOf(vin) < 0) vins.push(vin);
+      };
       issueIds.forEach(function (id) {
         var v = values[id] || {};
-        if (v.vin && vins.indexOf(v.vin.toUpperCase()) < 0) vins.push(v.vin.toUpperCase());
+        addVin(v.vin);
         var miles = parseNumber(v.mileage);
         if (miles !== null && !isNaN(miles) && (mileage === null || miles > mileage)) mileage = miles;
+      });
+      (importedEstimates || []).forEach(function (estimate) {
+        var fromIssue = estimate.issue_id && (values[String(estimate.issue_id)] || {}).vin;
+        if (!fromIssue) addVin(estimate.vin);
       });
       var $vinBox = $('#qbo_estimate_vin');
       if (vins.length === 1 && $vinBox.length && !$vinBox.prop('disabled')) $vinBox.val(vins[0]);
@@ -540,7 +546,7 @@ $(function () {
       estimates.forEach(function (estimate) {
         if (estimate.issue_id && issueIds.indexOf(String(estimate.issue_id)) < 0) issueIds.push(String(estimate.issue_id));
       });
-      var vins = updateVehicleFields(issueIds);
+      var vins = updateVehicleFields(issueIds, estimates);
       $panel.prop('hidden', true);
       if (vins.length > 1) window.alert($panel.data('manyVehiclesText') + ' ' + vins.join(', '));
       $('#qbo-import-undo').prop('hidden', false);
