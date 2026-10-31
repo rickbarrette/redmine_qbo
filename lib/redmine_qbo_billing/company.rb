@@ -10,23 +10,23 @@
 
 module RedmineQboBilling
   # What the QuickBooks company is set up with, read from its Preferences so nothing has to be configured
-  # in Redmine: the estimate custom fields (found by name), whether estimate numbers are typed by hand,
-  # and the default message shown on estimates.
+  # in Redmine: the sales form custom fields, whether estimate numbers are typed by hand, and the default
+  # messages. Every enabled text custom field gets a box on the estimate/invoice editor; the sales person
+  # (found by name) is filled in automatically. Other plugins find the fields they fill by name
+  # (custom_field_matching), e.g. redmine_qbo_vehicles' VIN.
   #
   # QuickBooks only shares its first three text custom fields with apps (dropdown fields aren't
   # available), so a "Sales Person" dropdown has to be changed to a text field to be filled in here.
   module Company
     CACHE_KEY = 'redmine_qbo_billing:company'
     CACHE_TIME = 1.hour
-    # While the VIN or sales person field is missing, look again sooner (e.g. right after adding it in QuickBooks)
+    # While no custom fields are found, look again sooner (e.g. right after adding one in QuickBooks)
     MISSING_FIELD_CACHE_TIME = 5.minutes
     # Recent estimates also show which custom fields exist, for companies whose preferences don't list them
     RECENT_ESTIMATES = 20
 
-    # Custom field names are matched loosely, e.g. "VIN", "Vin #", "Sales Person", "Salesperson", "Sales Rep"
-    VIN_NAME = /\bvin\b/i
+    # The sales person field is found loosely, e.g. "Sales Person", "Salesperson", "Sales Rep"
     SALES_PERSON_NAME = /sales|\brep\b/i
-    MILEAGE_NAME = /mileage|odometer|\bmiles\b/i
 
     Field = Struct.new(:id, :name)
 
@@ -37,17 +37,20 @@ module RedmineQboBilling
       Array(settings[:custom_fields]).map { |f| Field.new(f[:id], f[:name]) }
     end
 
-    def vin_field
-      custom_fields.detect { |f| f.name.to_s =~ VIN_NAME }
+    # The first enabled custom field whose name matches, e.g. a plugin's VIN field (/\bvin\b/i), or nil
+    def custom_field_matching(pattern)
+      custom_fields.detect { |f| f.name.to_s =~ pattern }
     end
 
-    # Optional: a text field named like "Mileage" or "Odometer"
-    def mileage_field
-      custom_fields.detect { |f| f.name.to_s =~ MILEAGE_NAME && f.name.to_s !~ VIN_NAME }
+    # The custom fields edited on the estimate/invoice editor: all of them except the sales person, which is
+    # filled in automatically
+    def editable_custom_fields
+      sales = sales_person_field
+      custom_fields.reject { |f| sales && f.id.to_i == sales.id.to_i }
     end
 
     def sales_person_field
-      custom_fields.detect { |f| f.name.to_s =~ SALES_PERSON_NAME && f.name.to_s !~ VIN_NAME }
+      custom_fields.detect { |f| f.name.to_s =~ SALES_PERSON_NAME }
     end
 
     # When on, QuickBooks leaves estimate numbers to the user; when off it numbers them itself
@@ -79,8 +82,7 @@ module RedmineQboBilling
       fresh = fetch_settings
       return {} unless fresh
 
-      names = fresh[:custom_fields].map { |f| f[:name].to_s }
-      complete = names.any? { |n| n =~ VIN_NAME } && names.any? { |n| n =~ SALES_PERSON_NAME && n !~ VIN_NAME }
+      complete = Array(fresh[:custom_fields]).any?
       Rails.cache.write(CACHE_KEY, fresh, expires_in: complete ? CACHE_TIME : MISSING_FIELD_CACHE_TIME)
       fresh
     end

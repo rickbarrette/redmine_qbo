@@ -55,7 +55,7 @@ module RedmineQboBilling
     end
 
     # A new invoice from an estimate, like QuickBooks' "Create invoice" on an estimate: the estimate's
-    # customer, lines, subtotals and VIN. The estimate is linked and closed when the invoice is saved.
+    # customer, lines, subtotals and custom fields. The estimate is linked and closed when the invoice is saved.
     def from_estimate(estimate_id, user: User.current)
       remote = QboEstimateService.with_service { |service| service.fetch_by_id(estimate_id) }
       raise Error, I18n.t(:notice_estimate_not_found) unless remote
@@ -70,10 +70,10 @@ module RedmineQboBilling
         form.customer_id = source.customer_id
         form.email = source.email.presence || form.email
         form.billing_address = source.billing_address.presence || form.billing_address
-        # The estimate's VIN, or else a plugin's for the estimate's work orders (e.g. their vehicle)
-        form.vin = source.vin.presence ||
-                   RedmineQboBilling.default_vin(customer, issues: Issue.where(estimate_id: source.id.to_s).to_a)
-        form.mileage = source.mileage
+        # The estimate's custom fields; ones it leaves blank come from plugins for its work orders (e.g.
+        # redmine_qbo_vehicles: their VIN)
+        defaults = RedmineQboBilling.field_defaults(customer, issues: Issue.where(estimate_id: source.id.to_s).to_a)
+        form.custom_fields = defaults.merge(source.custom_fields.reject { |_, value| value.blank? })
         # The estimate's writer sells the job; with no one on the estimate, whoever writes the invoice
         form.sales_person = source.sales_person.presence || user.name
         form.private_note = source.private_note
@@ -146,8 +146,7 @@ module RedmineQboBilling
         due_date: remote.due_date&.iso8601,
         doc_number: remote.doc_number.to_s,
         sales_person: writer.custom_value(remote, Company.sales_person_field, Company::SALES_PERSON_NAME),
-        vin: writer.custom_value(remote, Company.vin_field, Company::VIN_NAME),
-        mileage: writer.custom_value(remote, Company.mileage_field, Company::MILEAGE_NAME),
+        custom_fields: writer.custom_field_values(remote),
         customer_memo: remote.customer_memo.to_s,
         private_note: remote.private_note.to_s,
         lines: writer.tidy_subtotals(Array(remote.line_items).filter_map { |line| writer.line_from_remote(line) }),
@@ -286,8 +285,8 @@ module RedmineQboBilling
 
     # ---- importing ----
 
-    # What can be pulled into an invoice for the customer: billable time and open estimates, and the VIN and
-    # mileage plugins give for their work orders (and for issues already on the invoice: issue_ids)
+    # What can be pulled into an invoice for the customer: billable time and open estimates, and the custom
+    # field values plugins give for their work orders (and for issues already on the invoice: issue_ids)
     def import_options(customer, issue_ids: [])
       times = open_time_activities(customer)
       estimates = open_estimates(customer)
@@ -361,8 +360,8 @@ module RedmineQboBilling
           issue: linked_issue&.then { |i| "#{i.tracker} ##{i.id}: #{i.subject}" },
           # Lines from this estimate go next to the invoice's time for the same issue
           issue_id: issue_reference(lines.detect { |l| l.description.present? }&.description) || linked_issue&.id&.to_s,
-          # The estimate's own VIN, used when its work orders give none
-          vin: writer.custom_value(e, Company.vin_field, Company::VIN_NAME).to_s.strip,
+          # The estimate's own custom field values (plugins' editor scripts may use them, e.g. its VIN)
+          custom_fields: writer.custom_field_values(e),
           lines: lines.map { |l| line_hash(l) }
         }
       end

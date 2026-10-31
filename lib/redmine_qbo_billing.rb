@@ -27,35 +27,45 @@ module RedmineQboBilling
     end
   end
 
-  # VINs to suggest in the estimate/invoice VIN box for a customer, from plugins answering
-  #   :qbo_billing_vin_options, { customer: } => [{ vin:, name: }, ...] (e.g. redmine_qbo_vehicles: the
-  #   customer's vehicles)
-  def self.vin_options(customer)
-    return [] unless customer
+  # Suggestions for the editor's custom field boxes for a customer, from plugins answering
+  #   :qbo_billing_field_options, { customer: } => { field_id => [{ value:, label: }, ...] }
+  # (e.g. redmine_qbo_vehicles: the customer's vehicles for its VIN field). Returns { "2" => [...] }.
+  def self.field_options(customer)
+    return {} unless customer
 
-    Redmine::Hook.call_hook(:qbo_billing_vin_options, { customer: customer }).flatten.compact.filter_map do |option|
-      option = option.to_h.symbolize_keys
-      vin = option[:vin].to_s.strip
-      { vin: vin, name: option[:name].to_s.presence || vin } unless vin.empty?
-    end.uniq { |o| o[:vin].upcase }
+    Redmine::Hook.call_hook(:qbo_billing_field_options, { customer: customer }).each_with_object({}) do |result, merged|
+      next unless result.is_a?(Hash)
+
+      result.each do |field, options|
+        id = (field.respond_to?(:id) ? field.id : field).to_s
+        list = Array(options).filter_map do |option|
+          option = option.to_h.symbolize_keys
+          value = option[:value].to_s.strip
+          { value: value, label: option[:label].to_s.presence || value } unless value.empty?
+        end
+        (merged[id] ||= []).concat(list).uniq! { |o| o[:value].upcase }
+      end
+    end
   rescue StandardError => e
-    Rails.logger.warn "[RedmineQboBilling] VIN suggestions failed: #{e.message}"
-    []
+    Rails.logger.warn "[RedmineQboBilling] Custom field suggestions failed: #{e.message}"
+    {}
   end
 
-  # The VIN for a document's work orders, from plugins answering
-  #   :qbo_billing_default_vin, { customer:, issues: } => a VIN or nil (e.g. redmine_qbo_vehicles: the work
-  #   orders' vehicle when they share one)
-  # Used for an invoice made from an estimate that has no VIN (issues: the estimate's work orders). New
-  # estimates and invoices start with a blank VIN.
-  def self.default_vin(customer, issues: [])
-    return nil unless customer
+  # Custom field values for a document's work orders, from plugins answering
+  #   :qbo_billing_field_defaults, { customer:, issues: } => { field_id => value }
+  # (e.g. redmine_qbo_vehicles: the work orders' VIN). Used for an invoice made from an estimate, for the
+  # fields the estimate leaves blank. New estimates and invoices start blank. Returns { "2" => "..." }.
+  def self.field_defaults(customer, issues: [])
+    return {} unless customer
 
-    Redmine::Hook.call_hook(:qbo_billing_default_vin, { customer: customer, issues: Array(issues) })
-                 .flatten.compact.map { |vin| vin.to_s.strip }.reject(&:empty?).first
+    Redmine::Hook.call_hook(:qbo_billing_field_defaults, { customer: customer, issues: Array(issues) })
+                 .each_with_object({}) do |result, merged|
+      next unless result.is_a?(Hash)
+      EstimateForm.custom_field_hash(result).each { |id, value| merged[id] ||= value if value.present? }
+    end
   rescue StandardError => e
-    Rails.logger.warn "[RedmineQboBilling] Default VIN failed: #{e.message}"
-    nil
+    Rails.logger.warn "[RedmineQboBilling] Custom field defaults failed: #{e.message}"
+    {}
   end
 
   # True when the user may write estimates

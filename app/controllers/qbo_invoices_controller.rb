@@ -94,6 +94,7 @@ class QboInvoicesController < ApplicationController
       :sync_token, :total_tax, :discount, :email_status, :txn_status, :balance,
       *RedmineQboBilling::EstimateForm::HEADER_ATTRIBUTES,
       linked_estimate_ids: [],
+      custom_fields: {},
       lines: RedmineQboBilling::EstimateForm::Line::PARAMS
     )
   end

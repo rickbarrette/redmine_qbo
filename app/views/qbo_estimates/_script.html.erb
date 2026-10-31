@@ -4,6 +4,32 @@ $(function () {
   var $form = $('#qbo-estimate-form');
   if (!$form.length) return;
 
+  // For other plugins' editor scripts (added through the view_qbo_estimate_form_bottom hook). The form also
+  // triggers these events (listen with $(document).on('qbo:imported', '#qbo-estimate-form', fn)):
+  //   qbo:customer-changed  (event, { customer_id, info })   info includes field_options
+  //   qbo:imported          (event, { issue_ids, estimates, issue_values })   after time/estimates are
+  //                         imported into an invoice; issue_values is { issue_id => { field_id => value } }
+  //                         and each estimate has its own custom_fields { field_id => value }
+  window.qboEditor = {
+    form: $form,
+    document: $form.data('document'),
+    // A QuickBooks custom field's box, by field id or by a name pattern (RegExp)
+    field: function (id) { return $('#qbo_custom_field_' + id); },
+    fieldNamed: function (pattern) {
+      var $box = $();
+      $form.find('.qbo-field-custom').each(function () {
+        if (!$box.length && pattern.test(String($(this).data('qboFieldName')))) $box = $(this).find('input.qbo-custom-field');
+      });
+      return $box;
+    },
+    fieldId: function ($box) { return $box.closest('.qbo-field-custom').data('qboFieldId'); },
+    // Replaces a box's suggestion list: [{ value, label }]
+    setFieldOptions: function (id, options) {
+      var $list = $('#qbo-custom-field-options-' + id).empty();
+      (options || []).forEach(function (o) { $('<option>').attr('value', o.value).text(o.label || o.value).appendTo($list); });
+    }
+  };
+
   var $tbody = $('#qbo-estimate-lines tbody');
   var template = document.getElementById('qbo-estimate-line-template').innerHTML;
   var subtotalTemplate = document.getElementById('qbo-estimate-subtotal-template').innerHTML;
@@ -270,7 +296,6 @@ $(function () {
 
   // ---- customer ----
   var $email = $('#qbo_estimate_email');
-  var $vin = $('#qbo_estimate_vin');
   var loadedEmail = $email.val();
 
   $('#customer_id').on('change', function () {
@@ -283,12 +308,13 @@ $(function () {
       loadedEmail = info.email || '';
       $('#qbo-estimate-address').text(info.billing_address || '');
 
-      // VINs plugins suggest for this customer (e.g. their vehicles), offered in the VIN box's list; the box
-      // itself stays as it is (a new document starts blank)
-      var $list = $('#qbo-estimate-vins').empty();
-      (info.vin_options || []).forEach(function (option) {
-        $('<option>').attr('value', option.vin).text(option.name).appendTo($list);
+      // Plugins' suggestions for this customer go in the custom field boxes' lists; the boxes themselves
+      // stay as they are (a new document starts blank)
+      $form.find('.qbo-field-custom').each(function () {
+        var fieldId = $(this).data('qboFieldId');
+        window.qboEditor.setFieldOptions(fieldId, (info.field_options || {})[String(fieldId)]);
       });
+      $form.trigger('qbo:customer-changed', [{ customer_id: id, info: info }]);
     });
   });
 
@@ -296,8 +322,6 @@ $(function () {
   $('#qbo_estimate_customer_name').on('input', function () {
     if (!this.value.trim()) $('#customer_id').val('');
   });
-
-  $vin.on('blur', function () { this.value = this.value.trim().toUpperCase(); });
 
   // New estimates expire a set number of days after the estimate date (plugin setting)
   var expirationDays = parseInt($form.data('expirationDays'), 10) || 0;
@@ -378,33 +402,6 @@ $(function () {
         if (id && ids.indexOf(id) < 0) ids.push(id);
       });
       return ids;
-    };
-
-    // VIN and mileage from the work orders (via plugins such as redmine_qbo_vehicles): one vehicle fills the
-    // VIN box; the highest mileage fills the mileage box. Imported estimates whose work orders give no VIN
-    // add their own.
-    var updateVehicleFields = function (issueIds, importedEstimates) {
-      var values = (importData && importData.issue_values) || {};
-      var vins = [], mileage = null;
-      var addVin = function (vin) {
-        vin = (vin || '').trim().toUpperCase();
-        if (vin && vins.indexOf(vin) < 0) vins.push(vin);
-      };
-      issueIds.forEach(function (id) {
-        var v = values[id] || {};
-        addVin(v.vin);
-        var miles = parseNumber(v.mileage);
-        if (miles !== null && !isNaN(miles) && (mileage === null || miles > mileage)) mileage = miles;
-      });
-      (importedEstimates || []).forEach(function (estimate) {
-        var fromIssue = estimate.issue_id && (values[String(estimate.issue_id)] || {}).vin;
-        if (!fromIssue) addVin(estimate.vin);
-      });
-      var $vinBox = $('#qbo_estimate_vin');
-      if (vins.length === 1 && $vinBox.length && !$vinBox.prop('disabled')) $vinBox.val(vins[0]);
-      var $mileageBox = $('#qbo_estimate_mileage');
-      if (mileage !== null && $mileageBox.length) $mileageBox.val(String(mileage));
-      return vins;
     };
 
     // Rows go after the last filled line, above the spare empty rows
@@ -546,9 +543,10 @@ $(function () {
       estimates.forEach(function (estimate) {
         if (estimate.issue_id && issueIds.indexOf(String(estimate.issue_id)) < 0) issueIds.push(String(estimate.issue_id));
       });
-      var vins = updateVehicleFields(issueIds, estimates);
       $panel.prop('hidden', true);
-      if (vins.length > 1) window.alert($panel.data('manyVehiclesText') + ' ' + vins.join(', '));
+      // Plugins fill their custom fields from the work orders (e.g. redmine_qbo_vehicles: VIN and mileage)
+      $form.trigger('qbo:imported', [{ issue_ids: issueIds, estimates: estimates,
+                                       issue_values: (importData && importData.issue_values) || {} }]);
       $('#qbo-import-undo').prop('hidden', false);
     });
 

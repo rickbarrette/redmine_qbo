@@ -103,7 +103,7 @@ Estimates and invoices keep their number, date, customer, total and **man-hours*
 
 * **New estimate** from the customer page: Create Estimate opens the Redmine editor. The customer page no longer links to QuickBooks' estimate or payment screens; the customer's name still opens their QuickBooks account page as a fallback.
 * **Edit** any estimate from the Edit link next to it on the customer page or the issue page.
-* **Duplicate** an estimate to start a similar one: same customer, lines, subtotals, VIN and messages, dated today, with the current user as sales person.
+* **Duplicate** an estimate to start a similar one: same customer, lines, subtotals, custom fields and messages, dated today, with the current user as sales person.
 * **Read-only once linked to an issue**: an estimate that an issue is linked to can be viewed, emailed and duplicated, but not changed, so the work doesn't drift from what was quoted. The list shows a View link for these instead of Edit.
 * **Read-only once billed**: an estimate that's Converted or Closed in QuickBooks, or linked to an invoice, can't be changed here either (including redmine_qbo_lineitems' estimates once they're invoiced). Its page lists the invoices it's on; it can still be viewed, emailed and duplicated, and it shows View instead of Edit in lists.
 * **Create issues** from an estimate's labor lines (moved here from redmine_qbo_calendar): each line with one of the **labor products/services** (e.g. Labor) becomes an issue with the line's description as subject and its quantity as estimated hours. Pick the project, trackers, templates and shared custom fields first. Lines already turned into issues can't be created twice, and issues from the same estimate are related to each other. Opened from an appointment, the issues get the appointment's dates, technician and vehicle.
@@ -116,14 +116,14 @@ Estimates and invoices keep their number, date, customer, total and **man-hours*
 
 ### Invoices
 
-* **Create invoice** on an estimate's page makes an invoice from it (customer, lines, subtotals, VIN), like QuickBooks' "Create invoice". **Create invoice** on the customer page starts a blank one, and the Edit link next to each invoice on the customer page opens it.
+* **Create invoice** on an estimate's page makes an invoice from it (customer, lines, subtotals, custom fields), like QuickBooks' "Create invoice". **Create invoice** on the customer page starts a blank one, and the Edit link next to each invoice on the customer page opens it.
 * **Import time & estimates** lists the customer's billable QuickBooks time (the time activities redmine_qbo makes from an issue's time entries) and their open estimates (e.g. the ones redmine_qbo_lineitems makes for parts that weren't quoted).
   * Tick the time to bill and, under **Replace these lines**, the lines it replaces (e.g. the estimate's labor lines). Only lines with one of the **labor products/services** from the plugin settings are offered there. The time goes where the first ticked line was and the ticked lines are removed, so the invoice reads in the same order.
   * Ticked estimates go right after the time for the same issue: a redmine_qbo_lineitems estimate starting "Added from: Install #116: …" lands after the time for #116, without that note line, since the time line already names the issue. Estimates with no matching time keep the note and go at the end.
   * **Undo import** puts the lines back until the invoice is saved.
 * **An estimate is billed once**: an estimate that's on an invoice (linked to one, or closed) or was rejected can't be made into an invoice or imported, and its page shows the invoice it's billed on. This is checked against QuickBooks again when the invoice is saved, so an estimate invoiced meanwhile (in another tab, by someone else, or in QuickBooks) stops the save.
 * Time lines are linked to their time activities, so QuickBooks marks the time as billed. Estimates the invoice was made from, or imported into it, are linked and closed when it's saved.
-* **VIN and mileage from the work orders**: the issues behind an invoice are the ones its time lines and lineitems estimates name. When they're imported, the VIN box takes their vehicle's VIN (or, for an imported estimate whose work orders give none, the estimate's own VIN) and a **Mileage** box (shown when QuickBooks has a text custom field named like "Mileage") takes the highest value of the issues' Mileage custom field, both supplied by redmine_qbo_vehicles. With redmine_qbo_vehicles, an invoice whose work orders are for more than one vehicle isn't saved.
+* **Custom fields from the work orders**: the issues behind an invoice are the ones its time lines and lineitems estimates name. Plugins can fill custom fields from them when they're imported, and block a save (e.g. redmine_qbo_vehicles fills the VIN and mileage and allows one vehicle per invoice). On its own, redmine_qbo leaves the boxes as typed.
 * **Sales person**: an invoice credits the sales person on the estimate it was made from (the first linked estimate that names one); if none does, the user who writes the invoice.
 * Invoices with a payment applied open read-only. The due date is left to QuickBooks (from the customer's terms) unless one is picked. The "default message shown on invoices" fills in the message.
 
@@ -148,16 +148,16 @@ Estimates, invoices and payments count by their QuickBooks date. Issues' estimat
 
 ### QuickBooks custom fields
 
-Nothing is configured in Redmine. The plugin reads QuickBooks' sales form settings, and the custom fields on the 20 most recently changed estimates, and finds the fields by name:
+Nothing is configured in Redmine. The plugin reads QuickBooks' sales form settings, and the custom fields on the 20 most recently changed estimates, and shows them on the estimate/invoice editor:
 
-* A text field whose name contains **VIN** gets the VIN box. The customer's vehicles (from redmine_qbo_vehicles) are offered as choices.
+* Every enabled **text** custom field gets a box in the editor's header (e.g. "Crew #"), saved to that field. Plugins can suggest values and fill them in (e.g. redmine_qbo_vehicles: the VIN and Mileage fields).
 * A text field whose name contains **Sales** or **Rep** (e.g. "Sales Person", "Salesperson", "Sales Rep") gets the name of the Redmine user who creates the estimate. Editing an estimate keeps its sales person.
 
 QuickBooks only shares its first three **text** custom fields with apps; dropdown custom fields can't be read or filled in. If your sales person field is a dropdown, change it to a text field in QuickBooks (Settings → Custom fields).
 
 Newer QuickBooks custom fields (made under Settings → Custom fields) aren't listed in QuickBooks' settings, so the plugin asks QuickBooks for all custom fields on estimates and finds them on the most recently changed ones. If a new field isn't found, fill it in on one estimate in QuickBooks, then refresh.
 
-The settings are read once an hour (every five minutes while the VIN or sales person field is missing). After adding or renaming a custom field in QuickBooks, an administrator can use **Refresh QuickBooks fields** on the estimate page, which also lists the fields QuickBooks shares. Newer QuickBooks custom fields (e.g. on Advanced and sandbox companies) may not be listed in its settings; they're found once they're filled in on at least one estimate.
+The settings are read once an hour (every five minutes while no custom fields are found). After adding or renaming a custom field in QuickBooks, an administrator can use **Refresh QuickBooks fields** on the estimate page, which also lists the fields QuickBooks shares. Newer QuickBooks custom fields (e.g. on Advanced and sandbox companies) may not be listed in its settings; they're found once they're filled in on at least one estimate.
 
 Estimate numbers can't be typed. QuickBooks numbers new estimates; when its "Custom transaction numbers" setting is on, the next number is filled in when the estimate is created. The "default message shown on estimates" fills in the message on new estimates.
 
@@ -218,18 +218,19 @@ View Hook|:pdf_right, { issue: issue }  | Used to add text to right side of PDF
 View Hook|:show_customer_view_right, { customer: customer } | Used to show partials on right side of customer view
 Hook| :qbo_additional_entities | Used to add additional entites to be processed by the WebhookProcessJob
 Hook| :qbo_full_sync | Used to add a Class to be called by the QboSyncDispatcher
-Hook|:qbo_billing_issue_values, { issues: } | Return `{ field => { issue_id => value } }` for the work orders behind an invoice, e.g. `{ vin: { 116 => "1C4..." } }` (redmine_qbo_vehicles). Importing time or estimates fills the VIN box when the work orders share one VIN, and the mileage box with the highest `mileage` value (redmine_qbo_vehicles reads it from the issue custom field named "Mileage")
+Hook|:qbo_billing_issue_values, { issues: } | Return `{ field_id => { issue_id => value } }` (QuickBooks custom field id; find yours with `RedmineQboBilling::Company.custom_field_matching(/name/)`) for the work orders behind an invoice, e.g. redmine_qbo_vehicles' VIN and mileage. They're given to the editor with imported time and estimates (the `qbo:imported` event) and put on redmine_qbo_lineitems' estimates
 Hook|:qbo_billing_validate, { document:, form:, issues: } | Return an error message (or several) to stop an estimate or invoice from saving, e.g. redmine_qbo_vehicles: one vehicle per invoice
 Hook|:qbo_billing_issue_defaults, { estimate:, params: } | Return `start_date`, `due_date`, `assignee`, `project`, `description`, `return_path`, `return_label`, plus any values your own fields need (e.g. redmine_qbo_calendar's `vehicle_id`), for issues created from an estimate (redmine_qbo_calendar, when opened from an appointment)
 Hook|:qbo_billing_build_issue, { issue:, estimate:, defaults: } | Set your plugin's own fields on each issue created from an estimate, before it's saved (redmine_qbo_vehicles sets the vehicle: the one in `defaults`, or the customer's vehicle whose VIN is on the estimate)
 View|:view_qbo_estimate_issues_form, { estimate:, defaults:, project: } | Draw your plugin's fields on the Create issues from estimate page, applied to every issue. Name them `issue_plugin_fields[name]`; the posted values reach `:qbo_billing_build_issue` in `defaults` (redmine_qbo_vehicles: the Vehicle, preselected from the estimate's VIN)
 Hook|:qbo_billing_issues_created, { estimate:, issues:, params: } | Called after issues are created from an estimate
-Hook|:qbo_billing_default_vin, { customer:, issues: } | Return the VIN for a document's work orders: used when an invoice is made from an estimate that has no VIN (`issues` are the estimate's work orders). New estimates and invoices start with a blank VIN. redmine_qbo_vehicles: the work orders' vehicle when they share one
-Hook|:qbo_billing_vin_options, { customer: } | Return `[{ vin:, name: }, ...]` to suggest in the estimate/invoice VIN box; one suggestion fills an empty box (redmine_qbo_vehicles: the customer's vehicles)
+Hook|:qbo_billing_field_defaults, { customer:, issues: } | Return `{ field_id => value }` for a document's work orders: used when an invoice is made from an estimate, for the fields it leaves blank. New estimates and invoices start blank (redmine_qbo_vehicles: the work orders' VIN and highest mileage)
+Hook|:qbo_billing_field_options, { customer: } | Return `{ field_id => [{ value:, label: }, ...] }` to suggest in the editor's custom field boxes for a customer (redmine_qbo_vehicles: the customer's vehicles for the VIN box)
+View|:view_qbo_estimate_form_bottom, { form:, document: } | Add your plugin's script to the estimate/invoice editor. It can use `window.qboEditor` (`field(id)`, `fieldNamed(/name/)`, `setFieldOptions(id, options)`) and listen for `qbo:customer-changed` and `qbo:imported` on the form (redmine_qbo_vehicles fills the VIN and mileage)
 View|checkboxes with `data-new-issue-param="issue[field]"` on the customer page | Ticking one adds `issue[field]=value` to the New issue link, one per field (redmine_qbo's estimates, redmine_qbo_vehicles' vehicles)
-View Hook|:view_qbo_estimate_contextual, { estimate_id:, customer_id:, vin:, doc_number: } | Adds links to an estimate page's action area (e.g. redmine_qbo_calendar's Add appointment)
+View Hook|:view_qbo_estimate_contextual, { estimate_id:, customer_id:, custom_fields:, doc_number: } | Adds links to an estimate page's action area (e.g. redmine_qbo_calendar's Add appointment); `custom_fields` is `{ field_id => value }`
 
-Other plugins create estimates with `RedmineQboBilling::EstimateWriter.create_estimate(customer:, lines:, private_note:, vin:, mileage:, user:)`; each line is a hash of `description`, `item_id`, `quantity`, `rate` and `taxable`.
+Other plugins create estimates with `RedmineQboBilling::EstimateWriter.create_estimate(customer:, lines:, private_note:, custom_fields:, user:)`; `custom_fields` is `{ field_id => value }`, and each line is a hash of `description`, `item_id`, `quantity`, `rate` and `taxable`.
 
 ---
 

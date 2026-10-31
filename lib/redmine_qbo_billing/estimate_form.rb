@@ -93,12 +93,15 @@ module RedmineQboBilling
     end
 
     # due_date is an invoice's; expiration_date an estimate's
-    HEADER_ATTRIBUTES = %i[customer_id customer_name email txn_date expiration_date due_date doc_number vin mileage customer_memo private_note].freeze
+    HEADER_ATTRIBUTES = %i[customer_id customer_name email txn_date expiration_date due_date doc_number customer_memo private_note].freeze
 
     # "estimate" or "invoice"
     attr_writer :document
 
     attr_accessor :id, :sync_token, *HEADER_ATTRIBUTES, :sales_person, :lines,
+                  # QuickBooks custom field values by field id: { "2" => "1FTFW1E50NFA12345" } (the sales person
+                  # is kept apart, in sales_person)
+                  :custom_fields,
                   # Invoices: estimates whose lines are on this invoice (they're linked and closed when saved)
                   :linked_estimate_ids,
                   # Read-only details shown on the editor
@@ -121,6 +124,21 @@ module RedmineQboBilling
       super
       self.lines ||= []
       self.linked_estimate_ids ||= []
+      self.custom_fields = self.class.custom_field_hash(custom_fields)
+    end
+
+    # { "2" => "value" } from a hash keyed by field id (string, integer or Company::Field)
+    def self.custom_field_hash(values)
+      (values || {}).to_h.each_with_object({}) do |(field, value), hash|
+        id = field.respond_to?(:id) ? field.id : field
+        hash[id.to_s] = value.to_s.strip if id.to_s =~ /\A\d+\z/
+      end
+    end
+
+    # A custom field's value (by field id or Company::Field)
+    def custom_field(field)
+      id = field.respond_to?(:id) ? field.id : field
+      custom_fields[id.to_s].to_s
     end
 
     def document
@@ -142,6 +160,7 @@ module RedmineQboBilling
       form.txn_status = params['txn_status'].presence
       form.balance = params['balance'].presence
       form.linked_estimate_ids = Array(params['linked_estimate_ids']).map(&:to_s).reject(&:blank?).uniq
+      form.custom_fields = custom_field_hash(params['custom_fields'])
       form.lines = params['lines'].to_h.values.map { |row| Line.from_params(row) }
       form
     end

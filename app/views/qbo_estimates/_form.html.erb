@@ -1,11 +1,11 @@
 <%
   company = RedmineQboBilling::Company
   sales_field = company.sales_person_field
-  vin_field = company.vin_field
-  mileage_field = company.mileage_field
+  # A box for every other text custom field QuickBooks has enabled (e.g. VIN, Mileage, Crew #)
+  custom_fields = company.editable_custom_fields
   customer = Customer.find_by(id: form.customer_id) if form.customer_id.present?
-  # VINs other plugins suggest for the VIN box (e.g. redmine_qbo_vehicles: the customer's vehicles)
-  vin_options = RedmineQboBilling.vin_options(customer)
+  # Suggestions other plugins give for those boxes (e.g. redmine_qbo_vehicles: the customer's vehicles' VINs)
+  field_options = RedmineQboBilling.field_options(customer)
   # When QuickBooks' settings couldn't be read at all, the page header says so instead of each field
   settings_read = company.settings.present?
   # The same editor writes estimates and invoices
@@ -117,28 +117,21 @@
           <em class="info"><%= l(:text_no_sales_person_field) %></em>
         <% end %>
       </div>
-      <div class="qbo-field qbo-field-vin">
-        <label for="qbo_estimate_vin"><%= vin_field&.name || l(:label_vin) %></label>
-        <%= text_field_tag 'estimate[vin]', form.vin, id: 'qbo_estimate_vin', list: 'qbo-estimate-vins', maxlength: 31,
-                           autocomplete: 'off', spellcheck: false, disabled: vin_field.nil? %>
-        <datalist id="qbo-estimate-vins">
-          <% vin_options.each do |option| %>
-            <option value="<%= option[:vin] %>"><%= option[:name] %></option>
-          <% end %>
-        </datalist>
-        <% if settings_read && !vin_field %>
-          <em class="info"><%= l(:text_no_vin_field) %></em>
-        <% end %>
-      </div>
-      <%# Mileage only shows when QuickBooks has a text field named like "Mileage" %>
-      <% if mileage_field %>
-        <div class="qbo-field qbo-field-mileage">
-          <label for="qbo_estimate_mileage"><%= mileage_field.name %></label>
-          <%= text_field_tag 'estimate[mileage]', form.mileage, id: 'qbo_estimate_mileage', maxlength: 31,
-                             inputmode: 'numeric', autocomplete: 'off' %>
+      <%# Plugins' editor scripts find a box by its field id or name (qboEditor.field / fieldNamed) %>
+      <% custom_fields.each do |field| %>
+        <div class="qbo-field qbo-field-custom" data-qbo-field-id="<%= field.id %>" data-qbo-field-name="<%= field.name %>">
+          <label for="qbo_custom_field_<%= field.id %>"><%= field.name %></label>
+          <%= text_field_tag "estimate[custom_fields][#{field.id}]", form.custom_field(field), id: "qbo_custom_field_#{field.id}",
+                             list: "qbo-custom-field-options-#{field.id}", maxlength: 31, autocomplete: 'off', spellcheck: false,
+                             class: 'qbo-custom-field' %>
+          <datalist id="qbo-custom-field-options-<%= field.id %>">
+            <% Array(field_options[field.id.to_s]).each do |option| %>
+              <option value="<%= option[:value] %>"><%= option[:label] %></option>
+            <% end %>
+          </datalist>
         </div>
       <% end %>
-      <% if settings_read && (sales_field.nil? || vin_field.nil?) && User.current.admin? %>
+      <% if settings_read && (sales_field.nil? || custom_fields.empty?) && User.current.admin? %>
         <div class="qbo-field qbo-field-refresh">
           <%= link_to sprite_icon('reload', l(:button_refresh_quickbooks_fields)), refresh_company_qbo_estimates_path,
                       method: :post, class: 'icon icon-reload' %>
@@ -197,8 +190,7 @@
       <%# Import: billable QuickBooks time (replacing the lines ticked) and open estimates. Filled by the script. %>
       <div class="qbo-import-panel" id="qbo-import-panel" hidden
            data-loading-text="<%= l(:label_loading) %>" data-none-text="<%= l(:label_none) %>"
-           data-need-customer-text="<%= l(:error_estimate_needs_customer) %>"
-           data-many-vehicles-text="<%= l(:text_invoice_many_vehicles) %>">
+           data-need-customer-text="<%= l(:error_estimate_needs_customer) %>">
         <div class="qbo-import-columns">
           <section class="qbo-import-time">
             <h4><%= l(:label_billable_time) %></h4>
@@ -303,3 +295,5 @@
 
 <%= render partial: 'qbo_estimates/styles' %>
 <%= render partial: 'qbo_estimates/script' %>
+<%# Plugins add their editor scripts here (see window.qboEditor and the qbo:* events in qbo_estimates/_script) %>
+<%= call_hook(:view_qbo_estimate_form_bottom, { form: form, document: form.document }) %>

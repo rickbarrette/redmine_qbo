@@ -106,8 +106,8 @@ class QboEstimatesController < ApplicationController
     end
   end
 
-  # Customer details for the editor when a customer is picked: email, billing address and the VINs plugins
-  # suggest for the VIN box (RedmineQboBilling.vin_options)
+  # Customer details for the editor when a customer is picked: email, billing address and the suggestions
+  # plugins give for the custom field boxes (RedmineQboBilling.field_options)
   def customer_info
     customer = Customer.find_by(id: params[:customer_id])
     return render(json: {}, status: :not_found) unless customer
@@ -117,7 +117,7 @@ class QboEstimatesController < ApplicationController
       name: customer.name,
       email: RedmineQboBilling::EstimateWriter.customer_email(customer),
       billing_address: RedmineQboBilling::EstimateWriter.customer_address(customer),
-      vin_options: RedmineQboBilling.vin_options(customer)
+      field_options: RedmineQboBilling.field_options(customer)
     }
   end
 
@@ -205,6 +205,7 @@ class QboEstimatesController < ApplicationController
     params.require(:estimate).permit(
       :sync_token, :total_tax, :discount, :email_status, :txn_status,
       *RedmineQboBilling::EstimateForm::HEADER_ATTRIBUTES,
+      custom_fields: {},
       lines: RedmineQboBilling::EstimateForm::Line::PARAMS
     )
   end

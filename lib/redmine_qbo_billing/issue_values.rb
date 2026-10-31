@@ -13,10 +13,10 @@ module RedmineQboBilling
   # them:
   #
   # :qbo_billing_issue_values, { issues: [Issue, ...] }
-  #   Return a hash of field => { issue_id => value }, e.g. redmine_qbo_vehicles returns
-  #   { vin: { 116 => "1C4HJXDG5JW123456" }, mileage: { 116 => "48210" } } (mileage from the issue custom
-  #   field named "Mileage"). The invoice's VIN and mileage boxes are filled from them when time or
-  #   estimates are imported (the highest mileage wins).
+  #   Return a hash of QuickBooks custom field id => { issue_id => value }, e.g. redmine_qbo_vehicles returns
+  #   { "2" => { 116 => "1C4HJXDG5JW123456" } } for the VIN field. They're given to the editor's script with
+  #   imported time and estimates (the qbo:imported event), and to other plugins (e.g. redmine_qbo_lineitems'
+  #   estimates); the plugin's own editor script decides how to fill its fields.
   #
   # :qbo_billing_validate, { document: "invoice" or "estimate", form: EstimateForm, issues: [Issue, ...] }
   #   Return an error message (or a list of them) to stop the save, e.g. redmine_qbo_vehicles refuses an
@@ -51,7 +51,7 @@ module RedmineQboBilling
       ids.empty? ? [] : Issue.where(id: ids).to_a
     end
 
-    # { vin: { "116" => "..." }, mileage: { "116" => "..." } } from every plugin listening
+    # { "2" => { "116" => "..." } } (custom field id => values by issue) from every plugin listening
     def values_for(issues)
       issues = Array(issues)
       return {} if issues.empty?
@@ -60,12 +60,12 @@ module RedmineQboBilling
         next unless result.is_a?(Hash)
         result.each do |field, by_issue|
           next unless by_issue.is_a?(Hash)
-          (merged[field.to_sym] ||= {}).merge!(by_issue.transform_keys(&:to_s).transform_values(&:to_s).reject { |_, v| v.strip.empty? })
+          (merged[field.to_s] ||= {}).merge!(by_issue.transform_keys(&:to_s).transform_values(&:to_s).reject { |_, v| v.strip.empty? })
         end
       end
     end
 
-    # The same values by issue, for the import panel: { "116" => { vin: "...", mileage: "..." } }
+    # The same values by issue, for the editor: { "116" => { "2" => "..." } }
     def by_issue(issues)
       values_for(issues).each_with_object({}) do |(field, by_id), result|
         by_id.each { |id, value| (result[id] ||= {})[field] = value }

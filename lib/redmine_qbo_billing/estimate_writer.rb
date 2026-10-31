@@ -47,15 +47,15 @@ module RedmineQboBilling
     # Creates an estimate for another plugin (e.g. redmine_qbo_lineitems billing an issue's line items), so
     # estimates are only ever built here. Each line is a hash of :description, :item_id, :quantity, :rate,
     # :taxable (a line with only a description is a note line). Returns the saved QuickBooks estimate.
-    def create_estimate(customer:, lines:, private_note: nil, vin: nil, mileage: nil, user: nil, txn_date: Date.today)
+    # custom_fields: QuickBooks custom field values by field id (see Company.custom_field_matching)
+    def create_estimate(customer:, lines:, private_note: nil, custom_fields: {}, user: nil, txn_date: Date.today)
       form = EstimateForm.new(
         customer_id: customer.id,
         customer_name: customer.name,
         email: customer_email(customer),
         txn_date: txn_date.iso8601,
         expiration_date: default_expiration_date(txn_date)&.iso8601,
-        vin: vin.to_s,
-        mileage: mileage.to_s,
+        custom_fields: custom_fields,
         customer_memo: Company.estimate_message,
         private_note: private_note.to_s,
         lines: lines.map do |line|
@@ -72,7 +72,7 @@ module RedmineQboBilling
       save(form, user: user)
     end
 
-    # A new estimate copied from an existing one: same customer, lines, VIN and messages, dated today, with a
+    # A new estimate copied from an existing one: same customer, lines, custom fields and messages, dated today, with a
     # new number, the current user as sales person, and no discounts or bundles (those stay in QuickBooks)
     def duplicate_form(id, user: User.current)
       source = load(id)
@@ -85,8 +85,7 @@ module RedmineQboBilling
         txn_date: today.iso8601,
         expiration_date: default_expiration_date(today)&.iso8601,
         sales_person: user.name,
-        vin: source.vin,
-        mileage: source.mileage,
+        custom_fields: source.custom_fields.dup,
         customer_memo: source.customer_memo,
         private_note: source.private_note,
         lines: source.lines.map do |line|
@@ -142,18 +141,29 @@ module RedmineQboBilling
       saved
     end
 
-    # The VIN on an estimate, read with QuickBooks' newer custom fields (a plain fetch, e.g. Estimate#details,
-    # leaves them out). Cached for a minute, since creating issues asks once per issue.
-    def vin_for(estimate_id)
-      return nil if estimate_id.blank?
+    # An estimate's custom field value (by field id or Company::Field), read with QuickBooks' newer custom
+    # fields (a plain fetch, e.g. Estimate#details, leaves them out), or nil. Cached for a minute, since
+    # creating issues from an estimate may ask once per issue.
+    def custom_field_value(estimate_id, field)
+      return nil if estimate_id.blank? || field.nil?
 
-      Rails.cache.fetch("redmine_qbo:estimate_vin:#{estimate_id}", expires_in: 1.minute) do
+      id = field.respond_to?(:id) ? field.id : field
+      values = Rails.cache.fetch("redmine_qbo:estimate_custom_fields:#{estimate_id}", expires_in: 1.minute) do
         remote = QboEstimateService.with_service { |service| service.fetch_by_id(estimate_id) }
-        remote ? custom_value(remote, Company.vin_field, Company::VIN_NAME).to_s.strip : ''
-      end.presence
+        remote ? custom_field_values(remote) : {}
+      end
+      values[id.to_s].presence
     rescue StandardError => e
-      Rails.logger.warn "[RedmineQboBilling] Could not read estimate #{estimate_id}'s VIN: #{e.message}"
+      Rails.logger.warn "[RedmineQboBilling] Could not read estimate #{estimate_id}'s custom fields: #{e.message}"
       nil
+    end
+
+    # A QuickBooks estimate's or invoice's text custom field values by field id: { "2" => "..." }
+    def custom_field_values(remote)
+      Array(remote.custom_fields).each_with_object({}) do |f, values|
+        next unless f.type.to_s == 'StringType' || f.string_value.present?
+        values[f.id.to_s] = f.string_value.to_s
+      end
     end
 
     # Emails the estimate; QuickBooks uses its own estimate email template
@@ -187,8 +197,7 @@ module RedmineQboBilling
         expiration_date: remote.expiration_date&.iso8601,
         doc_number: remote.doc_number.to_s,
         sales_person: custom_value(remote, Company.sales_person_field, Company::SALES_PERSON_NAME),
-        vin: custom_value(remote, Company.vin_field, Company::VIN_NAME),
-        mileage: custom_value(remote, Company.mileage_field, Company::MILEAGE_NAME),
+        custom_fields: custom_field_values(remote),
         customer_memo: remote.customer_memo.to_s,
         private_note: remote.private_note.to_s,
         lines: tidy_subtotals(Array(remote.line_items).filter_map { |line| line_from_remote(line) }),
@@ -229,10 +238,10 @@ module RedmineQboBilling
     end
 
     # The custom field's value, found by the field QuickBooks' preferences name, or by name on the estimate
-    def custom_value(remote, field, name_pattern)
+    def custom_value(remote, field, name_pattern = nil)
       fields = Array(remote.custom_fields)
       match = fields.detect { |f| field && f.id.to_i == field.id.to_i } ||
-              fields.detect { |f| f.name.to_s =~ name_pattern && (name_pattern == Company::VIN_NAME || f.name.to_s !~ Company::VIN_NAME) }
+              (name_pattern && fields.detect { |f| f.name.to_s =~ name_pattern })
       match&.string_value.to_s
     end
 
@@ -259,7 +268,8 @@ module RedmineQboBilling
       estimate
     end
 
-    # Keeps every custom field already on the estimate, then sets the VIN, and the sales person on create
+    # Keeps every custom field already on the estimate, then sets the ones edited on the form, and the sales
+    # person on create
     # (left empty for estimates made without a user, e.g. by a background job)
     # sales_person: who to name instead of the user (e.g. an invoice names the estimate's sales person)
     def build_custom_fields(form, remote, user, sales_person: nil)
@@ -269,12 +279,9 @@ module RedmineQboBilling
         fields[f.id.to_i] = string_field(f.id, f.name, f.string_value)
       end
 
-      if (vin = Company.vin_field)
-        fields[vin.id.to_i] = string_field(vin.id, vin.name, form.vin.to_s.strip.upcase)
-      end
-
-      if (mileage = Company.mileage_field)
-        fields[mileage.id.to_i] = string_field(mileage.id, mileage.name, form.mileage.to_s.strip)
+      Company.editable_custom_fields.each do |field|
+        next unless form.custom_fields.key?(field.id.to_s)
+        fields[field.id.to_i] = string_field(field.id, field.name, form.custom_field(field))
       end
 
       sales = Company.sales_person_field

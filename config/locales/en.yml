@@ -167,7 +167,6 @@ en:
   label_subtotal: "Subtotal"
   label_tax: "Tax"
   label_taxable_subtotal: "Taxable subtotal"
-  label_vin: "VIN"
 
   notice_estimate_saved_and_sent: "Estimate #%{number} saved in QuickBooks and emailed to %{email}"
   notice_estimate_saved_in_quickbooks: "Estimate #%{number} saved in QuickBooks"
@@ -183,7 +182,6 @@ en:
   text_estimate_send_needs_email: "Enter the customer's email to send it."
   text_memo_is_private: "Internal, not shown to the customer"
   text_no_sales_person_field: "QuickBooks isn't sharing a text custom field named Sales Person, so this isn't saved."
-  text_no_vin_field: "QuickBooks isn't sharing a text custom field named VIN."
   text_quickbooks_custom_fields_found: "Custom fields QuickBooks shares with apps: %{fields}. QuickBooks only shares its first three text fields; a field it doesn't list in its settings shows up here once it's filled in on an estimate."
   text_quickbooks_settings_unavailable: "QuickBooks' estimate settings couldn't be read, so custom fields and the default message are missing. Check the QuickBooks connection."
   text_separate_emails_with_comma: "Separate emails with a comma"
@@ -254,7 +252,6 @@ en:
   notice_invoice_sent: "Invoice #%{number} emailed to %{email}"
   text_email_invoice_confirmation: "Email invoice #%{number} to %{email}?"
   text_invoice_from_estimate: "Made from estimate #%{number}. The estimate is closed when the invoice is saved."
-  text_invoice_many_vehicles: "These work orders are for more than one vehicle:"
   text_line_bills_time: "Bills a QuickBooks time activity; saving marks the time as billed"
   text_replace_lines: "Tick the lines the time replaces (e.g. the estimate's labor lines). The time goes where the first ticked line is."
 
