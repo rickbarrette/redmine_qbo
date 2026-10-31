@@ -111,16 +111,10 @@
   .qbo-estimate .qbo-button-primary { background: var(--qbo-green); border-color: var(--qbo-green); color: #fff; }
   .qbo-estimate .qbo-button-primary:hover { background: var(--qbo-green-dark); border-color: var(--qbo-green-dark); color: #fff; }
 
-  .qbo-estimate-status { display: inline-block; font-size: .6em; font-weight: 600; vertical-align: middle; padding: 2px 8px; border-radius: 10px;
-    background: #eceef1; color: #393a3d; margin-left: 6px; }
-  .qbo-estimate-status-sent { background: #e6f4e4; color: #108000; }
-  .qbo-estimate-status-accepted { background: #e6f4e4; color: #108000; }
-  .qbo-estimate-status-closed, .qbo-estimate-status-converted { background: #e8eefa; color: #0d47a1; }
   /* Warnings with a list (linked issues, invoices): the text, then one item per line */
   div.warning.qbo-estimate-notice { text-align: left; }
   div.warning.qbo-estimate-notice ul { margin: 6px 0 0; padding-left: 22px; }
   div.warning.qbo-estimate-notice li { margin: 2px 0; }
-  .qbo-estimate-status-rejected { background: #fdecea; color: #b71c1c; }
   .qbo-estimate-edit-link { margin-left: 4px; vertical-align: middle; }
 
   /* Phones: each line becomes a small card (number, product and delete; description; qty, rate, amount and tax) */
@@ -160,3 +154,4 @@
     .qbo-estimate-actions { padding: 10px 14px; }
   }
 </style>
+<%= render partial: 'qbo_estimates/status_styles' %>

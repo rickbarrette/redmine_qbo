@@ -1,12 +1,19 @@
 <% unless estimates.empty? %>
 
+  <%= render partial: 'qbo_estimates/status_styles' %>
+  <div class="qbo-estimate-list">
   <% estimates.sort.reverse.each do |estimate| %>
     <div class="row">
       <%= check_box_tag "estimate_ids[]", estimate.id, false, onchange: "updateLink()", data: { text: "Estimate ##{estimate.doc_number}", new_issue_param: 'issue[estimate_id]' }, class: "estimate-checkbox appointment" %>
       <b><%= link_to "##{estimate.doc_number}", estimate_path(estimate), target: :_blank %></b> <%= estimate.txn_date %>
+      <%# QuickBooks status, cached by the estimate sync (kept current by the webhook) %>
+      <% if estimate.txn_status.present? %>
+        <span class="qbo-estimate-status qbo-estimate-status-<%= estimate.txn_status.downcase %>"><%= estimate.txn_status %></span>
+      <% end %>
       <%= render partial: 'qbo_estimates/estimate_actions', locals: { estimate: estimate } if RedmineQboBilling.writer? %>
     </div>
   <% end %>
+  </div>
 
 <% else %>
   <p><%=t(:label_no_estimates)%>.</p>
