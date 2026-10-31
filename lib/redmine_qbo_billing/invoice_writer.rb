@@ -270,12 +270,7 @@ module RedmineQboBilling
           # Already Converted or Closed is left as QuickBooks set it
           next if estimate.nil? || BILLED_ESTIMATE_STATUSES.include?(estimate.txn_status.to_s)
 
-          update = Quickbooks::Model::Estimate.new
-          update.id = estimate.id
-          update.sync_token = estimate.sync_token
-          update.customer_ref = estimate.customer_ref
-          update.txn_status = 'Closed'
-          service.update(update, sparse: true)
+          service.update(writer.status_update(estimate, 'Closed'), sparse: true)
         end
         EstimateSyncService.new.sync_by_id(id)
       rescue StandardError => e

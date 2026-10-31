@@ -169,6 +169,18 @@ module RedmineQboBilling
     # Statuses an estimate moves from to Accepted when the work starts (issues are created from it)
     ACCEPTABLE_STATUSES = ['', 'Pending'].freeze
 
+    # A sparse update that only changes an estimate's status. QuickBooks still requires the estimate's lines
+    # in it ("At least 1 line item is required"), so they're sent back exactly as QuickBooks returned them.
+    def status_update(estimate, status)
+      update = Quickbooks::Model::Estimate.new
+      update.id = estimate.id
+      update.sync_token = estimate.sync_token
+      update.customer_ref = estimate.customer_ref
+      update.line_items = Array(estimate.line_items)
+      update.txn_status = status
+      update
+    end
+
     AcceptResult = Struct.new(:outcome, :message) do
       def accepted?; outcome == :accepted; end
       def failed?; outcome == :failed; end
@@ -184,11 +196,7 @@ module RedmineQboBilling
         next [:failed, I18n.t(:notice_estimate_not_found)] if estimate.nil?
         next [:unchanged, estimate.txn_status.to_s] unless ACCEPTABLE_STATUSES.include?(estimate.txn_status.to_s)
 
-        update = Quickbooks::Model::Estimate.new
-        update.id = estimate.id
-        update.sync_token = estimate.sync_token
-        update.customer_ref = estimate.customer_ref
-        update.txn_status = 'Accepted'
+        update = status_update(estimate, 'Accepted')
         update.accepted_date = user.today
         update.accepted_by = estimate.customer_ref&.name.presence ||
                              Customer.find_by(id: estimate.customer_ref&.value)&.name
