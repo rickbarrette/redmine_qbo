@@ -13,6 +13,7 @@ class Estimate < QboBaseModel
   has_many :issues
   belongs_to :customer 
   validates_presence_of :doc_number, :id
+  validates :id, uniqueness: true
   self.primary_key = :id
   qbo_sync push: false
 

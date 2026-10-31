@@ -18,6 +18,7 @@ class Customer < QboBaseModel
   has_many :estimates
   has_many :payments
   validates_presence_of :name
+  validates :id, uniqueness: true, allow_nil: true
   before_validation :normalize_phone_numbers
   self.primary_key = :id
   qbo_sync push: true

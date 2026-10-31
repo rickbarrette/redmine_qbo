@@ -201,8 +201,10 @@ class SyncServiceBase
     Rails.logger.info "[#{@entity.name}SyncService] #{msg}"
   end
 
-  # Create or update a local entity record based on the QBO remote data
-  def persist(remote)
+  # Create or update a local entity record based on the QBO remote data. If another sync inserts the same
+  # record at the same moment (e.g. a save in Redmine and QuickBooks' webhook), the database's unique id
+  # refuses the second insert; it's then retried once as an update of the row the other sync created.
+  def persist(remote, retried: false)
     local = @entity.find_or_initialize_by(id: remote.id)
     
     if destroy_local?(remote)
@@ -223,6 +225,12 @@ class SyncServiceBase
       attach_documents(local, remote)
     end
 
+  rescue ActiveRecord::RecordNotUnique, ActiveRecord::RecordInvalid => e
+    if !retried && (e.is_a?(ActiveRecord::RecordNotUnique) || @entity.exists?(id: remote.id))
+      log "#{@entity.name} #{remote.id} was saved by another sync meanwhile; updating it instead"
+      return persist(remote, retried: true)
+    end
+    log "Failed to sync #{@entity.name} #{remote.id}: #{e.message}"
   rescue => e
     log "Failed to sync #{@entity.name} #{remote.id}: #{e.message}"
   end
