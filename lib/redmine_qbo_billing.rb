@@ -43,6 +43,20 @@ module RedmineQboBilling
     []
   end
 
+  # The VIN a new estimate or invoice starts with, from plugins answering
+  #   :qbo_billing_default_vin, { customer:, issues: } => a VIN or nil (e.g. redmine_qbo_vehicles: the work
+  #   orders' vehicle when they share one, else the customer's only vehicle)
+  # issues are the work orders behind the document (e.g. the issues linked to the estimate it's made from).
+  def self.default_vin(customer, issues: [])
+    return nil unless customer
+
+    Redmine::Hook.call_hook(:qbo_billing_default_vin, { customer: customer, issues: Array(issues) })
+                 .flatten.compact.map { |vin| vin.to_s.strip }.reject(&:empty?).first
+  rescue StandardError => e
+    Rails.logger.warn "[RedmineQboBilling] Default VIN failed: #{e.message}"
+    nil
+  end
+
   # True when the user may write estimates
   def self.writer?(user = User.current)
     user.allowed_to?(:write_estimates, nil, global: true)

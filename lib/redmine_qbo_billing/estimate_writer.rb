@@ -36,6 +36,7 @@ module RedmineQboBilling
         customer_name: customer&.name,
         email: customer_email(customer),
         billing_address: customer_address(customer),
+        vin: RedmineQboBilling.default_vin(customer),
         txn_date: user.today.iso8601,
         expiration_date: default_expiration_date(user.today)&.iso8601,
         sales_person: user.name,

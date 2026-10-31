@@ -47,6 +47,7 @@ module RedmineQboBilling
         customer_name: customer&.name,
         email: writer.customer_email(customer),
         billing_address: writer.customer_address(customer),
+        vin: RedmineQboBilling.default_vin(customer),
         txn_date: user.today.iso8601,
         sales_person: user.name,
         customer_memo: Company.invoice_message,
@@ -70,7 +71,10 @@ module RedmineQboBilling
         form.customer_id = source.customer_id
         form.email = source.email.presence || form.email
         form.billing_address = source.billing_address.presence || form.billing_address
-        form.vin = source.vin
+        # The estimate's VIN, or else a plugin's for the estimate's work orders (e.g. their vehicle)
+        form.vin = source.vin.presence ||
+                   RedmineQboBilling.default_vin(customer, issues: Issue.where(estimate_id: source.id.to_s).to_a) ||
+                   form.vin
         form.mileage = source.mileage
         # The estimate's writer sells the job; with no one on the estimate, whoever writes the invoice
         form.sales_person = source.sales_person.presence || user.name
