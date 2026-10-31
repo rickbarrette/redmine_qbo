@@ -548,6 +548,24 @@ $(function () {
       return ids;
     };
 
+    // Pairs imported time with the invoice lines ticked under "Replace these lines": first by description,
+    // since issues created from an estimate take the line's description as their subject and the time names
+    // it ("Install #134: Install Lift Kit" <-> "Install Lift Kit"); what's left is paired in order.
+    // Returns { pairs: [{ time, line }], extraTimes: [...], extraLines: [...] }.
+    var pairTimeWithLines = function (times, lines) {
+      var norm = function (text) { return String(text || '').split('\n')[0].toLowerCase().replace(/\s+/g, ' ').trim(); };
+      var subject = function (activity) { return norm(String(activity.description || '').replace(/^[^\n]*?#\d+:\s*/, '')); };
+      var lineText = function (line) { return norm($(line).find('.qbo-line-description-input').val()); };
+      var freeTimes = times.slice(), freeLines = [], pairs = [];
+      lines.forEach(function (line) {
+        var text = lineText(line);
+        var i = text ? freeTimes.findIndex(function (t) { return subject(t) === text; }) : -1;
+        if (i >= 0) { pairs.push({ time: freeTimes[i], line: line }); freeTimes.splice(i, 1); } else { freeLines.push(line); }
+      });
+      while (freeTimes.length && freeLines.length) pairs.push({ time: freeTimes.shift(), line: freeLines.shift() });
+      return { pairs: pairs, extraTimes: freeTimes, extraLines: freeLines };
+    };
+
     // Rows go after the last filled line, above the spare empty rows
     var insertAfterFilled = function ($rows) {
       var $filled = rows().filter(function () { return !rowIsBlank($(this)); });
@@ -642,15 +660,24 @@ $(function () {
       // Kept so the import can be undone before saving (clones keep what was typed)
       undoState = { rows: rows().clone(), linked: $('#qbo-linked-estimates').children().clone() };
 
-      // Time goes where the first ticked line was; the ticked lines are removed
+      // Each time entry replaces one ticked line, in that line's place (see pairTimeWithLines). Time left over
+      // goes after the last replaced line; ticked lines left over are removed (ticked means replace).
       if (times.length) {
-        var $timeRows = $(times.map(function (activity) {
-          return makeRow($.extend({}, activity, { time_activity_id: activity.id }))[0];
-        }));
-        var $replaced = $('#qbo-import-replace input:checked').map(function () { return $(this).data('row')[0]; });
-        var $anchor = rows().filter(function () { return $replaced.index(this) >= 0; }).first();
-        if ($anchor.length) { $anchor.before($timeRows); } else { insertAfterFilled($timeRows); }
-        $replaced.remove();
+        var ticked = $('#qbo-import-replace input:checked').map(function () { return $(this).data('row')[0]; }).get();
+        ticked = rows().get().filter(function (row) { return ticked.indexOf(row) >= 0; }); // table order
+        var pairing = pairTimeWithLines(times, ticked);
+        var timeRow = function (activity) { return makeRow($.extend({}, activity, { time_activity_id: activity.id })); };
+        var $last = $();
+        pairing.pairs.forEach(function (pair) {
+          var $row = timeRow(pair.time);
+          $(pair.line).replaceWith($row);
+          if (!$last.length || $row.index() > $last.index()) $last = $row;
+        });
+        pairing.extraLines.forEach(function (line) { $(line).remove(); });
+        if (pairing.extraTimes.length) {
+          var $extra = $(pairing.extraTimes.map(function (activity) { return timeRow(activity)[0]; }));
+          if ($last.length) { $last.after($extra); } else { insertAfterFilled($extra); }
+        }
       }
 
       // Each estimate's lines go right after the time for the same issue (e.g. lineitems' "Added from:
