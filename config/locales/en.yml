@@ -269,6 +269,7 @@ en:
   label_estimate_line_already_created: "Already created"
   label_issue_template: "Template"
   label_no_issue_template: "(no template)"
+  notice_estimate_accepted: "Estimate #%{number} is now Accepted in QuickBooks."
   notice_estimate_issues_created:
     one: "1 issue created from the estimate"
     other: "%{count} issues created from the estimate"

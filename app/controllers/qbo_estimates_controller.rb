@@ -96,7 +96,10 @@ class QboEstimatesController < ApplicationController
 
     if created.any?
       Redmine::Hook.call_hook(:qbo_billing_issues_created, { estimate: @estimate, issues: created, params: params })
+      # The work is going ahead: a pending estimate becomes Accepted in QuickBooks
+      accepted = RedmineQboBilling::EstimateWriter.accept(@estimate.id, user: User.current)
       flash[:notice] = l(:notice_estimate_issues_created, count: created.size)
+      flash[:notice] += " #{l(:notice_estimate_accepted, number: @estimate.doc_number)}" if accepted
       redirect_to @return_path
     else
       # Rebuild the fields so the form keeps what was entered

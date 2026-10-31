@@ -166,6 +166,33 @@ module RedmineQboBilling
       end
     end
 
+    # Statuses an estimate moves from to Accepted when the work starts (issues are created from it)
+    ACCEPTABLE_STATUSES = ['', 'Pending'].freeze
+
+    # Marks the estimate Accepted in QuickBooks, dated today, when issues are created from it (the customer
+    # went ahead with the work). Only a pending estimate changes; Accepted, Closed, Converted or Rejected ones
+    # are left as they are. Returns true when it changed. A failure is logged, not raised: the issues stand.
+    def accept(estimate_id, user: User.current)
+      accepted = QboEstimateService.with_service do |service|
+        estimate = service.fetch_by_id(estimate_id)
+        next false if estimate.nil? || !ACCEPTABLE_STATUSES.include?(estimate.txn_status.to_s)
+
+        update = Quickbooks::Model::Estimate.new
+        update.id = estimate.id
+        update.sync_token = estimate.sync_token
+        update.customer_ref = estimate.customer_ref
+        update.txn_status = 'Accepted'
+        update.accepted_date = user.today
+        service.update(update, sparse: true)
+        true
+      end
+      sync_local(Struct.new(:id).new(estimate_id)) if accepted
+      accepted
+    rescue StandardError => e
+      Rails.logger.warn "[RedmineQboBilling] Could not mark estimate #{estimate_id} accepted: #{e.message}"
+      false
+    end
+
     # Emails the estimate; QuickBooks uses its own estimate email template
     def send_email(id, email)
       sent = QboEstimateService.with_service { |service| service.send_estimate(id, email) }
