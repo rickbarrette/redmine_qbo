@@ -79,6 +79,26 @@ module RedmineQboBilling
       }
     end
 
+    # Cost performance index: invoiced hours / spent hours (e.g. 0.85), or nil without spent time. Below
+    # CPI_WARNING (0.8) is poor, below 1 is under, 1 or more is on or over (more billed than worked).
+    CPI_WARNING = 0.8
+
+    def self.cpi(invoice_hours, spent_hours)
+      spent = spent_hours.to_f
+      spent.positive? ? (invoice_hours.to_f / spent).round(2) : nil
+    end
+
+    # :poor (below 0.8), :under (below 1) or :good (1 or more); nil without a CPI
+    def self.cpi_level(cpi)
+      return nil if cpi.nil?
+      return :poor if cpi < CPI_WARNING
+      cpi < 1 ? :under : :good
+    end
+
+    def cpi
+      self.class.cpi(hours[:invoice_hours], hours[:spent_hours])
+    end
+
     # Percentages comparing the figures (nil when there's nothing to compare against)
     def ratios
       {

@@ -142,7 +142,7 @@ Estimates and invoices keep their number, date, customer, total and **man-hours*
 **Business report** in the top menu compares, for a period (this or last month, quarter or year, or custom dates):
 
 * **Sales**: estimates written, invoices written and payments received (totals and counts), invoiced vs. estimated, collected vs. invoiced, and what's still owed on those invoices.
-* **Hours**: estimated hours on estimates, issues' estimated time, invoiced hours on invoices and time spent, with invoiced vs. spent and spent vs. estimated.
+* **Hours**: estimated hours on estimates, issues' estimated time, invoiced hours on invoices and time spent, with spent vs. estimated, and the **cost performance index** (CPI = invoiced hours ÷ spent hours): green at 1.00 or more, yellow below 1, red below 0.80. Each month shows its CPI too.
 * **By month**: every figure month by month, with totals.
 
 Estimates, invoices and payments count by their QuickBooks date. Issues' estimated time counts issues created in the period, leaving out parents so subtasks aren't counted twice. Spent time counts time logged in the period. While estimates, invoices or payments are syncing, the report says so (with how many have been read) and refreshes every 30 seconds; the settings page's Synchronization table shows the same per type. Estimates and invoices synced before these figures were added have no total or hours until a full sync (the report says how many); run one again after changing the labor products/services.

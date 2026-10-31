@@ -91,8 +91,16 @@
         <% end %>
       </tbody>
     </table>
+    <% cpi_badge = lambda do |cpi|
+         level = RedmineQboBilling::BusinessReport.cpi_level(cpi)
+         content_tag(:span, cpi.nil? ? '–' : format('%.2f', cpi), class: "qbo-cpi qbo-cpi-#{level || 'none'}")
+       end %>
+    <p class="qbo-report-cpi">
+      <span class="qbo-cpi-label" title="<%= l(:text_report_cpi) %>"><%= l(:label_report_cpi) %></span>
+      <%= cpi_badge.call(@report.cpi) %>
+      <em class="info"><%= l(:text_report_cpi) %></em>
+    </p>
     <p class="qbo-report-ratios">
-      <%= l(:label_report_invoiced_of_spent) %>: <strong><%= pct.call(ratios[:invoiced_of_spent]) %></strong><br />
       <%= l(:label_report_spent_of_estimated) %>: <strong><%= pct.call(ratios[:spent_of_estimated]) %></strong>
     </p>
   </div>
@@ -111,6 +119,7 @@
         <th><%= l(:label_report_issue_hours) %></th>
         <th><%= l(:label_report_invoice_hours) %></th>
         <th><%= l(:label_report_spent_hours) %></th>
+        <th class="cpi"><%= l(:label_report_cpi_short) %></th>
       </tr>
     </thead>
     <tbody>
@@ -124,6 +133,7 @@
           <td><%= fmt_hours.call(row[:issue_hours]) %></td>
           <td><%= fmt_hours.call(row[:invoice_hours]) %></td>
           <td><%= fmt_hours.call(row[:spent_hours]) %></td>
+          <td class="cpi"><%= cpi_badge.call(RedmineQboBilling::BusinessReport.cpi(row[:invoice_hours], row[:spent_hours])) %></td>
         </tr>
       <% end %>
     </tbody>
@@ -137,6 +147,7 @@
         <td><strong><%= fmt_hours.call(hours[:issue_hours]) %></strong></td>
         <td><strong><%= fmt_hours.call(hours[:invoice_hours]) %></strong></td>
         <td><strong><%= fmt_hours.call(hours[:spent_hours]) %></strong></td>
+        <td class="cpi"><%= cpi_badge.call(@report.cpi) %></td>
       </tr>
     </tfoot>
   </table>
@@ -154,6 +165,15 @@
   .qbo-bar-payments, .qbo-bar-spent_hours { background: #5aa05a; }
   .qbo-bar-issue_hours { background: #9b7fc0; }
   .qbo-report-ratios { margin: 8px 4px; line-height: 1.7; }
+  .qbo-report-cpi { margin: 10px 4px 4px; }
+  .qbo-report-cpi .qbo-cpi-label { font-weight: 600; margin-right: 6px; }
+  .qbo-report-cpi .qbo-cpi { font-size: 1.3em; padding: 3px 12px; }
+  .qbo-report-cpi em.info { display: block; margin-top: 4px; }
+  .qbo-cpi { display: inline-block; font-weight: 700; padding: 1px 8px; border-radius: 10px; background: #eceef1; color: #393a3d; }
+  .qbo-cpi-poor { background: #fdecea; color: #b71c1c; }
+  .qbo-cpi-under { background: #fff4d6; color: #8a6100; }
+  .qbo-cpi-good { background: #e6f4e4; color: #108000; }
+  table.qbo-report-months td.cpi, table.qbo-report-months th.cpi { text-align: center; }
   .qbo-report-range { color: #666; margin: 4px 0 10px; }
   .qbo-report-syncing ul { display: inline-block; text-align: left; margin: 6px 0 0; }
   table.qbo-report-months td, table.qbo-report-months th { text-align: right; white-space: nowrap; }
