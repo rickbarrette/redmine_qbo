@@ -155,7 +155,8 @@ class QboEstimatesController < ApplicationController
     end
     return render_404 unless @estimate
 
-    @defaults = issue_defaults
+    # Values plugins' fields posted with the form (e.g. redmine_qbo_vehicles' vehicle) override their defaults
+    @defaults = issue_defaults.merge(submitted_plugin_fields)
     @builder = RedmineQboBilling::EstimateIssueBuilder.new(@estimate, defaults: @defaults)
     @return_path = @defaults[:return_path].presence || edit_qbo_estimate_path(@estimate.id)
     @return_label = @defaults[:return_label].presence || "#{l(:label_estimate)} ##{@estimate.doc_number}"
@@ -183,6 +184,15 @@ class QboEstimatesController < ApplicationController
   def issue_defaults
     results = Redmine::Hook.call_hook(:qbo_billing_issue_defaults, { estimate: @estimate, params: params })
     (results.detect { |r| r.is_a?(Hash) && r.any? } || {}).symbolize_keys
+  end
+
+  # Plugins' own fields on the preview form (issue_plugin_fields[...], drawn by :view_qbo_estimate_issues_form),
+  # only when the form was posted: { vehicle_id: "5" }
+  def submitted_plugin_fields
+    return {} unless request.post?
+
+    values = params[:issue_plugin_fields]
+    values.respond_to?(:to_unsafe_h) ? values.to_unsafe_h.to_h.transform_keys(&:to_sym).transform_values(&:to_s) : {}
   end
 
   # The shared custom field values from the preview form: { custom_field_id => value }

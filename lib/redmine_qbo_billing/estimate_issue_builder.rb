@@ -24,6 +24,9 @@ module RedmineQboBilling
   #     redmine_qbo_calendar's vehicle_id, when the page is opened from an appointment)
   #   :qbo_billing_build_issue, { issue:, estimate:, defaults: } for each new issue before it's saved, to set
   #     plugins' own fields (e.g. redmine_qbo_vehicles sets the vehicle)
+  #   :view_qbo_estimate_issues_form, { estimate:, defaults:, project: } (view hook) draws plugins' fields on
+  #     the page, applied to every issue; posted as issue_plugin_fields[name], they reach :qbo_billing_build_issue
+  #     in defaults (e.g. redmine_qbo_vehicles' Vehicle, preselected from the estimate's VIN)
   #   :qbo_billing_issues_created, { estimate:, issues:, params: } after issues are created
   class EstimateIssueBuilder
     include Redmine::I18n

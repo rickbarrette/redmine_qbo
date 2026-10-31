@@ -136,12 +136,15 @@
       </tbody>
     </table>
 
-    <%# Custom fields for the chosen trackers, entered once and applied to every issue that uses them %>
-    <% if @field_set&.any? %>
+    <%# Fields entered once and applied to every issue: plugins' own (e.g. redmine_qbo_vehicles' vehicle, posted as
+        issue_plugin_fields[...]) and the custom fields for the chosen trackers %>
+    <% plugin_fields = call_hook(:view_qbo_estimate_issues_form, { estimate: @estimate, defaults: @defaults, project: @target_project }) %>
+    <% if @field_set&.any? || plugin_fields.present? %>
       <fieldset class="box tabular estimate-issue-fields" id="estimate-issue-fields">
         <legend><%= l(:label_estimate_issue_fields) %></legend>
         <p class="estimate-issue-fields-info"><em class="info"><%= l(:text_estimate_issue_fields_info) %></em></p>
-        <% @field_set.fields.each do |field| %>
+        <%= plugin_fields %>
+        <% Array(@field_set&.fields).each do |field| %>
           <p class="estimate-issue-field"
              data-tracker-ids="<%= field.tracker_ids.join(',') %>"
              data-required-tracker-ids="<%= field.required_tracker_ids.join(',') %>">
