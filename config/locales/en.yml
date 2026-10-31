@@ -270,6 +270,8 @@ en:
   label_issue_template: "Template"
   label_no_issue_template: "(no template)"
   notice_estimate_accepted: "Estimate #%{number} is now Accepted in QuickBooks."
+  warning_estimate_not_accepted: "The issues were created, but estimate #%{number} couldn't be marked Accepted in QuickBooks: %{message}"
+  error_estimate_not_accepted: "QuickBooks kept its status as %{status}"
   notice_estimate_issues_created:
     one: "1 issue created from the estimate"
     other: "%{count} issues created from the estimate"

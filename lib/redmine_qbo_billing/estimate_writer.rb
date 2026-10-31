@@ -169,13 +169,20 @@ module RedmineQboBilling
     # Statuses an estimate moves from to Accepted when the work starts (issues are created from it)
     ACCEPTABLE_STATUSES = ['', 'Pending'].freeze
 
-    # Marks the estimate Accepted in QuickBooks, dated today, when issues are created from it (the customer
-    # went ahead with the work). Only a pending estimate changes; Accepted, Closed, Converted or Rejected ones
-    # are left as they are. Returns true when it changed. A failure is logged, not raised: the issues stand.
+    AcceptResult = Struct.new(:outcome, :message) do
+      def accepted?; outcome == :accepted; end
+      def failed?; outcome == :failed; end
+    end
+
+    # Marks the estimate Accepted in QuickBooks when issues are created from it (the customer went ahead with
+    # the work), accepted today by the customer, as QuickBooks' own Accept does. Only a pending estimate
+    # changes; Accepted, Closed, Converted or Rejected ones are left as they are. Returns an AcceptResult:
+    # :accepted, :unchanged, or :failed with QuickBooks' message (never raised: the issues stand).
     def accept(estimate_id, user: User.current)
-      accepted = QboEstimateService.with_service do |service|
+      outcome, status = QboEstimateService.with_service do |service|
         estimate = service.fetch_by_id(estimate_id)
-        next false if estimate.nil? || !ACCEPTABLE_STATUSES.include?(estimate.txn_status.to_s)
+        next [:failed, I18n.t(:notice_estimate_not_found)] if estimate.nil?
+        next [:unchanged, estimate.txn_status.to_s] unless ACCEPTABLE_STATUSES.include?(estimate.txn_status.to_s)
 
         update = Quickbooks::Model::Estimate.new
         update.id = estimate.id
@@ -183,14 +190,26 @@ module RedmineQboBilling
         update.customer_ref = estimate.customer_ref
         update.txn_status = 'Accepted'
         update.accepted_date = user.today
-        service.update(update, sparse: true)
-        true
+        update.accepted_by = estimate.customer_ref&.name.presence ||
+                             Customer.find_by(id: estimate.customer_ref&.value)&.name
+        saved = service.update(update, sparse: true)
+        saved&.txn_status.to_s == 'Accepted' ? [:accepted, nil] : [:failed, saved&.txn_status.to_s.presence || 'no answer']
       end
-      sync_local(Struct.new(:id).new(estimate_id)) if accepted
-      accepted
+
+      if outcome == :accepted
+        sync_local(Struct.new(:id).new(estimate_id))
+        AcceptResult.new(:accepted, nil)
+      elsif outcome == :unchanged
+        AcceptResult.new(:unchanged, status)
+      else
+        message = I18n.t(:error_estimate_not_accepted, status: status)
+        Rails.logger.warn "[RedmineQboBilling] Estimate #{estimate_id}: #{message}"
+        AcceptResult.new(:failed, message)
+      end
     rescue StandardError => e
-      Rails.logger.warn "[RedmineQboBilling] Could not mark estimate #{estimate_id} accepted: #{e.message}"
-      false
+      message = e.respond_to?(:detail) && e.detail.present? ? "#{e.message}: #{e.detail}" : e.message
+      Rails.logger.warn "[RedmineQboBilling] Could not mark estimate #{estimate_id} accepted: #{message}"
+      AcceptResult.new(:failed, message)
     end
 
     # Emails the estimate; QuickBooks uses its own estimate email template

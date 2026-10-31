@@ -99,7 +99,8 @@ class QboEstimatesController < ApplicationController
       # The work is going ahead: a pending estimate becomes Accepted in QuickBooks
       accepted = RedmineQboBilling::EstimateWriter.accept(@estimate.id, user: User.current)
       flash[:notice] = l(:notice_estimate_issues_created, count: created.size)
-      flash[:notice] += " #{l(:notice_estimate_accepted, number: @estimate.doc_number)}" if accepted
+      flash[:notice] += " #{l(:notice_estimate_accepted, number: @estimate.doc_number)}" if accepted.accepted?
+      flash[:warning] = l(:warning_estimate_not_accepted, number: @estimate.doc_number, message: accepted.message) if accepted.failed?
       redirect_to @return_path
     else
       # Rebuild the fields so the form keeps what was entered

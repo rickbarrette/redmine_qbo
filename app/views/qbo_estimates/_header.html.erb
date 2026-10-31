@@ -18,7 +18,7 @@
     <% if invoice && form.locked == :paid %>
       <% fully_paid = form.balance.to_d.zero? %>
       <span class="qbo-estimate-status qbo-estimate-status-<%= fully_paid ? 'closed' : 'accepted' %>"><%= l(fully_paid ? :label_invoice_paid : :label_invoice_partially_paid) %></span>
-    <% elsif !invoice && form.txn_status.present? && form.txn_status != 'Pending' %>
+    <% elsif !invoice && form.txn_status.present? %>
       <span class="qbo-estimate-status qbo-estimate-status-<%= form.txn_status.downcase %>"><%= form.txn_status %></span>
     <% end %>
   <% else %>
