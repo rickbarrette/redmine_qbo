@@ -1,0 +1,163 @@
+<%# Inline so the page never depends on precompiled plugin assets %>
+<style>
+  .qbo-estimate { --qbo-border: #babec5; --qbo-muted: #6b6c72; --qbo-green: #2ca01c; --qbo-green-dark: #108000; --qbo-bar: #393a3d; }
+  .qbo-estimate-sheet { border: 1px solid #e3e5e8; border-radius: 4px; background: #fff; padding: 20px 24px 24px; margin: 0 0 0; min-width: 0; }
+  .qbo-estimate-sheet[disabled] { opacity: .75; }
+  .qbo-estimate-sheet[disabled] .qbo-estimate-line-buttons, .qbo-estimate-sheet[disabled] .qbo-line-handle svg,
+  .qbo-estimate-sheet[disabled] .qbo-line-remove-button { display: none; }
+  .qbo-estimate-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
+  .qbo-estimate-row { display: flex; flex-wrap: wrap; gap: 16px 20px; align-items: flex-start; margin-bottom: 16px; }
+  .qbo-field { display: flex; flex-direction: column; gap: 4px; }
+  .qbo-field label, .qbo-field .qbo-label { font-size: 0.9em; font-weight: 600; color: #393a3d; }
+  .qbo-field input[type=text], .qbo-field input[type=date], .qbo-field textarea {
+    border: 1px solid var(--qbo-border); border-radius: 4px; padding: 6px 8px; font-size: 1em; box-sizing: border-box; background: #fff;
+    font-family: inherit; height: auto;
+  }
+  .qbo-field input[type=text], .qbo-field input[type=date] { height: 34px; }
+  .qbo-field input:focus, .qbo-field textarea:focus, .qbo-estimate-lines input:focus, .qbo-estimate-lines textarea:focus {
+    outline: none; border-color: var(--qbo-green); box-shadow: 0 0 0 2px rgba(44,160,28,.25);
+  }
+  .qbo-field input[readonly], .qbo-field input[disabled] { background: #f4f5f8; color: #393a3d; }
+  .qbo-field em.info { font-size: .85em; max-width: 220px; }
+  .qbo-field-customer input { width: 280px; }
+  .qbo-field-email input { width: 300px; }
+  .qbo-field-date input { width: 150px; }
+  .qbo-field-number input { width: 160px; }
+  .qbo-field-sales-person input { width: 200px; }
+  .qbo-field-vin input { width: 220px; font-family: monospace; text-transform: uppercase; }
+  .qbo-field-mileage input { width: 120px; }
+  .qbo-field-refresh { align-self: flex-end; padding-bottom: 6px; max-width: 420px; }
+  .qbo-address { min-width: 220px; min-height: 4.5em; white-space: pre-line; color: #393a3d; padding: 6px 0; line-height: 1.4; }
+  .qbo-estimate-amount { text-align: right; flex-shrink: 0; }
+  .qbo-estimate-amount-label { display: block; font-size: .8em; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--qbo-muted); }
+  .qbo-estimate-amount-value { display: block; font-size: 2.6em; font-weight: 700; color: #393a3d; line-height: 1.1; font-variant-numeric: tabular-nums; }
+
+  .qbo-estimate-lines-wrap { overflow-x: auto; margin-top: 8px; }
+  .qbo-estimate-lines { width: 100%; border-collapse: collapse; min-width: 820px; }
+  .qbo-estimate-lines th { font-size: .78em; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--qbo-muted);
+    text-align: left; padding: 8px 6px; border-bottom: 2px solid #d4d7dc; white-space: nowrap; }
+  .qbo-estimate-lines td { padding: 6px; border-bottom: 1px solid #e3e5e8; vertical-align: top; }
+  .qbo-estimate-lines input[type=text], .qbo-estimate-lines textarea {
+    width: 100%; box-sizing: border-box; border: 1px solid transparent; border-radius: 3px; padding: 5px 6px; font-size: 1em; background: transparent; font-family: inherit;
+  }
+  .qbo-estimate-lines tr:hover input[type=text], .qbo-estimate-lines tr:hover textarea,
+  .qbo-estimate-lines tr:focus-within input[type=text], .qbo-estimate-lines tr:focus-within textarea { border-color: var(--qbo-border); background: #fff; }
+  .qbo-estimate-lines textarea { resize: none; min-height: 2.1em; line-height: 1.35; overflow: hidden; }
+  .qbo-estimate-lines .qbo-line-handle { width: 18px; cursor: grab; color: #8d9096; padding-top: 10px; }
+  .qbo-estimate-lines .qbo-line-number { width: 24px; color: var(--qbo-muted); padding-top: 11px; text-align: right; }
+  .qbo-estimate-lines .qbo-line-item { width: 22%; }
+  .qbo-estimate-lines .qbo-line-qty { width: 70px; }
+  .qbo-estimate-lines .qbo-line-rate, .qbo-estimate-lines .qbo-line-amount { width: 100px; }
+  .qbo-estimate-lines td.qbo-line-qty input, .qbo-estimate-lines td.qbo-line-rate input, .qbo-estimate-lines td.qbo-line-amount input { text-align: right; font-variant-numeric: tabular-nums; }
+  .qbo-estimate-lines th.qbo-line-qty, .qbo-estimate-lines th.qbo-line-rate, .qbo-estimate-lines th.qbo-line-amount { text-align: right; }
+  .qbo-estimate-lines .qbo-line-tax { width: 40px; text-align: center; padding-top: 11px; }
+  .qbo-estimate-lines .qbo-line-remove { width: 28px; padding-top: 8px; }
+  .qbo-line-remove-button { border: 0; background: none; cursor: pointer; color: #8d9096; padding: 2px; visibility: hidden; }
+  .qbo-estimate-lines tr:hover .qbo-line-remove-button, .qbo-estimate-lines tr:focus-within .qbo-line-remove-button { visibility: visible; }
+  .qbo-line-remove-button:hover { color: #c00; }
+  .qbo-line.qbo-line-unmatched .qbo-line-item-name { border-color: #d52b1e !important; background: #fff4f3 !important; }
+  .qbo-line-subtotal td { background: #f4f5f8; }
+  .qbo-estimate-lines td.qbo-line-subtotal-label { text-align: right; font-weight: 600; padding-top: 11px; color: #393a3d; }
+  .qbo-estimate-lines td.qbo-line-subtotal-amount { text-align: right; font-weight: 600; padding: 11px 12px 6px 6px; font-variant-numeric: tabular-nums; }
+  .qbo-line.ui-sortable-helper { background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.2); display: table; }
+  .qbo-line-placeholder td { background: #eef7ec; height: 2.4em; }
+  .ui-autocomplete .qbo-item-option-meta { color: var(--qbo-muted, #6b6c72); font-size: .85em; }
+  .ui-autocomplete .qbo-item-option-price { float: right; margin-left: 12px; font-variant-numeric: tabular-nums; }
+
+  /* Invoice lines that bill a QuickBooks time activity */
+  .qbo-estimate .qbo-button[hidden] { display: none; }
+  .qbo-line-time-badge { display: none; }
+  .qbo-estimate-lines td.qbo-line-description { position: relative; }
+  .qbo-line-time .qbo-line-time-badge { display: block; position: absolute; top: 0; right: 8px; z-index: 1; font-size: .65em; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .04em; background: #e8eefa; color: #0d47a1; border-radius: 8px; padding: 0 6px; pointer-events: none; }
+
+  /* Invoice import panel */
+  .qbo-import-panel { border: 1px solid #d4d7dc; border-radius: 4px; background: #f8f9fa; padding: 12px 16px; margin: 0 0 20px; }
+  .qbo-import-panel[hidden] { display: none; }
+  .qbo-import-panel h4 { margin: 4px 0 8px; font-size: .95em; }
+  .qbo-import-columns { display: flex; gap: 24px; flex-wrap: wrap; }
+  .qbo-import-time { flex: 2 1 480px; min-width: 0; }
+  .qbo-import-replace { flex: 1 1 260px; }
+  .qbo-import-replace ul { list-style: none; margin: 0; padding: 0; max-height: 260px; overflow: auto; }
+  .qbo-import-replace li { padding: 3px 0; }
+  .qbo-import-table { width: 100%; border-collapse: collapse; background: #fff; }
+  .qbo-import-table th { font-size: .78em; text-transform: uppercase; color: var(--qbo-muted); text-align: left; padding: 6px; border-bottom: 1px solid #d4d7dc; }
+  .qbo-import-table td { padding: 6px; border-bottom: 1px solid #eceef1; vertical-align: top; }
+  .qbo-import-table .qbo-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .qbo-import-table td.qbo-import-none { color: var(--qbo-muted); font-style: italic; }
+  .qbo-import-estimates { margin-top: 14px; }
+  .qbo-import-buttons { display: flex; gap: 8px; align-items: center; margin: 14px 0 0; }
+  .qbo-import-status { color: var(--qbo-muted); }
+
+  .qbo-estimate-line-buttons { margin: 12px 0 20px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .qbo-estimate-bottom { display: flex; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
+  .qbo-estimate-notes { display: flex; flex-direction: column; gap: 14px; flex: 1 1 320px; max-width: 460px; }
+  .qbo-estimate-notes textarea { width: 100%; }
+  .qbo-estimate-totals { border-collapse: collapse; min-width: 300px; align-self: flex-start; font-variant-numeric: tabular-nums; }
+  .qbo-estimate-totals th { text-align: right; font-weight: normal; color: #393a3d; padding: 6px 16px 6px 0; }
+  .qbo-estimate-totals td { text-align: right; padding: 6px 0; min-width: 110px; }
+  .qbo-estimate-totals #qbo-estimate-tax.qbo-pending { color: var(--qbo-muted); font-style: italic; font-size: .9em; }
+  .qbo-estimate-totals .qbo-estimate-total th, .qbo-estimate-totals .qbo-estimate-total td { font-weight: 700; font-size: 1.15em; border-top: 1px solid #d4d7dc; padding-top: 10px; }
+
+  .qbo-estimate .qbo-button { display: inline-flex; align-items: center; box-sizing: border-box; height: 34px; margin: 0;
+    border: 1px solid #8d9096; background: #fff; color: #393a3d; border-radius: 4px; padding: 0 16px;
+    font-size: 1em; font-family: inherit; font-weight: 600; cursor: pointer; text-decoration: none; line-height: 1; white-space: nowrap; }
+  .qbo-estimate .qbo-button:hover { background: #f4f5f8; text-decoration: none; }
+  .qbo-estimate-actions { position: sticky; bottom: 0; z-index: 5; display: flex; justify-content: space-between; align-items: center;
+    background: var(--qbo-bar); padding: 10px 24px; border-radius: 0 0 4px 4px; margin-top: 0; }
+  .qbo-estimate-actions-save { display: flex; gap: 8px; }
+  .qbo-estimate .qbo-button-dark { background: transparent; color: #fff; border-color: #fff; }
+  .qbo-estimate .qbo-button-dark:hover { background: rgba(255,255,255,.12); color: #fff; }
+  .qbo-estimate-actions a.qbo-button-dark, .qbo-estimate-actions a.qbo-button-dark:hover { color: #fff; }
+  .qbo-estimate .qbo-button-primary { background: var(--qbo-green); border-color: var(--qbo-green); color: #fff; }
+  .qbo-estimate .qbo-button-primary:hover { background: var(--qbo-green-dark); border-color: var(--qbo-green-dark); color: #fff; }
+
+  .qbo-estimate-status { display: inline-block; font-size: .6em; font-weight: 600; vertical-align: middle; padding: 2px 8px; border-radius: 10px;
+    background: #eceef1; color: #393a3d; margin-left: 6px; }
+  .qbo-estimate-status-sent { background: #e6f4e4; color: #108000; }
+  .qbo-estimate-status-accepted { background: #e6f4e4; color: #108000; }
+  .qbo-estimate-status-closed, .qbo-estimate-status-converted { background: #e8eefa; color: #0d47a1; }
+  /* Warnings with a list (linked issues, invoices): the text, then one item per line */
+  div.warning.qbo-estimate-notice { text-align: left; }
+  div.warning.qbo-estimate-notice ul { margin: 6px 0 0; padding-left: 22px; }
+  div.warning.qbo-estimate-notice li { margin: 2px 0; }
+  .qbo-estimate-status-rejected { background: #fdecea; color: #b71c1c; }
+  .qbo-estimate-edit-link { margin-left: 4px; vertical-align: middle; }
+
+  /* Phones: each line becomes a small card (number, product and delete; description; qty, rate, amount and tax) */
+  @media (max-width: 699px) {
+    .qbo-estimate-lines { min-width: 0; }
+    .qbo-estimate-lines thead { display: none; }
+    .qbo-estimate-lines tr.qbo-line { display: grid; grid-template-columns: 24px 1fr 1fr 1fr 44px; gap: 4px 8px; padding: 10px 0; border-bottom: 1px solid #d4d7dc; }
+    .qbo-estimate-lines tr.qbo-line td { display: block; border: 0; padding: 0; width: auto; }
+    .qbo-estimate-lines td[data-label]::before { content: attr(data-label); display: block; font-size: .75em; font-weight: 600; text-transform: uppercase; color: var(--qbo-muted); margin-bottom: 2px; }
+    .qbo-estimate-lines tr.qbo-line td.qbo-line-handle { display: none; }
+    .qbo-estimate-lines td.qbo-line-number { grid-column: 1; grid-row: 1; padding-top: 22px; text-align: left; }
+    .qbo-estimate-lines td.qbo-line-item { grid-column: 2 / 5; grid-row: 1; }
+    .qbo-estimate-lines td.qbo-line-remove { grid-column: 5; grid-row: 1; padding-top: 18px; text-align: center; }
+    .qbo-estimate-lines td.qbo-line-description { grid-column: 2 / 6; grid-row: 2; }
+    .qbo-estimate-lines td.qbo-line-qty { grid-column: 2; grid-row: 3; }
+    .qbo-estimate-lines td.qbo-line-rate { grid-column: 3; grid-row: 3; }
+    .qbo-estimate-lines td.qbo-line-amount { grid-column: 4; grid-row: 3; }
+    .qbo-estimate-lines td.qbo-line-tax { grid-column: 5; grid-row: 3; text-align: center; }
+    .qbo-estimate-lines td.qbo-line-tax input { margin-top: 8px; }
+    .qbo-estimate-lines tr.qbo-line-subtotal { background: #f4f5f8; }
+    .qbo-estimate-lines tr.qbo-line-subtotal td.qbo-line-subtotal-label { grid-column: 2 / 4; grid-row: 1; padding-top: 4px; }
+    .qbo-estimate-lines tr.qbo-line-subtotal td.qbo-line-subtotal-amount { grid-column: 4; grid-row: 1; padding: 4px 0 0; }
+    .qbo-estimate-lines tr.qbo-line-subtotal td.qbo-line-number { padding-top: 4px; }
+    .qbo-estimate-lines tr.qbo-line-subtotal td.qbo-line-remove { padding-top: 0; }
+    .qbo-estimate-lines tr.qbo-line-subtotal td.qbo-line-tax { display: none; }
+    .qbo-estimate-lines input[type=text], .qbo-estimate-lines textarea { border-color: var(--qbo-border); background: #fff; }
+    .qbo-line-remove-button { visibility: visible; }
+  }
+
+  @media (max-width: 899px) {
+    .qbo-estimate-sheet { padding: 14px; }
+    .qbo-estimate-top { flex-direction: column-reverse; gap: 8px; }
+    .qbo-estimate-amount { text-align: left; }
+    .qbo-field-customer input, .qbo-field-email input { width: 100%; }
+    .qbo-field-customer, .qbo-field-email { flex: 1 1 100%; }
+    .qbo-estimate-totals { width: 100%; }
+    .qbo-estimate-actions { padding: 10px 14px; }
+  }
+</style>

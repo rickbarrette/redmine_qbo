@@ -1,0 +1,38 @@
+<%# One row of the line table. key is the row's params key; rows are posted in table order. %>
+<% name = "estimate[lines][#{key}]" %>
+<tr class="qbo-line<%= ' qbo-line-unmatched' if line.unmatched_item? %><%= ' qbo-line-time' if line.time_activity_id.present? %>">
+  <td class="qbo-line-handle" title="<%= l(:label_drag_to_reorder) %>"><%= sprite_icon('reorder') %></td>
+  <td class="qbo-line-number"><%= number %></td>
+  <td class="qbo-line-item" data-label="<%= l(:label_product_service) %>">
+    <%= hidden_field_tag "#{name}[id]", line.id, id: nil %>
+    <%= hidden_field_tag "#{name}[item_id]", line.item_id, id: nil, class: 'qbo-line-item-id' %>
+    <%# Invoices: the QuickBooks time activity this line bills %>
+    <%= hidden_field_tag "#{name}[time_activity_id]", line.time_activity_id, id: nil, class: 'qbo-line-time-id' %>
+    <%= text_field_tag "#{name}[item_name]", line.item_name, id: nil, class: 'qbo-line-item-name',
+                       autocomplete: 'off', aria: { label: l(:label_product_service) } %>
+  </td>
+  <td class="qbo-line-description" data-label="<%= l(:field_description) %>">
+    <span class="qbo-line-time-badge" title="<%= l(:text_line_bills_time) %>"><%= l(:label_time_badge) %></span>
+    <%= text_area_tag "#{name}[description]", line.description, id: nil, rows: 1, class: 'qbo-line-description-input',
+                      aria: { label: l(:field_description) } %>
+  </td>
+  <td class="qbo-line-qty" data-label="<%= l(:label_qty) %>">
+    <%= text_field_tag "#{name}[quantity]", line.quantity, id: nil, class: 'qbo-line-qty-input', inputmode: 'decimal',
+                       autocomplete: 'off', aria: { label: l(:label_qty) } %>
+  </td>
+  <td class="qbo-line-rate" data-label="<%= l(:label_rate) %>">
+    <%= text_field_tag "#{name}[rate]", line.rate, id: nil, class: 'qbo-line-rate-input', inputmode: 'decimal',
+                       autocomplete: 'off', aria: { label: l(:label_rate) } %>
+  </td>
+  <td class="qbo-line-amount" data-label="<%= l(:label_amount) %>">
+    <%# Typing an amount works out the rate, like QuickBooks; only qty and rate are posted %>
+    <input type="text" class="qbo-line-amount-input" inputmode="decimal" autocomplete="off" aria-label="<%= l(:label_amount) %>">
+  </td>
+  <td class="qbo-line-tax" data-label="<%= l(:label_tax) %>">
+    <%= hidden_field_tag "#{name}[taxable]", '0', id: nil %>
+    <%= check_box_tag "#{name}[taxable]", '1', line.taxable?, id: nil, class: 'qbo-line-taxable', aria: { label: l(:label_tax) } %>
+  </td>
+  <td class="qbo-line-remove">
+    <button type="button" class="qbo-line-remove-button" title="<%= l(:button_delete) %>"><%= sprite_icon('del') %></button>
+  </td>
+</tr>

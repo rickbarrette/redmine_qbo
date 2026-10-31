@@ -1,0 +1,5 @@
+<%# Invoices with a payment applied are read-only, so they get a View link instead of Edit %>
+<% paid = invoice.balance && invoice.total_amount && invoice.balance.to_d < invoice.total_amount.to_d %>
+<%= link_to sprite_icon(paid ? 'zoom-in' : 'edit', l(paid ? :button_view_invoice : :button_edit)), edit_qbo_invoice_path(invoice.id),
+            class: "icon-only #{paid ? 'icon-zoom-in' : 'icon-edit'} qbo-estimate-edit-link",
+            title: l(paid ? :button_view_invoice : :button_edit_invoice) %>

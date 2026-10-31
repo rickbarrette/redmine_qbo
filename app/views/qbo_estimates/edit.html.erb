@@ -1,0 +1,26 @@
+<% html_title "#{l(:label_estimate)} ##{@form.doc_number}" %>
+
+<div class="contextual">
+  <%# Plugins add estimate actions here (e.g. redmine_qbo_calendar's Add appointment) %>
+  <%= call_hook :view_qbo_estimate_contextual, { estimate_id: @form.id, customer_id: @form.customer_id, vin: @form.vin, doc_number: @form.doc_number } %>
+  <%# An estimate is billed once: no Create invoice once it's on an invoice, closed or rejected %>
+  <% if RedmineQboBilling.invoice_writer? && Array(@form.invoiced_on).empty? && !%w[Converted Closed Rejected].include?(@form.txn_status.to_s) %>
+    <%= link_to sprite_icon('document', l(:button_create_invoice)), new_qbo_invoice_path(estimate_id: @form.id), class: 'icon icon-document' %>
+  <% end %>
+  <% if User.current.allowed_to?(:create_estimate_issues, nil, global: true) %>
+    <%= link_to sprite_icon('issue', l(:button_create_estimate_issues)), issues_preview_qbo_estimate_path(@form.id), class: 'icon icon-issue' %>
+  <% end %>
+  <%= link_to sprite_icon('copy', l(:button_duplicate)), new_qbo_estimate_path(duplicate: @form.id), class: 'icon icon-copy' %>
+  <%= link_to sprite_icon('application-pdf', l(:label_estimate_pdf)), estimate_path(@form.id), class: 'icon icon-pdf', target: :_blank %>
+  <% if RedmineQboBilling.sender? && @form.email.present? %>
+    <%= link_to sprite_icon('email', l(:button_email_estimate)), send_email_qbo_estimate_path(@form.id, email: @form.email),
+                method: :post, class: 'icon icon-email',
+                data: { confirm: l(:text_email_estimate_confirmation, number: @form.doc_number, email: @form.email) } %>
+  <% end %>
+  <%= link_to sprite_icon('link', l(:button_open_in_quickbooks)),
+              "https://#{RedmineQbo.sandbox_mode? ? 'sandbox' : 'app'}.qbo.intuit.com/app/estimate?txnId=#{@form.id}",
+              class: 'icon icon-link', target: :_blank, rel: 'noopener' %>
+</div>
+
+<%= render partial: 'qbo_estimates/header', locals: { form: @form } %>
+<%= render partial: 'qbo_estimates/form', locals: { form: @form } %>

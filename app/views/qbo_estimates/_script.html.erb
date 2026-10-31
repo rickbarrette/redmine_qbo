@@ -1,0 +1,593 @@
+<%# Inline so the page never depends on precompiled plugin assets %>
+<%= javascript_tag do %>
+$(function () {
+  var $form = $('#qbo-estimate-form');
+  if (!$form.length) return;
+
+  var $tbody = $('#qbo-estimate-lines tbody');
+  var template = document.getElementById('qbo-estimate-line-template').innerHTML;
+  var subtotalTemplate = document.getElementById('qbo-estimate-subtotal-template').innerHTML;
+  var money = new Intl.NumberFormat(<%= raw (current_language.to_s.presence || 'en').to_json %>, { style: 'currency', currency: 'USD' });
+  var savedSubtotal = $form.data('savedSubtotal') === '' ? null : parseFloat($form.data('savedSubtotal'));
+  var savedTax = $form.data('savedTax') === '' ? null : parseFloat($form.data('savedTax'));
+  // Discounts are kept from QuickBooks as they are; QuickBooks works out a percent discount again on save
+  var discount = $form.data('discount') === '' ? 0 : parseFloat($form.data('discount'));
+  var locked = $form.find('.qbo-estimate-sheet').prop('disabled');
+  // Row keys must be digits: Rails' strong parameters only keep a hash of rows when every key is a number
+  var nextKey = Date.now();
+  var dirty = false;
+
+  // ---- numbers ----
+  function parseNumber(value) {
+    var text = String(value == null ? '' : value).replace(/[$,\s]/g, '');
+    if (text === '') return null;
+    var n = Number(text);
+    return isFinite(n) ? n : NaN;
+  }
+  function round(n, places) { var f = Math.pow(10, places); return Math.round(n * f) / f; }
+  function plain(n, places) { return String(round(n, places)); }
+
+  // ---- rows ----
+  function rows() { return $tbody.children('tr.qbo-line'); }
+
+  function isSubtotal($row) { return $row.hasClass('qbo-line-subtotal'); }
+
+  function rowIsBlank($row) {
+    if (isSubtotal($row)) return false;
+    return !$row.find('.qbo-line-item-id').val() && !$row.find('.qbo-line-item-name').val().trim() &&
+           !$row.find('.qbo-line-description-input').val().trim() && !$row.find('.qbo-line-rate-input').val().trim();
+  }
+
+  function addRow() {
+    var $row = $(template.replace(/__KEY__/g, String(nextKey++)));
+    $tbody.append($row);
+    setupRow($row);
+    renumber();
+    return $row;
+  }
+
+  // QuickBooks keeps a spare empty line at the bottom; filling it adds another
+  function ensureSpareRow() {
+    var $last = rows().last();
+    if (!$last.length || !rowIsBlank($last)) addRow();
+  }
+
+  function renumber() {
+    rows().each(function (i) { $(this).find('.qbo-line-number').text(i + 1); });
+  }
+
+  function autoGrow(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = (textarea.scrollHeight + 2) + 'px';
+  }
+
+  // Works out the line amount from qty x rate (qty defaults to 1, like QuickBooks)
+  function lineAmount($row) {
+    var rate = parseNumber($row.find('.qbo-line-rate-input').val());
+    if (rate === null || isNaN(rate)) return null;
+    var qty = parseNumber($row.find('.qbo-line-qty-input').val());
+    if (qty === null) qty = 1;
+    if (isNaN(qty)) return null;
+    return round(qty * rate, 2);
+  }
+
+  function recalc() {
+    var subtotal = 0, taxable = 0, section = 0;
+    rows().each(function () {
+      var $row = $(this);
+      // A subtotal row totals the lines since the previous subtotal
+      if (isSubtotal($row)) {
+        $row.find('.qbo-line-subtotal-amount').text(money.format(round(section, 2)));
+        section = 0;
+        return;
+      }
+      var amount = lineAmount($row);
+      var $amount = $row.find('.qbo-line-amount-input');
+      if (!$amount.is(':focus')) $amount.val(amount === null ? '' : amount.toFixed(2));
+      if (amount !== null) {
+        subtotal += amount;
+        section += amount;
+        if ($row.find('.qbo-line-taxable').is(':checked')) taxable += amount;
+      }
+    });
+    subtotal = round(subtotal, 2);
+
+    // QuickBooks works out the sales tax when the estimate is saved; show the saved tax until the lines change
+    var $tax = $('#qbo-estimate-tax');
+    var total = round(subtotal - discount, 2);
+    if (savedTax !== null && savedSubtotal !== null && Math.abs(subtotal - savedSubtotal) < 0.005) {
+      $tax.text(money.format(savedTax)).removeClass('qbo-pending');
+      total = round(total + savedTax, 2);
+    } else {
+      $tax.text($tax.data('pendingText')).addClass('qbo-pending');
+    }
+
+    $('#qbo-estimate-subtotal').text(money.format(subtotal));
+    $('#qbo-estimate-taxable-subtotal').text(money.format(round(taxable, 2)));
+    $('#qbo-estimate-total').text(money.format(total));
+    $('#qbo-estimate-amount').text(money.format(total));
+  }
+
+  // ---- product/service search ----
+  function setupItemSearch($input) {
+    $input.autocomplete({
+      appendTo: 'body',
+      minLength: 0,
+      delay: 150,
+      source: function (request, response) {
+        $.getJSON($form.data('itemsUrl'), { q: request.term })
+          .done(function (items) {
+            response(items.map(function (item) {
+              return { label: item.name, value: item.name, item: item };
+            }));
+          })
+          .fail(function () { response([]); });
+      },
+      select: function (event, ui) {
+        var $row = $input.closest('tr');
+        var item = ui.item.item;
+        var $description = $row.find('.qbo-line-description-input');
+        var previous = $row.data('itemDescription');
+
+        $input.val(item.name);
+        $row.find('.qbo-line-item-id').val(item.id);
+        $row.removeClass('qbo-line-unmatched');
+        // Keep a description the user typed; replace one that came from the previous product
+        if (!$description.val().trim() || $description.val() === previous) {
+          $description.val(item.description || '');
+          autoGrow($description[0]);
+        }
+        $row.data('itemDescription', item.description || '');
+        if (item.price !== null && item.price !== undefined && item.price !== '') {
+          $row.find('.qbo-line-rate-input').val(plain(parseFloat(item.price), 5));
+          tidyNumbers($row);
+        }
+        if (!$row.find('.qbo-line-qty-input').val().trim()) $row.find('.qbo-line-qty-input').val('1');
+        $row.find('.qbo-line-taxable').prop('checked', item.taxable !== false);
+        changed();
+        return false;
+      }
+    });
+
+    $input.autocomplete('instance')._renderItem = function (ul, entry) {
+      var item = entry.item;
+      var $div = $('<div>');
+      if (item.price !== null && item.price !== undefined && item.price !== '') {
+        $('<span class="qbo-item-option-price">').text(money.format(parseFloat(item.price))).appendTo($div);
+      }
+      $('<strong>').text(item.name).appendTo($div);
+      var meta = [item.sku, item.description].filter(function (s) { return s; }).join(' · ');
+      if (meta) $('<div class="qbo-item-option-meta">').text(meta.length > 90 ? meta.slice(0, 90) + '…' : meta).appendTo($div);
+      return $('<li>').append($div).appendTo(ul);
+    };
+
+    // Like QuickBooks, the list opens when the box is clicked
+    $input.on('focus', function () {
+      if (!$input.val()) $input.autocomplete('search', '');
+    });
+
+    // Typing a different name unlinks the product until one is picked from the list
+    $input.on('input', function () {
+      var $row = $input.closest('tr');
+      $row.find('.qbo-line-item-id').val('');
+      $row.toggleClass('qbo-line-unmatched', $input.val().trim() !== '');
+    });
+  }
+
+  function setupRow($row) {
+    if (isSubtotal($row) || $row.data('qboSetup')) return;
+    $row.data('qboSetup', true);
+    setupItemSearch($row.find('.qbo-line-item-name'));
+    $row.find('.qbo-line-description-input').each(function () { autoGrow(this); });
+    $row.data('itemDescription', $row.find('.qbo-line-item-id').val() ? $row.find('.qbo-line-description-input').val() : null);
+  }
+
+  function changed() {
+    dirty = true;
+    recalc();
+    ensureSpareRow();
+  }
+
+  // ---- line events ----
+  $tbody.on('input', '.qbo-line-qty-input, .qbo-line-rate-input, .qbo-line-description-input, .qbo-line-item-name', changed);
+  $tbody.on('change', '.qbo-line-taxable', changed);
+  $tbody.on('input', '.qbo-line-description-input', function () { autoGrow(this); });
+
+  // Typing an amount works out the rate from the quantity
+  $tbody.on('input', '.qbo-line-amount-input', function () {
+    var $row = $(this).closest('tr');
+    var amount = parseNumber($(this).val());
+    if (amount === null || isNaN(amount)) return;
+    var qty = parseNumber($row.find('.qbo-line-qty-input').val());
+    if (qty === null || isNaN(qty) || qty === 0) qty = 1;
+    $row.find('.qbo-line-rate-input').val(plain(amount / qty, 5));
+    changed();
+  });
+
+  // Rates show cents (1120 -> 1120.00) unless they need more places; quantities stay plain
+  function tidyNumbers($row) {
+    $row.find('.qbo-line-qty-input, .qbo-line-rate-input').each(function () {
+      var n = parseNumber(this.value);
+      if (n === null || isNaN(n)) return;
+      var isRate = $(this).hasClass('qbo-line-rate-input');
+      this.value = isRate && round(n, 2) === round(n, 5) ? n.toFixed(2) : plain(n, 5);
+    });
+  }
+  $tbody.on('blur', '.qbo-line-rate-input, .qbo-line-qty-input, .qbo-line-amount-input', function () {
+    tidyNumbers($(this).closest('tr'));
+    recalc();
+  });
+
+  $tbody.on('click', '.qbo-line-remove-button', function () {
+    var $row = $(this).closest('tr');
+    if (rows().length > 1) {
+      $row.remove();
+    } else {
+      $row.find('input[type=text], textarea, .qbo-line-item-id').val('');
+      $row.removeClass('qbo-line-unmatched');
+    }
+    renumber();
+    changed();
+  });
+
+  $('#qbo-estimate-add-lines').on('click', function () {
+    for (var i = 0; i < 4; i++) addRow();
+    dirty = true;
+  });
+
+  // A subtotal goes after the last filled line, above the spare empty rows
+  $('#qbo-estimate-add-subtotal').on('click', function () {
+    var $subtotal = $(subtotalTemplate.replace(/__KEY__/g, String(nextKey++)));
+    var $filled = rows().filter(function () { return !rowIsBlank($(this)); });
+    if ($filled.length) { $filled.last().after($subtotal); } else { $tbody.prepend($subtotal); }
+    renumber();
+    changed();
+  });
+
+  $('#qbo-estimate-clear-lines').on('click', function () {
+    if (!window.confirm($(this).data('confirmText'))) return;
+    rows().remove();
+    addRow(); addRow();
+    changed();
+  });
+
+  // Drag lines by the handle to reorder them; they're saved in table order
+  $tbody.sortable({
+    handle: '.qbo-line-handle',
+    axis: 'y',
+    items: '> tr.qbo-line',
+    placeholder: 'qbo-line-placeholder',
+    helper: function (event, tr) {
+      var $originals = tr.children();
+      var $helper = tr.clone();
+      $helper.children().each(function (i) { $(this).width($originals.eq(i).outerWidth()); });
+      return $helper;
+    },
+    start: function (event, ui) { ui.placeholder.html('<td colspan="9"></td>'); },
+    // Moving a line or a subtotal changes what each subtotal covers
+    update: function () { renumber(); changed(); }
+  });
+
+  // ---- customer ----
+  var $email = $('#qbo_estimate_email');
+  var $vin = $('#qbo_estimate_vin');
+  var loadedEmail = $email.val();
+
+  $('#customer_id').on('change', function () {
+    var id = $(this).val();
+    if (!id) return;
+    dirty = true;
+    $.getJSON($form.data('customerInfoUrl'), { customer_id: id }).done(function (info) {
+      // Replace the email only if it was the previous customer's (or empty)
+      if (!$email.val().trim() || $email.val() === loadedEmail) $email.val(info.email || '');
+      loadedEmail = info.email || '';
+      $('#qbo-estimate-address').text(info.billing_address || '');
+
+      var $list = $('#qbo-estimate-vins').empty();
+      (info.vehicles || []).forEach(function (vehicle) {
+        $('<option>').attr('value', vehicle.vin).text(vehicle.name).appendTo($list);
+      });
+      if ($vin.length && !$vin.prop('disabled') && !$vin.val().trim() && (info.vehicles || []).length === 1) {
+        $vin.val(info.vehicles[0].vin);
+      }
+    });
+  });
+
+  // Clearing the customer name clears the customer
+  $('#qbo_estimate_customer_name').on('input', function () {
+    if (!this.value.trim()) $('#customer_id').val('');
+  });
+
+  $vin.on('blur', function () { this.value = this.value.trim().toUpperCase(); });
+
+  // New estimates expire a set number of days after the estimate date (plugin setting)
+  var expirationDays = parseInt($form.data('expirationDays'), 10) || 0;
+  var $txnDate = $('#qbo_estimate_txn_date');
+  var $expiration = $('#qbo_estimate_expiration_date');
+  function addDays(iso, days) {
+    var parts = iso.split('-').map(Number);
+    var date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2] + days));
+    return date.toISOString().slice(0, 10);
+  }
+  if (expirationDays > 0) {
+    var lastDefault = $txnDate.val() ? addDays($txnDate.val(), expirationDays) : '';
+    $txnDate.on('change', function () {
+      if (!this.value) return;
+      // Only move a date that's still the default (or empty), not one picked by hand
+      if (!$expiration.val() || $expiration.val() === lastDefault) {
+        lastDefault = addDays(this.value, expirationDays);
+        $expiration.val(lastDefault);
+      }
+    });
+  }
+
+  // ---- invoices: import billable time and open estimates ----
+  var $panel = $('#qbo-import-panel');
+  if ($panel.length) {
+    var importData = null;
+    var undoState = null;
+    var $status = $('#qbo-import-status');
+
+    var setStatus = function (text) { $status.text(text || ''); };
+    var linkedEstimateIds = function () {
+      return $('#qbo-linked-estimates input').map(function () { return this.value; }).get();
+    };
+    var timeIdsInForm = function () {
+      return $tbody.find('.qbo-line-time-id').map(function () { return this.value; }).get().filter(Boolean);
+    };
+
+    // A new row (not yet in the table) filled with an imported line
+    var makeRow = function (line) {
+      if (line.kind === 'subtotal') return $(subtotalTemplate.replace(/__KEY__/g, String(nextKey++)));
+      var $row = $(template.replace(/__KEY__/g, String(nextKey++)));
+      $row.find('.qbo-line-item-id').val(line.item_id || '');
+      $row.find('.qbo-line-item-name').val(line.item_name || '');
+      $row.find('.qbo-line-description-input').val(line.description || '');
+      $row.find('.qbo-line-qty-input').val(line.quantity || '');
+      $row.find('.qbo-line-rate-input').val(line.rate || '');
+      $row.find('.qbo-line-taxable').prop('checked', !!line.taxable);
+      if (line.time_activity_id) {
+        $row.find('.qbo-line-time-id').val(line.time_activity_id);
+        $row.addClass('qbo-line-time');
+      }
+      return $row;
+    };
+
+    // The issue a line came from: "Install #116: some job" on time, "Added from: Install #116: ..." on estimates
+    var issueOf = function (text) {
+      var match = /#(\d+):/.exec((text || '').split('\n')[0]);
+      return match ? match[1] : null;
+    };
+
+    // The last time line on the invoice for the issue
+    var timeRowForIssue = function (issueId) {
+      return rows().filter(function () {
+        var $row = $(this);
+        return $row.hasClass('qbo-line-time') && issueOf($row.find('.qbo-line-description-input').val()) === issueId;
+      }).last();
+    };
+
+    // Issues behind the invoice's time lines and "Added from" notes
+    var invoiceIssueIds = function () {
+      var ids = [];
+      rows().each(function () {
+        var $row = $(this);
+        if (isSubtotal($row)) return;
+        var description = $row.find('.qbo-line-description-input').val() || '';
+        if (!$row.hasClass('qbo-line-time') && !/^\s*Added from:/i.test(description)) return;
+        var id = issueOf(description);
+        if (id && ids.indexOf(id) < 0) ids.push(id);
+      });
+      return ids;
+    };
+
+    // VIN and mileage from the work orders (via plugins such as redmine_qbo_vehicles and redmine_mileage_cp):
+    // one vehicle fills the VIN box; the highest mileage fills the mileage box
+    var updateVehicleFields = function (issueIds) {
+      var values = (importData && importData.issue_values) || {};
+      var vins = [], mileage = null;
+      issueIds.forEach(function (id) {
+        var v = values[id] || {};
+        if (v.vin && vins.indexOf(v.vin.toUpperCase()) < 0) vins.push(v.vin.toUpperCase());
+        var miles = parseNumber(v.mileage);
+        if (miles !== null && !isNaN(miles) && (mileage === null || miles > mileage)) mileage = miles;
+      });
+      var $vinBox = $('#qbo_estimate_vin');
+      if (vins.length === 1 && $vinBox.length && !$vinBox.prop('disabled')) $vinBox.val(vins[0]);
+      var $mileageBox = $('#qbo_estimate_mileage');
+      if (mileage !== null && $mileageBox.length) $mileageBox.val(String(mileage));
+      return vins;
+    };
+
+    // Rows go after the last filled line, above the spare empty rows
+    var insertAfterFilled = function ($rows) {
+      var $filled = rows().filter(function () { return !rowIsBlank($(this)); });
+      if ($filled.length) { $filled.last().after($rows); } else { $tbody.prepend($rows); }
+    };
+
+    var lineLabel = function ($row) {
+      var item = $row.find('.qbo-line-item-name').val();
+      var description = ($row.find('.qbo-line-description-input').val() || '').split('\n')[0];
+      var amount = $row.find('.qbo-line-amount-input').val();
+      return '#' + $row.find('.qbo-line-number').text().trim() + ' ' + [item, description].filter(Boolean).join(' – ') +
+             (amount ? ' (' + money.format(parseFloat(amount)) + ')' : '');
+    };
+
+    // The invoice's lines, for ticking the ones the time replaces (e.g. the estimate's labor lines).
+    // When products/services are set as replaceable by time in the plugin settings, only lines with one of
+    // them are offered; with none set, every line is.
+    var replaceable = ($form.data('replaceableItemIds') || []).map(String);
+    var fillReplaceList = function () {
+      var $list = $('#qbo-import-replace').empty();
+      rows().each(function () {
+        var $row = $(this);
+        if (isSubtotal($row) || rowIsBlank($row) || $row.hasClass('qbo-line-time')) return;
+        if (replaceable.length && replaceable.indexOf(String($row.find('.qbo-line-item-id').val())) < 0) return;
+        var $box = $('<input type="checkbox">').data('row', $row);
+        $('<li>').append($('<label>').append($box, ' ', document.createTextNode(lineLabel($row)))).appendTo($list);
+      });
+      if (!$list.children().length) $('<li>').text($panel.data('noneText')).appendTo($list);
+    };
+
+    var emptyRow = function ($tbodyEl, columns) {
+      $('<tr>').append($('<td>').attr('colspan', columns).addClass('qbo-import-none').text($panel.data('noneText'))).appendTo($tbodyEl);
+    };
+
+    var renderImport = function () {
+      var used = timeIdsInForm();
+      var linked = linkedEstimateIds();
+      var $time = $('#qbo-import-time tbody').empty();
+      importData.time_activities.forEach(function (activity, index) {
+        if (used.indexOf(activity.id) >= 0) return;
+        $('<tr>').append(
+          $('<td>').append($('<input type="checkbox" class="qbo-import-pick">').val(index)),
+          $('<td>').text(activity.date),
+          $('<td>').text(activity.item_name || ''),
+          $('<td>').text([activity.employee, activity.description].filter(Boolean).join(': ')),
+          $('<td class="qbo-num">').text(activity.quantity),
+          $('<td class="qbo-num">').text(money.format(parseFloat(activity.amount)))
+        ).appendTo($time);
+      });
+      if (!$time.children().length) emptyRow($time, 6);
+
+      var $estimates = $('#qbo-import-estimates tbody').empty();
+      importData.estimates.forEach(function (estimate, index) {
+        if (linked.indexOf(estimate.id) >= 0) return;
+        var first = estimate.lines.filter(function (l) { return l.description; })[0];
+        $('<tr>').append(
+          $('<td>').append($('<input type="checkbox" class="qbo-import-pick">').val(index)),
+          $('<td>').text('#' + estimate.doc_number),
+          $('<td>').text(estimate.date),
+          $('<td>').text(estimate.issue || (first ? first.description.split('\n')[0] : '')),
+          $('<td class="qbo-num">').text(money.format(parseFloat(estimate.total || 0)))
+        ).appendTo($estimates);
+      });
+      if (!$estimates.children().length) emptyRow($estimates, 5);
+    };
+
+    $('#qbo-import-open').on('click', function () {
+      $panel.prop('hidden', false);
+      importData = null;
+      $('#qbo-import-time tbody, #qbo-import-estimates tbody').empty();
+      fillReplaceList();
+      var customerId = $('#customer_id').val();
+      if (!customerId) { setStatus($panel.data('needCustomerText')); return; }
+      setStatus($panel.data('loadingText'));
+      $.getJSON($form.data('importUrl'), { customer_id: customerId, issue_ids: invoiceIssueIds() })
+        .done(function (data) { importData = data; renderImport(); setStatus(''); })
+        .fail(function (xhr) { setStatus((xhr.responseJSON && xhr.responseJSON.error) || xhr.statusText); });
+    });
+
+    $('#qbo-import-close').on('click', function () { $panel.prop('hidden', true); });
+
+    $panel.on('change', '.qbo-import-all', function () {
+      $('#' + $(this).data('target') + ' .qbo-import-pick').prop('checked', this.checked);
+    });
+
+    $('#qbo-import-add').on('click', function () {
+      if (!importData) return;
+      var times = $('#qbo-import-time .qbo-import-pick:checked').map(function () { return importData.time_activities[this.value]; }).get();
+      var estimates = $('#qbo-import-estimates .qbo-import-pick:checked').map(function () { return importData.estimates[this.value]; }).get();
+      if (!times.length && !estimates.length) return;
+
+      // Kept so the import can be undone before saving (clones keep what was typed)
+      undoState = { rows: rows().clone(), linked: $('#qbo-linked-estimates').children().clone() };
+
+      // Time goes where the first ticked line was; the ticked lines are removed
+      if (times.length) {
+        var $timeRows = $(times.map(function (activity) {
+          return makeRow($.extend({}, activity, { time_activity_id: activity.id }))[0];
+        }));
+        var $replaced = $('#qbo-import-replace input:checked').map(function () { return $(this).data('row')[0]; });
+        var $anchor = rows().filter(function () { return $replaced.index(this) >= 0; }).first();
+        if ($anchor.length) { $anchor.before($timeRows); } else { insertAfterFilled($timeRows); }
+        $replaced.remove();
+      }
+
+      // Each estimate's lines go right after the time for the same issue (e.g. lineitems' "Added from:
+      // Install #116" estimate after the time for #116), and its "Added from" note is dropped since the time
+      // line already names the issue. Estimates with no matching time keep the note and go at the end.
+      // The estimate is linked and closed when the invoice is saved.
+      var isAddedFromNote = function (line) {
+        return !line.kind && !line.item_id && !line.rate && /^\s*Added from:/i.test(line.description || '');
+      };
+      var lastForIssue = {};
+      estimates.forEach(function (estimate) {
+        var issueId = estimate.issue_id ? String(estimate.issue_id) : null;
+        var $anchor = issueId ? (lastForIssue[issueId] || timeRowForIssue(issueId)) : $();
+        var placed = !!($anchor && $anchor.length);
+        var lines = placed ? estimate.lines.filter(function (line) { return !isAddedFromNote(line); }) : estimate.lines;
+        var $estimateRows = $(lines.map(function (line) { return makeRow(line)[0]; }));
+        if (!$estimateRows.length) {
+          // Nothing but the note: nothing to add
+        } else if (placed) {
+          $anchor.after($estimateRows);
+          lastForIssue[issueId] = $estimateRows.last();
+        } else {
+          insertAfterFilled($estimateRows);
+        }
+        $('<input type="hidden" name="estimate[linked_estimate_ids][]">').val(estimate.id).appendTo('#qbo-linked-estimates');
+      });
+
+      rows().each(function () { setupRow($(this)); tidyNumbers($(this)); });
+      renumber();
+      changed();
+
+      // Imported estimates' notes are dropped next to their time, so their issues are added here
+      var issueIds = invoiceIssueIds();
+      estimates.forEach(function (estimate) {
+        if (estimate.issue_id && issueIds.indexOf(String(estimate.issue_id)) < 0) issueIds.push(String(estimate.issue_id));
+      });
+      var vins = updateVehicleFields(issueIds);
+      $panel.prop('hidden', true);
+      if (vins.length > 1) window.alert($panel.data('manyVehiclesText') + ' ' + vins.join(', '));
+      $('#qbo-import-undo').prop('hidden', false);
+    });
+
+    $('#qbo-import-undo').on('click', function () {
+      if (!undoState) return;
+      $tbody.empty().append(undoState.rows);
+      $('#qbo-linked-estimates').empty().append(undoState.linked);
+      undoState = null;
+      rows().each(function () { setupRow($(this)); });
+      renumber();
+      changed();
+      $(this).prop('hidden', true);
+    });
+  }
+
+  // ---- saving ----
+  $form.on('input change', '.qbo-estimate-top input, .qbo-estimate-details input, .qbo-estimate-notes textarea', function () { dirty = true; });
+
+  // Enter in a text box shouldn't save the estimate half-written
+  $form.on('keydown', 'input[type=text], input[type=date]', function (event) {
+    if (event.key === 'Enter' && !$(this).closest('.ui-autocomplete').length) event.preventDefault();
+  });
+
+  $form.on('submit', function (event) {
+    var submitter = event.originalEvent && event.originalEvent.submitter;
+    if (submitter && submitter.id === 'qbo-estimate-save-and-send' && !$email.val().trim()) {
+      event.preventDefault();
+      window.alert($(submitter).data('needsEmailText'));
+      $email.trigger('focus');
+      return;
+    }
+    dirty = false;
+  });
+
+  window.addEventListener('beforeunload', function (event) {
+    if (!dirty || !$form.data('warnUnsaved')) return;
+    event.preventDefault();
+    event.returnValue = '';
+  });
+
+  rows().each(function () { tidyNumbers($(this)); });
+
+  // Estimates with bundles are shown read-only
+  if (locked) { recalc(); return; }
+
+  rows().each(function () { setupRow($(this)); });
+  ensureSpareRow();
+  recalc();
+});
+<% end %>

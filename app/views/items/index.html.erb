@@ -1,0 +1,56 @@
+<div class="contextual">
+  <%= link_to l(:label_item_new), new_item_path, class: 'icon icon-add' %>
+</div>
+
+<h2><%= l(:label_items) %></h2>
+
+<% if @items.any? %>
+  <div class="autoscroll">
+    <table class="list items">
+      <thead>
+        <tr>
+          <th><%= l(:field_name) %></th>
+          <th><%= l(:field_sku) %></th>
+          <th><%= l(:field_description) %></th>
+          <th><%= l(:field_unit_price) %></th>
+          <th class="center"><%= l(:field_taxable) %></th>
+          <th class="center"><%= l(:field_active) %></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @items.each do |item| %>
+          <tr class="<%= cycle("odd", "even") %>">
+            <td class="name"><%= link_to item.name, item_path(item) %></td>
+            <td class="sku"><%= item.sku %></td>
+            <td class="description"><%= truncate(item.description, length: 60) %></td>
+            <td class="unit_price"><%= number_to_currency(item.unit_price) %></td>
+            <td class="taxable center">
+              <% if item.taxable %>
+                <span class="icon icon-ok" style="color: green;"><%= l(:general_text_Yes) %></span>
+              <% else %>
+                <span class="icon icon-not-ok" style="color: #999;"><%= l(:general_text_No) %></span>
+              <% end %>
+            </td>
+            <td class="active center">
+              <% if item.active %>
+                <span class="icon icon-ok" style="color: green;"><%= l(:general_text_Yes) %></span>
+              <% else %>
+                <span class="icon icon-not-ok" style="color: #999;"><%= l(:general_text_No) %></span>
+              <% end %>
+            </td>
+            <td class="buttons">
+              <%= link_to l(:button_edit), edit_item_path(item), class: 'icon icon-edit' %>
+              <%= link_to l(:button_delete), item_path(item), 
+                          method: :delete, 
+                          data: { confirm: l(:text_are_you_sure) }, 
+                          class: 'icon icon-del' %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p class="nodata"><%= l(:label_no_data) %></p>
+<% end %>

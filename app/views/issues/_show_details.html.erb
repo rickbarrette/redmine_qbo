@@ -9,7 +9,7 @@
       <div class="label"><span><%=t(:field_estimate)%></span>:</div>
       <div class="value">
         <%= estimate_link %>
-        <%= call_hook :view_estimate_actions, { estimate: issue.estimate } if issue.estimate %>
+        <%= render partial: 'qbo_estimates/estimate_actions', locals: { estimate: issue.estimate } if issue.estimate && RedmineQboBilling.writer? %>
       </div>
     </div>
          

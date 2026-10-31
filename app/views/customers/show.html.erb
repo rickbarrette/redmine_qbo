@@ -4,18 +4,18 @@
               id: 'dynamic-new-issue-link', class: 'icon icon-add', target: :_blank %>
   <%# Plugins add their customer actions here (e.g. redmine_qbo_calendar's Add appointment) %>
   <%= call_hook :view_customers_show_contextual, { customer: @customer } %>
-  <%# A plugin can replace the Create Estimate link (e.g. redmine_qbo_estimates writes estimates in Redmine) %>
-  <% estimate_link = call_hook(:view_customers_show_estimate_link, { customer: @customer }) %>
-  <% if estimate_link.present? %>
-    <%= estimate_link %>
+  <%# Estimates, invoices and payments are written here; users without those permissions get QuickBooks' screens %>
+  <% if RedmineQboBilling.writer? %>
+    <%= render partial: 'qbo_estimates/customer_link', locals: { customer: @customer } %>
   <% else %>
     <%= link_to sprite_icon('document', l(:label_create_estimate)), "https://qbo.intuit.com/app/estimate?nameId=#{@customer.id}",
                 class: 'icon icon-document', target: :_blank %>
   <% end %>
-  <%# A plugin can replace the Create Payment link (e.g. redmine_qbo_billing receives payments in Redmine) %>
-  <% payment_link = call_hook(:view_customers_show_payment_link, { customer: @customer }) %>
-  <% if payment_link.present? %>
-    <%= payment_link %>
+  <% if RedmineQboBilling.invoice_writer? %>
+    <%= render partial: 'qbo_invoices/customer_link', locals: { customer: @customer } %>
+  <% end %>
+  <% if RedmineQboBilling.payment_receiver? %>
+    <%= link_to sprite_icon('add', l(:button_receive_payment)), new_qbo_payment_path(customer_id: @customer.id), class: 'icon icon-add' %>
   <% else %>
     <%= link_to sprite_icon('add', l(:label_create_payment)), "https://qbo.intuit.com/app/recvpayment?nameId=#{@customer.id}",
                 class: 'icon icon-add', target: :_blank %>

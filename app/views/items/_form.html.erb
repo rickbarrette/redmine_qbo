@@ -1,0 +1,50 @@
+<%= labelled_form_for @item do |f| %>
+  <%= error_messages_for 'item' %>
+
+  <div class="box tabular">
+    <p>
+      <%= f.text_field :name, required: true, size: 60 %>
+    </p>
+
+    <p>
+      <%= f.text_field :sku, size: 30 %>
+    </p>
+
+    <p>
+      <%= f.text_area :description, rows: 4, class: 'wiki-edit' %>
+    </p>
+
+    <p>
+      <%= f.text_field :unit_price,
+          class: "price-field",
+          inputmode: "decimal",
+          autocomplete: "off"%>
+    </p>
+
+    <p>
+      <%= f.check_box :taxable %>
+    </p>
+
+    <p>
+      <%= f.label :account_id, l(:label_account) %>
+      <%= f.collection_select :account_id,
+            Account.where(classification: 'Revenue').order(:name),
+            :id,
+            :name,
+            { selected: @item.account_id || Account.get_default&.id, include_blank: true } %>
+    </p>
+
+    <p>
+      <%= f.select :type,
+            Quickbooks::Model::Item::ITEM_TYPES.map { |t| [t, t] },
+            { selected: @item.type || Quickbooks::Model::Item::NON_INVENTORY_TYPE } %>
+    </p>
+
+    <p>
+      <%= f.check_box :active %>
+    </p>
+  </div>
+
+  <%= submit_tag l(:button_save) %>
+  <%= link_to l(:button_cancel), items_path if controller.action_name == 'edit' %>
+<% end %>

@@ -1,0 +1,8 @@
+<%# Estimates linked to an issue are read-only here, so they get a View link instead of Edit %>
+<% if estimate.issues.exists? %>
+  <%= link_to sprite_icon('zoom-in', l(:button_view_estimate)), edit_qbo_estimate_path(estimate.id),
+              class: 'icon-only icon-zoom-in qbo-estimate-edit-link', title: l(:button_view_estimate) %>
+<% else %>
+  <%= link_to sprite_icon('edit', l(:button_edit)), edit_qbo_estimate_path(estimate.id),
+              class: 'icon-only icon-edit qbo-estimate-edit-link', title: l(:button_edit_estimate) %>
+<% end %>

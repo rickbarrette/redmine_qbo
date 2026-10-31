@@ -1,0 +1,57 @@
+<% html_title l(:label_payment) %>
+<% method_name = RedmineQboBilling::PaymentWriter.payment_method_name(@payment) %>
+
+<div class="contextual">
+  <%= link_to sprite_icon('application-pdf', l(:button_print_payment)), pdf_qbo_payment_path(@payment.id), class: 'icon icon-pdf', target: :_blank %>
+  <% if @customer %>
+    <%= link_to sprite_icon('add', l(:button_receive_payment)), new_qbo_payment_path(customer_id: @customer.id), class: 'icon icon-add' %>
+  <% end %>
+  <%= link_to sprite_icon('link', l(:button_open_in_quickbooks)),
+              "https://#{RedmineQbo.sandbox_mode? ? 'sandbox' : 'app'}.qbo.intuit.com/app/recvpayment?txnId=#{@payment.id}",
+              class: 'icon icon-link', target: :_blank, rel: 'noopener' %>
+</div>
+
+<h2>
+  <%= link_to l(:label_customers), customers_path %> &#187;
+  <% if @customer %><%= link_to @customer.name, customer_path(@customer) %> &#187;<% end %>
+  <%= l(:label_payment) %> <%= number_to_currency(@payment.total) %>
+</h2>
+
+<div class="issue details">
+  <div class="attributes">
+    <div class="splitcontent">
+      <div class="splitcontentleft">
+        <div class="attribute"><div class="label"><%= l(:label_payment_date) %>:</div><div class="value"><%= format_date(@payment.txn_date) %></div></div>
+        <div class="attribute"><div class="label"><%= l(:label_payment_method) %>:</div><div class="value"><%= method_name %></div></div>
+        <div class="attribute"><div class="label"><%= l(:label_payment_reference) %>:</div><div class="value"><%= @payment.payment_ref_number %></div></div>
+      </div>
+      <div class="splitcontentright">
+        <div class="attribute"><div class="label"><%= l(:label_amount) %>:</div><div class="value"><%= number_to_currency(@payment.total) %></div></div>
+        <div class="attribute"><div class="label"><%= l(:label_payment_unapplied) %>:</div><div class="value"><%= number_to_currency(@payment.unapplied_amount || 0) %></div></div>
+      </div>
+    </div>
+  </div>
+  <% if @payment.private_note.present? %>
+    <hr />
+    <p><strong><%= l(:label_memo) %></strong></p>
+    <p><%= @payment.private_note %></p>
+  <% end %>
+</div>
+
+<h3><%= l(:label_payment_applies_to) %></h3>
+<% applied = RedmineQboBilling::PaymentWriter.applied_invoices(@payment) %>
+<% if applied.empty? %>
+  <p class="nodata"><%= l(:text_payment_unapplied_deposit) %></p>
+<% else %>
+  <table class="list">
+    <thead><tr><th><%= l(:label_invoice) %></th><th><%= l(:label_payment_applied) %></th></tr></thead>
+    <tbody>
+      <% applied.each do |invoice_id, number, amount| %>
+        <tr>
+          <td><%= link_to "##{number}", RedmineQboBilling.invoice_writer? ? edit_qbo_invoice_path(invoice_id) : invoice_path(invoice_id) %></td>
+          <td><%= number_to_currency(amount) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>

@@ -1,0 +1,19 @@
+<% html_title "#{l(:label_invoice)} ##{@form.doc_number}" %>
+
+<div class="contextual">
+  <% if RedmineQboBilling.payment_receiver? && @form.balance.to_d > 0 %>
+    <%= link_to sprite_icon('add', l(:button_receive_payment)), new_qbo_payment_path(customer_id: @form.customer_id), class: 'icon icon-add' %>
+  <% end %>
+  <%= link_to sprite_icon('application-pdf', l(:label_estimate_pdf)), invoice_path(@form.id), class: 'icon icon-pdf', target: :_blank %>
+  <% if RedmineQboBilling.invoice_sender? && @form.email.present? %>
+    <%= link_to sprite_icon('email', l(:button_email_estimate)), send_email_qbo_invoice_path(@form.id, email: @form.email),
+                method: :post, class: 'icon icon-email',
+                data: { confirm: l(:text_email_invoice_confirmation, number: @form.doc_number, email: @form.email) } %>
+  <% end %>
+  <%= link_to sprite_icon('link', l(:button_open_in_quickbooks)),
+              "https://#{RedmineQbo.sandbox_mode? ? 'sandbox' : 'app'}.qbo.intuit.com/app/invoice?txnId=#{@form.id}",
+              class: 'icon icon-link', target: :_blank, rel: 'noopener' %>
+</div>
+
+<%= render partial: 'qbo_estimates/header', locals: { form: @form } %>
+<%= render partial: 'qbo_estimates/form', locals: { form: @form } %>

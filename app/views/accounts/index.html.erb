@@ -1,0 +1,37 @@
+<h2><%= l(:label_accounts) %></h2>
+
+<%= form_tag set_default_accounts_path, method: :patch do %>
+  <div class="autoscroll">
+    <table class="list accounts">
+      <thead>
+        <tr>
+          <th style="width:50px;"><%= l(:label_default) %></th>
+          <th><%= l(:field_name) %></th>
+          <th><%= l(:field_description) %></th>
+          <th><%= l(:field_classification) %></th>
+          <th class="center"><%= l(:field_active) %></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% @accounts.each do |account| %>
+          <tr class="<%= cycle("odd", "even") %>">
+            <td class="center">
+              <%= radio_button_tag "default_account_id", account.id, account.default %>
+            </td>
+            <td class="name"><strong><%= account.name %></strong></td>
+            <td class="description"><%= truncate(account.description, length: 80) %></td>
+            <td class="classification"><%= account.classification %></td>
+            <td class="active center">
+              <%= checked_image account.active %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="buttons">
+    <%= submit_tag l(:button_save), class: 'button-small' %>
+  </p>
+<% end %>

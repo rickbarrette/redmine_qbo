@@ -77,3 +77,7 @@
     <%= link_to t(:label_sync_now_estimate), estimates_sync_path, class: 'button icon icon-reload' %>
   </div>
 </fieldset>
+
+<%# Billing: estimates, issues from estimates, invoices, the product/service list and accounts %>
+<h3><%= l(:label_billing_settings) %></h3>
+<%= render partial: 'qbo/billing_settings', locals: { settings: settings } %>

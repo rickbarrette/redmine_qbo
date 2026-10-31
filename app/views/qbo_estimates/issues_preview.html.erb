@@ -1,0 +1,261 @@
+<% html_title l(:button_create_estimate_issues) %>
+<%# Extra params to carry through (e.g. appointment_id from redmine_qbo_calendar) %>
+<% carry = request.query_parameters.merge(request.request_parameters).slice('appointment_id') %>
+
+<div class="contextual">
+  <%= link_to sprite_icon('angle-left', @return_label), @return_path, class: 'icon icon-angle-left' %>
+</div>
+
+<h2>
+  <%= l(:button_create_estimate_issues) %>
+  <span class="estimate-preview-subtitle">
+    &middot; <%= l(:label_estimate) %> #<%= @estimate.doc_number %>
+    <% if @estimate.customer %>&middot; <%= @estimate.customer.name %><% end %>
+  </span>
+</h2>
+
+<%# Target project: changing it reloads the page with that project's trackers and templates %>
+<% if @available_projects.size > 1 %>
+  <%= form_tag issues_preview_qbo_estimate_path(@estimate.id), method: :get, id: 'estimate-issues-project-form' do %>
+    <% carry.each do |key, value| %><%= hidden_field_tag key, value, id: nil %><% end %>
+    <p>
+      <label for="project_id"><strong><%= l(:field_project) %>:</strong></label>
+      <%= select_tag :project_id,
+                     options_from_collection_for_select(@available_projects, :id, :name, @target_project.id),
+                     onchange: 'this.form.submit();' %>
+      <noscript><%= submit_tag l(:button_apply), name: nil %></noscript>
+    </p>
+  <% end %>
+<% else %>
+  <p><strong><%= l(:field_project) %>:</strong> <%= link_to_project @target_project %></p>
+<% end %>
+
+<% if @builder.errors.any? %>
+  <div id="errorExplanation">
+    <ul>
+      <% @builder.errors.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+
+<% proposals = @builder.proposals %>
+
+<% if proposals.empty? %>
+  <p class="nodata">
+    <%= l(:error_no_labor_lines_found) %>
+    (<%= l(:label_estimate_item_codes) %>: <%= RedmineQboBilling::EstimateIssueBuilder.item_codes.join(', ') %>)
+    <% if User.current.admin? %>
+      &middot; <%= link_to l(:label_settings), plugin_settings_path(id: 'redmine_qbo') %>
+    <% end %>
+  </p>
+<% else %>
+  <%
+    templates_enabled = RedmineQboBilling::IssueTemplateSupport.enabled_for?(@target_project)
+    template_data = @templates.map { |t| { key: t.key, title: t.title, tracker_id: t.tracker_id, is_default: t.is_default, group: t.group } }
+    default_template_for = ->(tracker_id) { @templates.detect { |t| t.tracker_id == tracker_id.to_i && t.is_default }&.key }
+    selectable_count = proposals.count { |p| !p.created? }
+  %>
+
+  <%= form_tag create_issues_qbo_estimate_path(@estimate.id),
+               method: :post,
+               id: 'estimate-issues-form',
+               data: { templates: template_data.to_json } do %>
+    <%= hidden_field_tag :project_id, @target_project.id %>
+    <% carry.each do |key, value| %><%= hidden_field_tag key, value, id: nil %><% end %>
+
+    <table class="list estimate-issues-preview">
+      <thead>
+        <tr>
+          <th class="checkbox">
+            <% if selectable_count > 0 %>
+              <input type="checkbox" id="estimate-issues-toggle-all" checked title="<%= l(:button_check_all) %>">
+            <% end %>
+          </th>
+          <th><%= l(:label_estimate_item) %></th>
+          <th><%= l(:field_subject) %></th>
+          <th><%= l(:field_tracker) %></th>
+          <% if templates_enabled %>
+            <th><%= l(:label_issue_template) %></th>
+          <% end %>
+          <th><%= l(:field_estimated_hours) %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% proposals.each do |proposal| %>
+          <% field = "lines[#{proposal.line_id}]" %>
+          <% if proposal.created? %>
+            <tr class="estimate-line created">
+              <td class="checkbox"><input type="checkbox" disabled></td>
+              <td><%= proposal.item_name %></td>
+              <td class="subject"><%= proposal.description %></td>
+              <td colspan="<%= templates_enabled ? 3 : 2 %>">
+                <%= l(:label_estimate_line_already_created) %>:
+                <%= link_to_issue(proposal.existing_issue, truncate: 60) %>
+              </td>
+            </tr>
+          <% else %>
+            <%
+              row = (@rows[proposal.line_id] || {}).to_h
+              selected = row.empty? || row['selected'] == '1'
+              tracker_id = (row['tracker_id'].presence || @default_tracker&.id).to_i
+              template_key = row.key?('template') ? row['template'] : default_template_for.call(tracker_id)
+              hours = row.key?('estimated_hours') ? row['estimated_hours'] : proposal.hours
+            %>
+            <tr class="estimate-line">
+              <td class="checkbox">
+                <%= hidden_field_tag "#{field}[selected]", '0', id: nil %>
+                <%= check_box_tag "#{field}[selected]", '1', selected, class: 'estimate-line-select', id: nil %>
+              </td>
+              <td><%= proposal.item_name %></td>
+              <td class="subject">
+                <%= text_field_tag "#{field}[subject]", row['subject'] || proposal.description,
+                                   maxlength: 255, class: 'estimate-line-subject', id: nil %>
+              </td>
+              <td>
+                <%= select_tag "#{field}[tracker_id]",
+                               options_from_collection_for_select(@trackers, :id, :name, tracker_id),
+                               class: 'estimate-line-tracker', id: nil %>
+              </td>
+              <% if templates_enabled %>
+                <td>
+                  <%# Options are filled by the script below to match the chosen tracker %>
+                  <%= select_tag "#{field}[template]",
+                                 options_for_select([[l(:label_no_issue_template), '']] +
+                                   @templates.select { |t| t.tracker_id == tracker_id }.map { |t| [t.title, t.key] }, template_key),
+                                 class: 'estimate-line-template', id: nil %>
+                </td>
+              <% end %>
+              <td>
+                <%= number_field_tag "#{field}[estimated_hours]", hours, step: 0.25, min: 0, size: 6, id: nil %>
+              </td>
+            </tr>
+          <% end %>
+        <% end %>
+      </tbody>
+    </table>
+
+    <%# Custom fields for the chosen trackers, entered once and applied to every issue that uses them %>
+    <% if @field_set&.any? %>
+      <fieldset class="box tabular estimate-issue-fields" id="estimate-issue-fields">
+        <legend><%= l(:label_estimate_issue_fields) %></legend>
+        <p class="estimate-issue-fields-info"><em class="info"><%= l(:text_estimate_issue_fields_info) %></em></p>
+        <% @field_set.fields.each do |field| %>
+          <p class="estimate-issue-field"
+             data-tracker-ids="<%= field.tracker_ids.join(',') %>"
+             data-required-tracker-ids="<%= field.required_tracker_ids.join(',') %>">
+            <label for="<%= custom_field_tag_id('issue', field.custom_field) %>">
+              <%= custom_field_name_tag(field.custom_field) %>
+              <span class="required estimate-field-required"<%= ' style="display:none"'.html_safe unless field.required_for_any? %>> *</span>
+            </label>
+            <%= custom_field_tag('issue', field.custom_value) %>
+          </p>
+        <% end %>
+      </fieldset>
+    <% end %>
+
+    <p class="estimate-issues-hint">
+      <% if templates_enabled %>
+        <%= l(:text_estimate_issues_template_hint) %>
+      <% else %>
+        <%= l(:text_estimate_issues_hint) %>
+      <% end %>
+    </p>
+
+    <p>
+      <% if selectable_count > 0 %>
+        <%= submit_tag l(:button_create_estimate_issues_submit), data: { disable_with: l(:label_loading) } %>
+      <% end %>
+      <%= link_to l(:button_cancel), @return_path %>
+    </p>
+  <% end %>
+
+  <%= javascript_tag do %>
+    (function () {
+      var form = document.getElementById('estimate-issues-form');
+      if (!form) return;
+
+      // Select / deselect all lines
+      var toggleAll = document.getElementById('estimate-issues-toggle-all');
+      if (toggleAll) {
+        toggleAll.addEventListener('change', function () {
+          form.querySelectorAll('.estimate-line-select').forEach(function (box) { box.checked = toggleAll.checked; });
+        });
+      }
+
+      // Keep each template dropdown limited to templates for the chosen tracker
+      var templates = [];
+      try { templates = JSON.parse(form.dataset.templates || '[]'); } catch (e) { templates = []; }
+      var noneLabel = <%= raw l(:label_no_issue_template).to_json %>;
+
+      function fillTemplates(templateSelect, trackerId, useDefault) {
+        var current = templateSelect.value;
+        var matches = templates.filter(function (t) { return String(t.tracker_id) === String(trackerId); });
+        templateSelect.innerHTML = '';
+        templateSelect.appendChild(new Option(noneLabel, ''));
+        matches.forEach(function (t) {
+          templateSelect.appendChild(new Option(t.title + (t.group === 'global' ? ' (global)' : ''), t.key));
+        });
+        var defaultTemplate = matches.find(function (t) { return t.is_default; });
+        if (useDefault) {
+          templateSelect.value = defaultTemplate ? defaultTemplate.key : '';
+        } else if (matches.some(function (t) { return t.key === current; })) {
+          templateSelect.value = current;
+        }
+      }
+
+      form.querySelectorAll('tr.estimate-line').forEach(function (row) {
+        var tracker = row.querySelector('.estimate-line-tracker');
+        var template = row.querySelector('.estimate-line-template');
+        if (!tracker || !template) return;
+        fillTemplates(template, tracker.value, false);
+        tracker.addEventListener('change', function () { fillTemplates(template, tracker.value, true); });
+      });
+
+      // Show only the custom fields used by the trackers of the selected lines, and star the required ones
+      var fieldBox = document.getElementById('estimate-issue-fields');
+
+      function idList(value) {
+        return (value || '').split(',').filter(function (v) { return v !== ''; });
+      }
+
+      function updateFields() {
+        if (!fieldBox) return;
+        var trackerIds = [];
+        form.querySelectorAll('tr.estimate-line').forEach(function (row) {
+          var box = row.querySelector('.estimate-line-select');
+          var tracker = row.querySelector('.estimate-line-tracker');
+          if (box && tracker && box.checked && trackerIds.indexOf(tracker.value) < 0) trackerIds.push(tracker.value);
+        });
+
+        var visibleCount = 0;
+        fieldBox.querySelectorAll('.estimate-issue-field').forEach(function (field) {
+          var used = idList(field.dataset.trackerIds).some(function (id) { return trackerIds.indexOf(id) >= 0; });
+          var required = idList(field.dataset.requiredTrackerIds).some(function (id) { return trackerIds.indexOf(id) >= 0; });
+          field.style.display = used ? '' : 'none';
+          var star = field.querySelector('.estimate-field-required');
+          if (star) star.style.display = required ? '' : 'none';
+          if (used) visibleCount++;
+        });
+        fieldBox.style.display = visibleCount > 0 ? '' : 'none';
+      }
+
+      form.querySelectorAll('.estimate-line-select, .estimate-line-tracker').forEach(function (el) {
+        el.addEventListener('change', updateFields);
+      });
+      if (toggleAll) toggleAll.addEventListener('change', updateFields);
+      updateFields();
+    })();
+  <% end %>
+<% end %>
+
+<%# Inline so the page never depends on precompiled plugin assets %>
+<style>
+  .estimate-preview-subtitle { font-weight: normal; font-size: 0.8em; color: #777; }
+  table.estimate-issues-preview td.subject { text-align: left; }
+  table.estimate-issues-preview td.subject input { width: 98%; }
+  table.estimate-issues-preview tr.created td { color: #888; }
+  .estimate-issues-hint { color: #777; font-size: 0.9em; }
+  .estimate-issue-fields .estimate-issue-fields-info { padding-left: 0; }
+</style>

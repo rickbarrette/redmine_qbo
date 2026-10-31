@@ -4,7 +4,7 @@
     <div class="row">
       <%= check_box_tag "estimate_ids[]", estimate.id, false, onchange: "updateLink()", data: { text: "Estimate ##{estimate.doc_number}" }, class: "estimate-checkbox appointment" %>
       <b><%= link_to "##{estimate.doc_number}", estimate_path(estimate), target: :_blank %></b> <%= estimate.txn_date %>
-      <%= call_hook :view_estimate_actions, { estimate: estimate } %>
+      <%= render partial: 'qbo_estimates/estimate_actions', locals: { estimate: estimate } if RedmineQboBilling.writer? %>
     </div>
   <% end %>
 

@@ -30,6 +30,9 @@ module RedmineQbo
     RedmineQbo::Hooks::UsersShowHookListener
     RedmineQbo::Hooks::ViewHookListener
 
+    # === Billing: estimates, invoices, payments, items and accounts ===
+    RedmineQboBilling.setup
+
     # If the SubtaskFieldCopier plugin is installed, register our fields
     if defined?(SubtaskFieldCopier)
       SubtaskFieldCopier.registered_fields << :customer

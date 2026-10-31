@@ -43,3 +43,53 @@ resources :customers do
     get :sync
   end
 end
+
+# Estimate writer pages. Kept under /qbo_estimates so they don't clash with redmine_qbo's /estimates/:id PDF route.
+resources :qbo_estimates, only: [:new, :create, :edit, :update] do
+  member do
+    post :send_email
+    get :issues_preview
+    post :create_issues
+  end
+  collection do
+    get :customer_info
+    get :items
+    post :refresh_company
+  end
+end
+
+# Invoice writer pages (redmine_qbo has /invoices/:id for the PDF)
+resources :qbo_invoices, only: [:new, :create, :edit, :update] do
+  member do
+    post :send_email
+  end
+  collection do
+    get :import_options
+  end
+end
+
+# Receive payment pages
+resources :qbo_payments, only: [:new, :create, :show] do
+  member do
+    get :pdf
+  end
+  collection do
+    get :open_invoices
+  end
+end
+
+# QuickBooks product/service list (moved from redmine_qbo_lineitems; same URLs)
+resources :items do
+  collection do
+    get :autocomplete
+    get :sync
+  end
+end
+
+# QuickBooks income accounts
+resources :accounts do
+  collection do
+    patch :set_default
+    get :sync
+  end
+end

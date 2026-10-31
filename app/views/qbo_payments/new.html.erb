@@ -1,0 +1,187 @@
+<% html_title l(:button_receive_payment) %>
+<% customer = Customer.find_by(id: @form.customer_id) if @form.customer_id.present? %>
+
+<h2>
+  <%= link_to l(:label_customers), customers_path %> &#187;
+  <% if customer %><%= link_to customer.name, customer_path(customer) %> &#187;<% end %>
+  <%= l(:button_receive_payment) %>
+</h2>
+
+<%= error_messages_for @form %>
+
+<%= form_tag qbo_payments_path, id: 'qbo-payment-form',
+             data: { open_invoices_url: open_invoices_qbo_payments_path, none_text: l(:label_no_open_invoices) } do %>
+  <div class="box tabular">
+    <p>
+      <label for="qbo_payment_customer_name"><%= l(:label_customer) %><span class="required"> *</span></label>
+      <%= text_field_tag 'payment[customer_name]', @form.customer_name, id: 'qbo_payment_customer_name', class: 'customer-name',
+                         autocomplete: 'off', size: 40, placeholder: l(:label_choose_a_customer),
+                         data: { autocomplete_url: '/customers/autocomplete' } %>
+      <%= hidden_field_tag 'payment[customer_id]', @form.customer_id, id: 'customer_id' %>
+    </p>
+    <p>
+      <label for="qbo_payment_txn_date"><%= l(:label_payment_date) %><span class="required"> *</span></label>
+      <%= date_field_tag 'payment[txn_date]', @form.txn_date, id: 'qbo_payment_txn_date' %>
+    </p>
+    <p>
+      <label for="qbo_payment_method"><%= l(:label_payment_method) %><span class="required"> *</span></label>
+      <%= select_tag 'payment[payment_method_id]', options_for_select(@payment_methods, @form.payment_method_id),
+                     include_blank: true, id: 'qbo_payment_method' %>
+      <% if @payment_methods.empty? %>
+        <em class="info"><%= l(:text_no_payment_methods) %></em>
+      <% end %>
+    </p>
+    <p>
+      <label for="qbo_payment_reference"><%= l(:label_payment_reference) %></label>
+      <%= text_field_tag 'payment[reference]', @form.reference, id: 'qbo_payment_reference', size: 20, maxlength: 21 %>
+      <em class="info"><%= l(:text_payment_reference) %></em>
+    </p>
+    <p>
+      <label for="qbo_payment_amount"><%= l(:label_amount) %><span class="required"> *</span></label>
+      <%= text_field_tag 'payment[amount]', @form.amount, id: 'qbo_payment_amount', size: 12, inputmode: 'decimal', autocomplete: 'off' %>
+    </p>
+    <p>
+      <label for="qbo_payment_deposit"><%= l(:label_payment_deposit) %></label>
+      <%= hidden_field_tag 'payment[deposit]', '0', id: nil %>
+      <%= check_box_tag 'payment[deposit]', '1', @form.deposit?, id: 'qbo_payment_deposit' %>
+      <em class="info"><%= l(:text_payment_deposit) %></em>
+    </p>
+    <p>
+      <label for="qbo_payment_memo"><%= l(:label_memo) %></label>
+      <%= text_area_tag 'payment[memo]', @form.memo, id: 'qbo_payment_memo', rows: 3, cols: 60, maxlength: 4000 %>
+    </p>
+  </div>
+
+  <%# How the amount will be applied: the customer's open invoices, oldest first (worked out again when saving) %>
+  <fieldset class="box" id="qbo-payment-invoices">
+    <legend><%= l(:label_payment_applies_to) %></legend>
+    <p><em class="info"><%= l(:text_payment_pick_invoices) %></em></p>
+    <table class="list qbo-payment-invoices">
+      <thead>
+        <tr>
+          <th class="checkbox"><input type="checkbox" id="qbo-payment-all" aria-label="<%= l(:button_check_all) %>"></th>
+          <th><%= l(:label_invoice) %></th>
+          <th><%= l(:label_date) %></th>
+          <th><%= l(:label_due_date) %></th>
+          <th class="qbo-num"><%= l(:label_estimate_total) %></th>
+          <th class="qbo-num"><%= l(:label_open_balance) %></th>
+          <th class="qbo-num"><%= l(:label_payment_applied) %></th>
+        </tr>
+      </thead>
+      <tbody id="qbo-payment-invoice-rows">
+        <% @open_invoices.each do |invoice| %>
+          <tr data-balance="<%= invoice[:balance] %>">
+            <td class="checkbox"><%= check_box_tag 'payment[invoice_ids][]', invoice[:id], @form.invoice_ids.include?(invoice[:id]), id: nil, class: 'qbo-payment-pick' %></td>
+            <td>#<%= invoice[:doc_number] %></td>
+            <td><%= invoice[:date] %></td>
+            <td><%= invoice[:due_date] %></td>
+            <td class="qbo-num"><%= number_to_currency(invoice[:total]) %></td>
+            <td class="qbo-num"><%= number_to_currency(invoice[:balance]) %></td>
+            <td class="qbo-num qbo-payment-applied"></td>
+          </tr>
+        <% end %>
+        <% if @open_invoices.empty? %>
+          <tr class="qbo-payment-none"><td colspan="7"><%= l(:label_no_open_invoices) %></td></tr>
+        <% end %>
+      </tbody>
+      <tfoot>
+        <tr>
+          <th colspan="6" class="qbo-num"><%= l(:label_payment_unapplied) %></th>
+          <th class="qbo-num" id="qbo-payment-unapplied"></th>
+        </tr>
+      </tfoot>
+    </table>
+  </fieldset>
+
+  <p>
+    <%= submit_tag l(:button_save_payment) %>
+    <%= link_to l(:button_cancel), customer ? customer_path(customer) : home_path %>
+  </p>
+<% end %>
+
+<style>
+  table.qbo-payment-invoices { width: auto; min-width: 60%; }
+  table.qbo-payment-invoices .qbo-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  table.qbo-payment-invoices td.qbo-payment-applied { font-weight: 600; }
+  #qbo-payment-form.qbo-deposit table.qbo-payment-invoices td.qbo-payment-applied { color: #999; font-weight: normal; }
+</style>
+
+<%= javascript_tag do %>
+$(function () {
+  var $form = $('#qbo-payment-form');
+  if (!$form.length) return;
+  var money = new Intl.NumberFormat(<%= raw (current_language.to_s.presence || 'en').to_json %>, { style: 'currency', currency: 'USD' });
+  var $rows = $('#qbo-payment-invoice-rows');
+
+  function amount() {
+    var n = Number(String($('#qbo_payment_amount').val() || '').replace(/[$,\s]/g, ''));
+    return isFinite(n) && n > 0 ? n : 0;
+  }
+
+  function picked() { return $rows.find('.qbo-payment-pick:checked'); }
+
+  // Oldest first, like QuickBooks: on the ticked invoices if any are ticked, otherwise on all of them.
+  // A deposit applies to nothing.
+  function recalc() {
+    var deposit = $('#qbo_payment_deposit').is(':checked');
+    $form.toggleClass('qbo-deposit', deposit);
+    var left = deposit ? 0 : Math.round(amount() * 100);
+    var onlyPicked = picked().length > 0;
+    $rows.children('tr[data-balance]').each(function () {
+      var balance = Math.round(parseFloat($(this).data('balance')) * 100);
+      var counts = !onlyPicked || $(this).find('.qbo-payment-pick').is(':checked');
+      var take = counts ? Math.min(left, balance) : 0;
+      left -= take;
+      $(this).find('.qbo-payment-applied').text(take > 0 ? money.format(take / 100) : '');
+    });
+    var unapplied = deposit ? amount() : left / 100;
+    $('#qbo-payment-unapplied').text(money.format(unapplied));
+  }
+
+  function loadInvoices(customerId) {
+    $rows.empty();
+    if (!customerId) { recalc(); return; }
+    $.getJSON($form.data('openInvoicesUrl'), { customer_id: customerId }).done(function (invoices) {
+      (invoices || []).forEach(function (invoice) {
+        $('<tr>').attr('data-balance', invoice.balance).append(
+          $('<td class="checkbox">').append($('<input type="checkbox" name="payment[invoice_ids][]" class="qbo-payment-pick">').val(invoice.id)),
+          $('<td>').text('#' + invoice.doc_number), $('<td>').text(invoice.date), $('<td>').text(invoice.due_date),
+          $('<td class="qbo-num">').text(money.format(parseFloat(invoice.total || 0))),
+          $('<td class="qbo-num">').text(money.format(parseFloat(invoice.balance))),
+          $('<td class="qbo-num qbo-payment-applied">')
+        ).appendTo($rows);
+      });
+      if (!$rows.children().length) {
+        $('<tr class="qbo-payment-none">').append($('<td colspan="7">').text($form.data('noneText'))).appendTo($rows);
+      }
+      recalc();
+    });
+  }
+
+  $('#customer_id').on('change', function () { loadInvoices(this.value); });
+  $('#qbo_payment_customer_name').on('input', function () { if (!this.value.trim()) $('#customer_id').val(''); });
+  // Ticking invoices fills in the amount: the total of their open balances
+  function fillAmount() {
+    var cents = 0;
+    picked().each(function () { cents += Math.round(parseFloat($(this).closest('tr').data('balance')) * 100); });
+    if (picked().length) {
+      $('#qbo_payment_amount').val((cents / 100).toFixed(2));
+      $('#qbo_payment_deposit').prop('checked', false);
+    }
+    var $all = $('#qbo-payment-all');
+    var boxes = $rows.find('.qbo-payment-pick');
+    $all.prop('checked', boxes.length > 0 && picked().length === boxes.length);
+    recalc();
+  }
+  $rows.on('change', '.qbo-payment-pick', fillAmount);
+  $('#qbo-payment-all').on('change', function () {
+    $rows.find('.qbo-payment-pick').prop('checked', this.checked);
+    if (!this.checked) $('#qbo_payment_amount').val('');
+    fillAmount();
+  });
+  $('#qbo_payment_amount').on('input', recalc);
+  $('#qbo_payment_deposit').on('change', recalc);
+  $form.on('keydown', 'input[type=text]', function (e) { if (e.key === 'Enter' && $(this).hasClass('customer-name')) e.preventDefault(); });
+  recalc();
+});
+<% end %>

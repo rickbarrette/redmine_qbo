@@ -1,0 +1,80 @@
+<%# Title with the customer breadcrumb, errors, and warnings shared by the estimate and invoice pages %>
+<%
+  customer = Customer.find_by(id: form.customer_id) if form.customer_id.present?
+  invoice = form.invoice?
+%>
+<h2>
+  <%= link_to l(:label_customers), customers_path %>
+  &#187;
+  <% if customer %>
+    <%= link_to customer.name, customer_path(customer) %>
+    &#187;
+  <% end %>
+  <% if form.persisted? %>
+    <%= l(invoice ? :label_invoice : :label_estimate) %> #<%= form.doc_number %>
+    <% if form.sent? %>
+      <span class="qbo-estimate-status qbo-estimate-status-sent"><%= l(:label_estimate_sent) %></span>
+    <% end %>
+    <% if invoice && form.locked == :paid %>
+      <% fully_paid = form.balance.to_d.zero? %>
+      <span class="qbo-estimate-status qbo-estimate-status-<%= fully_paid ? 'closed' : 'accepted' %>"><%= l(fully_paid ? :label_invoice_paid : :label_invoice_partially_paid) %></span>
+    <% elsif !invoice && form.txn_status.present? && form.txn_status != 'Pending' %>
+      <span class="qbo-estimate-status qbo-estimate-status-<%= form.txn_status.downcase %>"><%= form.txn_status %></span>
+    <% end %>
+  <% else %>
+    <%= l(invoice ? :label_new_invoice : :label_new_estimate) %>
+  <% end %>
+</h2>
+
+<%= error_messages_for form %>
+
+<% if @conflict %>
+  <p class="warning">
+    <%= l(:text_estimate_reload) %>
+    <%= link_to l(:button_reload_estimate), invoice ? edit_qbo_invoice_path(form.id) : edit_qbo_estimate_path(form.id) %>
+  </p>
+<% end %>
+
+<% if !invoice && Array(form.invoiced_on).any? %>
+  <div class="warning qbo-estimate-notice">
+    <%= l(:text_estimate_billed_on) %>
+    <ul>
+      <% form.invoiced_on.each do |invoice_id, number| %>
+        <li><%= link_to "#{l(:label_invoice)} ##{number}", RedmineQboBilling.invoice_writer? ? edit_qbo_invoice_path(invoice_id) : invoice_path(invoice_id) %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+
+<% if form.duplicated_from.present? %>
+  <div class="flash notice"><%= l(:text_estimate_duplicated_from, number: form.duplicated_from) %></div>
+<% end %>
+<% if form.converted_from.present? %>
+  <div class="flash notice"><%= l(:text_invoice_from_estimate, number: form.converted_from) %></div>
+<% end %>
+
+<% if form.locked == :linked %>
+  <div class="warning qbo-estimate-notice">
+    <%= l(:error_estimate_linked_to_issues) %>
+    <ul>
+      <% Array(@linked_issues).each do |issue| %>
+        <li><%= link_to_issue(issue, truncate: 60) %></li>
+      <% end %>
+    </ul>
+  </div>
+<% elsif form.locked == :paid %>
+  <p class="warning"><%= l(:error_invoice_paid) %></p>
+<% elsif form.locked == :bundles %>
+  <p class="warning"><%= l(invoice ? :error_invoice_has_bundles : :error_estimate_has_bundles) %></p>
+<% elsif !invoice && %w[Converted Closed].include?(form.txn_status.to_s) && Array(form.invoiced_on).empty? %>
+  <p class="warning"><%= l(:text_estimate_closed) %></p>
+<% end %>
+
+<% if RedmineQboBilling::Company.settings.empty? %>
+  <p class="warning">
+    <%= l(:text_quickbooks_settings_unavailable) %>
+    <% if User.current.admin? %>
+      <%= link_to l(:button_refresh_quickbooks_fields), refresh_company_qbo_estimates_path, method: :post %>
+    <% end %>
+  </p>
+<% end %>

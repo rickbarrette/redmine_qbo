@@ -13,7 +13,7 @@ Redmine::Plugin.register :redmine_qbo do
   # About
   name 'Redmine QBO plugin'
   author 'Rick Barrette'
-  description 'A pluging for Redmine to connect with QuickBooks Online to create Time Activity Entries for billable hours logged when an Issue is closed'
+  description 'A pluging for Redmine to connect with QuickBooks Online: customers, time activities for billable hours when an issue is closed, and estimates, invoices and payments written in Redmine'
   version '2026.10.1'
   url 'https://github.com/rickbarrette/redmine_qbo'
   author_url 'https://barrettefabrication.com'
@@ -40,6 +40,18 @@ Redmine::Plugin.register :redmine_qbo do
 
   # Project permissions
   permission :bill_issues, { qbo: [:bill] }
+
+  # Billing (global): estimates, invoices, payments, issues from estimates
+  # customer_info and items feed the customer details and product/service search on the estimate/invoice editor
+  permission :write_estimates, { qbo_estimates: [:new, :create, :edit, :update, :customer_info, :items] }, global: true
+  permission :send_estimates, { qbo_estimates: [:send_email] }, global: true
+  permission :create_estimate_issues, { qbo_estimates: [:issues_preview, :create_issues] }, global: true
+  permission :write_invoices, { qbo_invoices: [:new, :create, :edit, :update, :import_options],
+                                qbo_estimates: [:customer_info, :items] }, global: true
+  permission :send_invoices, { qbo_invoices: [:send_email] }, global: true
+  permission :receive_payments, { qbo_payments: [:new, :create, :show, :pdf, :open_invoices],
+                                  qbo_estimates: [:customer_info] }, global: true
+  # The product/service list, accounts and their syncs are admin-only (see ItemsController, AccountsController)
   
   # Register top menu items
   menu :top_menu, :customers, { controller: :customers, action: :index }, caption: :label_customers, if: Proc.new {User.current.allowed_to?(:view_customers, nil, global: true)}

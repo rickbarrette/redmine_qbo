@@ -1,0 +1,304 @@
+<%
+  company = RedmineQboBilling::Company
+  sales_field = company.sales_person_field
+  vin_field = company.vin_field
+  mileage_field = company.mileage_field
+  customer = Customer.find_by(id: form.customer_id) if form.customer_id.present?
+  vehicles = customer.respond_to?(:vehicles) ? customer.vehicles.select { |v| v.vin.present? } : []
+  # When QuickBooks' settings couldn't be read at all, the page header says so instead of each field
+  settings_read = company.settings.present?
+  # The same editor writes estimates and invoices
+  invoice = form.invoice?
+  sender = invoice ? RedmineQboBilling.invoice_sender? : RedmineQboBilling.sender?
+  cancel_path = customer ? customer_path(customer) : home_path
+  form_url =
+    if invoice
+      form.persisted? ? qbo_invoice_path(form.id) : qbo_invoices_path
+    else
+      form.persisted? ? qbo_estimate_path(form.id) : qbo_estimates_path
+    end
+%>
+
+<%= form_tag(form_url,
+             method: form.persisted? ? :patch : :post,
+             id: 'qbo-estimate-form',
+             class: "qbo-estimate qbo-document-#{form.document}",
+             data: {
+               document: form.document,
+               import_url: (import_options_qbo_invoices_path if invoice),
+               replaceable_item_ids: (RedmineQboBilling::InvoiceWriter.replaceable_item_ids if invoice),
+               items_url: items_qbo_estimates_path,
+               customer_info_url: customer_info_qbo_estimates_path,
+               saved_subtotal: (form.persisted? ? form.subtotal.to_s('F') : ''),
+               saved_tax: form.total_tax.to_s,
+               discount: form.discount.to_s,
+               # New estimates: moving the estimate date moves the default expiration date with it
+               expiration_days: (form.persisted? || invoice ? 0 : RedmineQboBilling::EstimateWriter.expiration_days),
+               warn_unsaved: User.current.pref.warn_on_leaving_unsaved != '0'
+             }) do %>
+  <%= hidden_field_tag 'estimate[sync_token]', form.sync_token, id: nil %>
+  <%= hidden_field_tag 'estimate[total_tax]', form.total_tax, id: nil %>
+  <%= hidden_field_tag 'estimate[discount]', form.discount, id: nil %>
+  <%= hidden_field_tag 'estimate[email_status]', form.email_status, id: nil %>
+  <%= hidden_field_tag 'estimate[txn_status]', form.txn_status, id: nil %>
+  <%# Shown again if the page is redisplayed; the saved value is worked out when saving %>
+  <%= hidden_field_tag 'estimate[sales_person]', form.sales_person, id: nil if form.persisted? || form.invoice? %>
+  <% if invoice %>
+    <%= hidden_field_tag 'estimate[balance]', form.balance, id: nil %>
+    <%# Estimates whose lines are on this invoice; the Import panel adds more %>
+    <span id="qbo-linked-estimates">
+      <% form.linked_estimate_ids.each do |estimate_id| %>
+        <%= hidden_field_tag 'estimate[linked_estimate_ids][]', estimate_id, id: nil %>
+      <% end %>
+    </span>
+  <% end %>
+
+  <fieldset class="qbo-estimate-sheet"<%= ' disabled'.html_safe if form.locked %>>
+
+    <%# Customer, email and the big amount, like the top of QuickBooks' estimate screen %>
+    <div class="qbo-estimate-top">
+      <div class="qbo-estimate-row">
+        <div class="qbo-field qbo-field-customer">
+          <label for="qbo_estimate_customer_name"><%= l(:label_customer) %></label>
+          <%= text_field_tag 'estimate[customer_name]', form.customer_name,
+                             id: 'qbo_estimate_customer_name', class: 'customer-name', autocomplete: 'off',
+                             placeholder: l(:label_choose_a_customer), data: { autocomplete_url: '/customers/autocomplete' } %>
+          <%= hidden_field_tag 'estimate[customer_id]', form.customer_id, id: 'customer_id' %>
+        </div>
+        <div class="qbo-field qbo-field-email">
+          <label for="qbo_estimate_email"><%= l(:label_customer_email) %></label>
+          <%= text_field_tag 'estimate[email]', form.email, id: 'qbo_estimate_email', autocomplete: 'off',
+                             placeholder: l(:text_separate_emails_with_comma) %>
+        </div>
+      </div>
+      <div class="qbo-estimate-amount">
+        <span class="qbo-estimate-amount-label"><%= l(:label_amount) %></span>
+        <span class="qbo-estimate-amount-value" id="qbo-estimate-amount"><%= number_to_currency(form.total || form.subtotal) %></span>
+        <% if invoice && form.balance && form.total && form.balance.to_d != form.total.to_d %>
+          <span class="qbo-estimate-amount-label"><%= l(:label_invoice_balance, balance: number_to_currency(form.balance)) %></span>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="qbo-estimate-row qbo-estimate-details">
+      <div class="qbo-field qbo-field-address">
+        <span class="qbo-label"><%= l(:label_billing_address) %></span>
+        <div class="qbo-address" id="qbo-estimate-address"><%= form.billing_address.to_s %></div>
+      </div>
+      <div class="qbo-field qbo-field-date">
+        <label for="qbo_estimate_txn_date"><%= l(invoice ? :label_invoice_date : :label_estimate_date) %></label>
+        <%= date_field_tag 'estimate[txn_date]', form.txn_date, id: 'qbo_estimate_txn_date' %>
+      </div>
+      <div class="qbo-field qbo-field-date">
+        <% if invoice %>
+          <label for="qbo_estimate_due_date"><%= l(:label_due_date) %></label>
+          <%# Left empty, QuickBooks works it out from the customer's terms %>
+          <%= date_field_tag 'estimate[due_date]', form.due_date, id: 'qbo_estimate_due_date' %>
+        <% else %>
+          <label for="qbo_estimate_expiration_date"><%= l(:label_expiration_date) %></label>
+          <%= date_field_tag 'estimate[expiration_date]', form.expiration_date, id: 'qbo_estimate_expiration_date' %>
+        <% end %>
+      </div>
+      <div class="qbo-field qbo-field-number">
+        <label for="qbo_estimate_doc_number"><%= l(invoice ? :label_invoice_no : :label_estimate_no) %></label>
+        <%# Not editable: QuickBooks numbers estimates. Posted only so the page can show it again. %>
+        <%= hidden_field_tag 'estimate[doc_number]', form.doc_number, id: nil %>
+        <%= text_field_tag nil, form.doc_number.presence, id: 'qbo_estimate_doc_number', readonly: true, tabindex: -1,
+                           placeholder: l(:text_assigned_by_quickbooks) %>
+      </div>
+    </div>
+
+    <div class="qbo-estimate-row qbo-estimate-details">
+      <div class="qbo-field qbo-field-sales-person">
+        <label for="qbo_estimate_sales_person"><%= sales_field&.name || l(:label_sales_person) %></label>
+        <%= text_field_tag nil, form.sales_person, id: 'qbo_estimate_sales_person', readonly: true, tabindex: -1 %>
+        <% if settings_read && !sales_field %>
+          <em class="info"><%= l(:text_no_sales_person_field) %></em>
+        <% end %>
+      </div>
+      <div class="qbo-field qbo-field-vin">
+        <label for="qbo_estimate_vin"><%= vin_field&.name || l(:label_vin) %></label>
+        <%= text_field_tag 'estimate[vin]', form.vin, id: 'qbo_estimate_vin', list: 'qbo-estimate-vins', maxlength: 31,
+                           autocomplete: 'off', spellcheck: false, disabled: vin_field.nil? %>
+        <datalist id="qbo-estimate-vins">
+          <% vehicles.each do |vehicle| %>
+            <option value="<%= vehicle.vin %>"><%= vehicle.to_s %></option>
+          <% end %>
+        </datalist>
+        <% if settings_read && !vin_field %>
+          <em class="info"><%= l(:text_no_vin_field) %></em>
+        <% end %>
+      </div>
+      <%# Mileage only shows when QuickBooks has a text field named like "Mileage" %>
+      <% if mileage_field %>
+        <div class="qbo-field qbo-field-mileage">
+          <label for="qbo_estimate_mileage"><%= mileage_field.name %></label>
+          <%= text_field_tag 'estimate[mileage]', form.mileage, id: 'qbo_estimate_mileage', maxlength: 31,
+                             inputmode: 'numeric', autocomplete: 'off' %>
+        </div>
+      <% end %>
+      <% if settings_read && (sales_field.nil? || vin_field.nil?) && User.current.admin? %>
+        <div class="qbo-field qbo-field-refresh">
+          <%= link_to sprite_icon('reload', l(:button_refresh_quickbooks_fields)), refresh_company_qbo_estimates_path,
+                      method: :post, class: 'icon icon-reload' %>
+          <em class="info">
+            <%= l(:text_quickbooks_custom_fields_found,
+                  fields: company.custom_fields.map { |f| "#{f.name} (##{f.id})" }.join(', ').presence || l(:label_none)) %>
+          </em>
+        </div>
+      <% end %>
+    </div>
+
+    <%# Product/service lines %>
+    <div class="qbo-estimate-lines-wrap">
+    <table class="qbo-estimate-lines" id="qbo-estimate-lines">
+      <thead>
+        <tr>
+          <th class="qbo-line-handle"></th>
+          <th class="qbo-line-number">#</th>
+          <th class="qbo-line-item"><%= l(:label_product_service) %></th>
+          <th class="qbo-line-description"><%= l(:field_description) %></th>
+          <th class="qbo-line-qty"><%= l(:label_qty) %></th>
+          <th class="qbo-line-rate"><%= l(:label_rate) %></th>
+          <th class="qbo-line-amount"><%= l(:label_amount) %></th>
+          <th class="qbo-line-tax"><%= l(:label_tax) %></th>
+          <th class="qbo-line-remove"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% form.lines.each_with_index do |line, index| %>
+          <%= render partial: (line.subtotal? ? 'qbo_estimates/subtotal_line' : 'qbo_estimates/line'),
+                     locals: { line: line, key: index, number: index + 1 } %>
+        <% end %>
+      </tbody>
+    </table>
+    </div>
+
+    <template id="qbo-estimate-line-template">
+      <%= render partial: 'qbo_estimates/line', locals: { line: RedmineQboBilling::EstimateForm::Line.new(taxable: true), key: '__KEY__', number: '' } %>
+    </template>
+    <template id="qbo-estimate-subtotal-template">
+      <%= render partial: 'qbo_estimates/subtotal_line', locals: { line: RedmineQboBilling::EstimateForm::Line.new, key: '__KEY__', number: '' } %>
+    </template>
+
+    <p class="qbo-estimate-line-buttons">
+      <button type="button" class="qbo-button" id="qbo-estimate-add-lines"><%= l(:button_add_lines) %></button>
+      <button type="button" class="qbo-button" id="qbo-estimate-add-subtotal"><%= l(:button_add_subtotal) %></button>
+      <button type="button" class="qbo-button" id="qbo-estimate-clear-lines"
+              data-confirm-text="<%= l(:text_clear_all_lines_confirmation) %>"><%= l(:button_clear_all_lines) %></button>
+      <% if invoice %>
+        <button type="button" class="qbo-button" id="qbo-import-open"><%= l(:button_import_time_estimates) %></button>
+        <button type="button" class="qbo-button" id="qbo-import-undo" hidden><%= l(:button_undo_import) %></button>
+      <% end %>
+    </p>
+
+    <% if invoice %>
+      <%# Import: billable QuickBooks time (replacing the lines ticked) and open estimates. Filled by the script. %>
+      <div class="qbo-import-panel" id="qbo-import-panel" hidden
+           data-loading-text="<%= l(:label_loading) %>" data-none-text="<%= l(:label_none) %>"
+           data-need-customer-text="<%= l(:error_estimate_needs_customer) %>"
+           data-many-vehicles-text="<%= l(:text_invoice_many_vehicles) %>">
+        <div class="qbo-import-columns">
+          <section class="qbo-import-time">
+            <h4><%= l(:label_billable_time) %></h4>
+            <table class="qbo-import-table" id="qbo-import-time">
+              <thead>
+                <tr>
+                  <th><input type="checkbox" class="qbo-import-all" data-target="qbo-import-time" aria-label="<%= l(:button_check_all) %>"></th>
+                  <th><%= l(:label_date) %></th>
+                  <th><%= l(:label_product_service) %></th>
+                  <th><%= l(:field_description) %></th>
+                  <th class="qbo-num"><%= l(:label_hours) %></th>
+                  <th class="qbo-num"><%= l(:label_amount) %></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </section>
+          <section class="qbo-import-replace">
+            <h4><%= l(:label_replace_lines) %></h4>
+            <p><em class="info"><%= l(:text_replace_lines) %></em></p>
+            <ul id="qbo-import-replace"></ul>
+          </section>
+        </div>
+        <section class="qbo-import-estimates">
+          <h4><%= l(:label_open_estimates) %></h4>
+          <table class="qbo-import-table" id="qbo-import-estimates">
+            <thead>
+              <tr>
+                <th><input type="checkbox" class="qbo-import-all" data-target="qbo-import-estimates" aria-label="<%= l(:button_check_all) %>"></th>
+                <th><%= l(:label_estimate) %></th>
+                <th><%= l(:label_date) %></th>
+                <th><%= l(:field_description) %></th>
+                <th class="qbo-num"><%= l(:label_estimate_total) %></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </section>
+        <p class="qbo-import-buttons">
+          <button type="button" class="qbo-button qbo-button-primary" id="qbo-import-add"><%= l(:button_add_to_invoice) %></button>
+          <button type="button" class="qbo-button" id="qbo-import-close"><%= l(:button_cancel) %></button>
+          <span class="qbo-import-status" id="qbo-import-status"></span>
+        </p>
+      </div>
+    <% end %>
+
+    <div class="qbo-estimate-bottom">
+      <div class="qbo-estimate-notes">
+        <div class="qbo-field">
+          <label for="qbo_estimate_customer_memo"><%= l(invoice ? :label_message_on_invoice : :label_message_on_estimate) %></label>
+          <%= text_area_tag 'estimate[customer_memo]', form.customer_memo, id: 'qbo_estimate_customer_memo', rows: 4, maxlength: 1000 %>
+        </div>
+        <div class="qbo-field">
+          <label for="qbo_estimate_private_note"><%= l(:label_memo) %></label>
+          <%= text_area_tag 'estimate[private_note]', form.private_note, id: 'qbo_estimate_private_note', rows: 4, maxlength: 4000,
+                            placeholder: l(:text_memo_is_private) %>
+        </div>
+      </div>
+
+      <table class="qbo-estimate-totals">
+        <tr>
+          <th><%= l(:label_subtotal) %></th>
+          <td id="qbo-estimate-subtotal"><%= number_to_currency(form.subtotal) %></td>
+        </tr>
+        <tr>
+          <th><%= l(:label_taxable_subtotal) %></th>
+          <td id="qbo-estimate-taxable-subtotal"></td>
+        </tr>
+        <% if form.discount.to_f != 0 %>
+          <tr>
+            <th><%= l(:label_discount_from_quickbooks) %></th>
+            <td>-<%= number_to_currency(form.discount) %></td>
+          </tr>
+        <% end %>
+        <tr>
+          <th><%= l(:label_sales_tax) %></th>
+          <td id="qbo-estimate-tax"
+              data-pending-text="<%= l(:text_tax_calculated_by_quickbooks) %>"><%= form.total_tax ? number_to_currency(form.total_tax) : l(:text_tax_calculated_by_quickbooks) %></td>
+        </tr>
+        <tr class="qbo-estimate-total">
+          <th><%= l(:label_estimate_total) %></th>
+          <td id="qbo-estimate-total"><%= number_to_currency(form.total || form.subtotal) %></td>
+        </tr>
+      </table>
+    </div>
+  </fieldset>
+
+  <%# Action bar, like the bar along the bottom of QuickBooks' estimate screen %>
+  <div class="qbo-estimate-actions">
+    <%= link_to l(:button_cancel), cancel_path, class: 'qbo-button qbo-button-dark', id: 'qbo-estimate-cancel' %>
+    <% unless form.locked %>
+      <span class="qbo-estimate-actions-save">
+        <%= submit_tag l(:button_save), name: 'save', class: 'qbo-button qbo-button-dark' %>
+        <% if sender %>
+          <%= submit_tag l(:button_save_and_send), name: 'save_and_send', class: 'qbo-button qbo-button-primary',
+                         id: 'qbo-estimate-save-and-send', data: { needs_email_text: l(:text_estimate_send_needs_email) } %>
+        <% end %>
+      </span>
+    <% end %>
+  </div>
+<% end %>
+
+<%= render partial: 'qbo_estimates/styles' %>
+<%= render partial: 'qbo_estimates/script' %>

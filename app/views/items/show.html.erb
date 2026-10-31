@@ -1,0 +1,44 @@
+<div class="contextual">
+  <%= link_to l(:button_edit), edit_item_path(@item), class: 'icon icon-edit' %>
+  <%= link_to l(:button_back), items_path, class: 'icon icon-list' %>
+</div>
+
+<h2><%= t(:item) %># <%= @item.id %> <%= @item.name %></h2>
+
+<div class="issue details"> <div class="attributes">
+    <div class="splitcontent">
+      <div class="splitcontentleft">
+        <p><strong><%=t(:field_sku)%>:</strong> <%= @item.sku.presence || "-" %></p>
+        <p><strong><%=t(:label_type)%>:</strong> <%= @item.type.presence || "-" %></p>
+        <p><strong><%=t(:field_unit_price)%>:</strong> <%= number_to_currency(@item.unit_price) %></p>
+      </div>
+
+      <div class="splitcontentleft">
+        <p><strong><%=t(:label_account)%>:</strong> <%= @item.account&.name || "-" %></p>
+        <p>
+          <strong><%=t(:field_taxable)%>:</strong> 
+          <% if @item.taxable %>
+            <span class="icon icon-ok" style="color: green;"><%=t(:yes)%></span>
+          <% else %>
+            <span class="icon icon-not-ok" style="color: #999;"><%=t(:no)%></span>
+          <% end %>
+        </p>
+        <p>
+          <strong><%=t(:label_active)%>:</strong> 
+          <% if @item.active %>
+            <span class="icon icon-ok" style="color: green;"><%=t(:yes)%></span>
+          <% else %>
+            <span class="icon icon-not-ok" style="color: #999;"><%=t(:no)%></span>
+          <% end %>
+        </p>
+      </div>
+    </div>
+
+    <hr />
+    
+    <p><strong><%=t(:label_description)%>:</strong></p>
+    <div class="wiki" style="padding-left: 20px;">
+      <%= @item.description.presence || "<em>No description provided</em>".html_safe %>
+    </div>
+  </div>
+</div>

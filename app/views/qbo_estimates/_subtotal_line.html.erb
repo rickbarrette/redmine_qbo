@@ -1,0 +1,16 @@
+<%# A subtotal row: totals the lines above it, back to the previous subtotal (QuickBooks works out the amount) %>
+<% name = "estimate[lines][#{key}]" %>
+<tr class="qbo-line qbo-line-subtotal">
+  <td class="qbo-line-handle" title="<%= l(:label_drag_to_reorder) %>"><%= sprite_icon('reorder') %></td>
+  <td class="qbo-line-number"><%= number %></td>
+  <td class="qbo-line-subtotal-label" colspan="4">
+    <%= hidden_field_tag "#{name}[id]", line.id, id: nil %>
+    <%= hidden_field_tag "#{name}[kind]", 'subtotal', id: nil %>
+    <%= l(:label_subtotal) %>
+  </td>
+  <td class="qbo-line-amount qbo-line-subtotal-amount"></td>
+  <td class="qbo-line-tax"></td>
+  <td class="qbo-line-remove">
+    <button type="button" class="qbo-line-remove-button" title="<%= l(:button_delete) %>"><%= sprite_icon('del') %></button>
+  </td>
+</tr>
