@@ -12,8 +12,14 @@
     <%= link_to sprite_icon('document', l(:label_create_estimate)), "https://qbo.intuit.com/app/estimate?nameId=#{@customer.id}",
                 class: 'icon icon-document', target: :_blank %>
   <% end %>
-  <%= link_to sprite_icon('add', l(:label_create_payment)), "https://qbo.intuit.com/app/recvpayment?nameId=#{@customer.id}",
-              class: 'icon icon-add', target: :_blank %>
+  <%# A plugin can replace the Create Payment link (e.g. redmine_qbo_billing receives payments in Redmine) %>
+  <% payment_link = call_hook(:view_customers_show_payment_link, { customer: @customer }) %>
+  <% if payment_link.present? %>
+    <%= payment_link %>
+  <% else %>
+    <%= link_to sprite_icon('add', l(:label_create_payment)), "https://qbo.intuit.com/app/recvpayment?nameId=#{@customer.id}",
+                class: 'icon icon-add', target: :_blank %>
+  <% end %>
   <% if User.current.allowed_to?(:edit_customers, nil, global: true) %>
     <%= link_to sprite_icon('edit', l(:button_edit)), edit_customer_path(@customer),
                 class: 'icon icon-edit', accesskey: accesskey(:edit) %>

@@ -110,6 +110,7 @@ Available hooks:
 |--|--|--|
 View Hook|:view_customers_show_contextual, { customer: @customer } | Used to add action links to the customer page's top-right action area (return links styled like Redmine's, e.g. `link_to sprite_icon('add', 'Label'), path, class: 'icon icon-add'`). Replaces `customer_actions_top` / `customer_actions_bottom`
 View Hook|:view_customers_show_estimate_link, { customer: @customer } | Replaces the customer page's Create Estimate link (which opens QuickBooks) with the link a plugin returns
+View Hook|:view_customers_show_payment_link, { customer: @customer } | Replaces the customer page's Create Payment link (which opens QuickBooks) with the link a plugin returns
 View Hook|:view_invoice_actions, { invoice: invoice } | Used to add small action links after an invoice on the customer page's invoice list (e.g. an Edit link)
 View Hook|:view_estimate_actions, { estimate: estimate } | Used to add small action links after an estimate on the customer page's estimate list and the issue page (e.g. an Edit link)
 View Hook|:pdf_left, { issue: issue }  | Used to add text to left side of PDF
