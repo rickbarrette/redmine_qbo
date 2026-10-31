@@ -339,8 +339,20 @@ $(function () {
   $(document).on('mousedown touchstart', function () { tabbedAt = 0; });
   $tbody.on('focus', '.qbo-line-description-input, .qbo-line-qty-input, .qbo-line-rate-input', function () {
     if (Date.now() - tabbedAt > 500) return;
-    // Right away, so the first key typed already replaces the text
-    this.select();
+    // Right away, so the first key typed already replaces the text; and again once the browser has placed
+    // its cursor (a textarea, the description, puts it back at the start), unless typing has begun
+    var box = this, before = box.value;
+    $(box).data('qboTabbedValue', before);
+    box.select();
+    setTimeout(function () { if (document.activeElement === box && box.value === before) box.select(); }, 0);
+  });
+  // Some browsers (Safari, Firefox) place the cursor after that; the Tab key's release arrives here once they
+  // have, so select again if nothing was typed yet
+  $tbody.on('keyup', '.qbo-line-description-input, .qbo-line-qty-input, .qbo-line-rate-input', function (event) {
+    if (event.key !== 'Tab') return;
+    var tabbed = $(this).data('qboTabbedValue');
+    $(this).removeData('qboTabbedValue');
+    if (tabbed !== undefined && this.value === tabbed) this.select();
   });
 
   // ---- line events ----
