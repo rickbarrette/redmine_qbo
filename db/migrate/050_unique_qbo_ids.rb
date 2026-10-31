@@ -43,10 +43,22 @@ class UniqueQboIds < ActiveRecord::Migration[7.0]
       rows = select_all("SELECT * FROM #{quoted} WHERE id = #{quote(id)}").to_a
       keep = rows.max_by { |row| [row['updated_at'].to_s, row.values.compact.size] }
       columns = keep.keys
+      values = columns.map { |c| sql_value(keep[c]) }
 
-      execute "DELETE FROM #{quoted} WHERE id = #{quote(id)}"
-      execute "INSERT INTO #{quoted} (#{columns.map { |c| quote_column_name(c) }.join(', ')}) " \
-              "VALUES (#{columns.map { |c| quote(keep[c]) }.join(', ')})"
+      # Both or neither: a failed insert must not leave the record deleted
+      transaction do
+        execute "DELETE FROM #{quoted} WHERE id = #{quote(id)}"
+        execute "INSERT INTO #{quoted} (#{columns.map { |c| quote_column_name(c) }.join(', ')}) VALUES (#{values.join(', ')})"
+      end
     end
+  end
+
+  # A value read back from the table, quoted for writing it again. Dates and times are formatted the way
+  # Rails writes them (e.g. '2026-10-31 14:06:08'), not with a time zone offset, which MySQL refuses.
+  def sql_value(value)
+    return 'NULL' if value.nil?
+    return quote(connection.quoted_date(value)) if value.is_a?(Time) || value.is_a?(Date) || value.is_a?(DateTime)
+
+    quote(value)
   end
 end
