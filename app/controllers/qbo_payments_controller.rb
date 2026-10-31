@@ -9,12 +9,26 @@
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 # Receives customer payments in QuickBooks: payment type and amount, applied to open invoices oldest first, or
-# saved as a deposit. A saved payment can be printed (QuickBooks' payment PDF).
+# saved as a deposit. A saved payment can be printed (QuickBooks' payment PDF). A customer's payments are
+# listed on their payments page.
 class QboPaymentsController < ApplicationController
 
   before_action :authorize_global
 
   QBO_ERRORS = QboEstimatesController::QBO_ERRORS
+
+  # The customer's payments, newest first, read from QuickBooks
+  def index
+    @customer = Customer.find_by(id: params[:customer_id])
+    return render_404 unless @customer
+
+    @payments = RedmineQboBilling::PaymentWriter.customer_payments(@customer)
+    @totals = RedmineQboBilling::PaymentWriter.payment_totals(@payments)
+  rescue *QBO_ERRORS => e
+    @payments = []
+    @totals = RedmineQboBilling::PaymentWriter.payment_totals([])
+    flash.now[:error] = qbo_message(e)
+  end
 
   def new
     customer = Customer.find_by(id: params[:customer_id]) if params[:customer_id].present?

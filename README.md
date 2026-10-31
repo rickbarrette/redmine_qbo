@@ -129,6 +129,7 @@ Customer records are automatically updated in the local database when changes oc
 * With none ticked, the payment is applied to the customer's open invoices **oldest first**, like QuickBooks does; the page shows how it will be split as the amount is typed, and it's worked out again from QuickBooks when saving. Anything more than the open balances stays as a credit.
 * Tick **Deposit** to keep the whole payment as a credit on the customer's account without paying any invoice (also what happens when there are no open invoices).
 * The saved payment's page shows where it was applied and has **Print**, QuickBooks' payment PDF.
+* **Payments** on the customer page lists all of the customer's payments from QuickBooks, newest first: date, method, reference no., the invoices each was applied to (or Deposit), memo, amount and what's still unapplied, with totals. Each date opens the payment's page and **Print** opens its PDF.
 
 ### QuickBooks custom fields
 
@@ -165,7 +166,8 @@ Administration → Items lists the QuickBooks product/service list (synced from 
         * **Write estimates**: create and edit estimates
         * **Email estimates**: email estimates to customers (Save and send, and the Email link)
         * **Create issues from estimates**: the Create issues page (was redmine_qbo_calendar's "Create issues from appointment estimates")
-        * **Receive payments**: the Receive payment page, the payment page and its PDF
+        * **View payments**: a customer's Payments list, the payment page and its PDF
+        * **Receive payments**: the Receive payment page, plus everything View payments allows
         * **Write invoices**: create and edit invoices, and import time and estimates into them
         * **Email invoices**: email invoices to customers
 

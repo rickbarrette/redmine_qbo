@@ -68,8 +68,8 @@ resources :qbo_invoices, only: [:new, :create, :edit, :update] do
   end
 end
 
-# Receive payment pages
-resources :qbo_payments, only: [:new, :create, :show] do
+# Receive payment pages, and a customer's payments (/qbo_payments?customer_id=)
+resources :qbo_payments, only: [:index, :new, :create, :show] do
   member do
     get :pdf
   end

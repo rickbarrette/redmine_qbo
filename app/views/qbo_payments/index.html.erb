@@ -1,0 +1,82 @@
+<% html_title @customer.name, l(:label_payments) %>
+
+<div class="contextual">
+  <% if RedmineQboBilling.payment_receiver? %>
+    <%= link_to sprite_icon('add', l(:button_receive_payment)), new_qbo_payment_path(customer_id: @customer.id), class: 'icon icon-add' %>
+  <% end %>
+  <%= link_to sprite_icon('link', l(:button_open_in_quickbooks)),
+              "https://#{RedmineQbo.sandbox_mode? ? 'sandbox' : 'app'}.qbo.intuit.com/app/customerdetail?nameId=#{@customer.id}",
+              class: 'icon icon-link', target: :_blank, rel: 'noopener' %>
+</div>
+
+<h2>
+  <%= link_to l(:label_customers), customers_path %> &#187;
+  <%= link_to @customer.name, customer_path(@customer) %> &#187;
+  <%= l(:label_payments) %>
+</h2>
+
+<% if @payments.empty? %>
+  <p class="nodata"><%= l(:label_no_payments) %></p>
+<% else %>
+  <div class="autoscroll">
+    <table class="list qbo-payments">
+      <thead>
+        <tr>
+          <th><%= l(:label_payment_date) %></th>
+          <th><%= l(:label_payment_method) %></th>
+          <th><%= l(:label_payment_reference) %></th>
+          <th class="applied"><%= l(:label_payment_applies_to) %></th>
+          <th class="memo"><%= l(:label_memo) %></th>
+          <th class="amount"><%= l(:label_amount) %></th>
+          <th class="amount"><%= l(:label_payment_unapplied) %></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @payments.each do |payment| %>
+          <% applied = RedmineQboBilling::PaymentWriter.applied_invoices(payment) %>
+          <% unapplied = BigDecimal(payment.unapplied_amount.to_s.presence || '0') %>
+          <tr>
+            <td class="date"><%= link_to format_date(payment.txn_date), qbo_payment_path(payment.id) %></td>
+            <td><%= RedmineQboBilling::PaymentWriter.payment_method_name(payment) %></td>
+            <td><%= payment.payment_ref_number %></td>
+            <td class="applied">
+              <% if applied.empty? %>
+                <em><%= l(:label_payment_deposit) %></em>
+              <% else %>
+                <% applied.each do |invoice_id, number, amount| %>
+                  <div>
+                    <%= link_to "##{number}", RedmineQboBilling.invoice_writer? ? edit_qbo_invoice_path(invoice_id) : invoice_path(invoice_id) %>
+                    <%= number_to_currency(amount) %>
+                  </div>
+                <% end %>
+              <% end %>
+            </td>
+            <td class="memo"><%= truncate(payment.private_note.to_s, length: 60) %></td>
+            <td class="amount"><%= number_to_currency(payment.total) %></td>
+            <td class="amount"><%= unapplied > 0 ? number_to_currency(unapplied) : '' %></td>
+            <td class="buttons">
+              <%= link_to sprite_icon('application-pdf', l(:button_print_payment)), pdf_qbo_payment_path(payment.id),
+                          class: 'icon icon-pdf', target: :_blank %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+      <tfoot>
+        <tr class="total">
+          <td colspan="5"><strong><%= l(:label_payment_totals) %></strong> (<%= @payments.size %>)</td>
+          <td class="amount"><strong><%= number_to_currency(@totals[:received]) %></strong></td>
+          <td class="amount"><strong><%= @totals[:unapplied] > 0 ? number_to_currency(@totals[:unapplied]) : '' %></strong></td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+<% end %>
+
+<style>
+  table.qbo-payments td { vertical-align: top; }
+  table.qbo-payments .applied, table.qbo-payments .memo { text-align: left; }
+  table.qbo-payments .amount { text-align: right; white-space: nowrap; }
+  table.qbo-payments tfoot td { border-top: 2px solid #ccc; }
+</style>

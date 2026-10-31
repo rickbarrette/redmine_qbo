@@ -105,6 +105,20 @@ module RedmineQboBilling
       saved
     end
 
+    # Every payment the customer has made, newest first (by date, then QuickBooks id), read from QuickBooks
+    def customer_payments(customer)
+      payments = with_service('Payment') do |service|
+        service.all("SELECT * FROM Payment WHERE CustomerRef = '#{customer.id.to_i}' ORDERBY TxnDate DESC")
+      end
+      Array(payments).sort_by { |p| [p.txn_date || Date.new(1900), p.id.to_i] }.reverse
+    end
+
+    # Totals for the customer's payment list: amount received and what's still unapplied (credit)
+    def payment_totals(payments)
+      sum = ->(values) { values.sum(BigDecimal('0')) { |v| BigDecimal(v.to_s.presence || '0') } }
+      { received: sum.call(payments.map(&:total)), unapplied: sum.call(payments.map(&:unapplied_amount)) }
+    end
+
     def load(id)
       payment = with_service('Payment') { |service| service.fetch_by_id(id) }
       raise Error, I18n.t(:notice_payment_not_found) unless payment

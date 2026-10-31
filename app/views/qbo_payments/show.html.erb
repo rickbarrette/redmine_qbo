@@ -3,7 +3,7 @@
 
 <div class="contextual">
   <%= link_to sprite_icon('application-pdf', l(:button_print_payment)), pdf_qbo_payment_path(@payment.id), class: 'icon icon-pdf', target: :_blank %>
-  <% if @customer %>
+  <% if @customer && RedmineQboBilling.payment_receiver? %>
     <%= link_to sprite_icon('add', l(:button_receive_payment)), new_qbo_payment_path(customer_id: @customer.id), class: 'icon icon-add' %>
   <% end %>
   <%= link_to sprite_icon('link', l(:button_open_in_quickbooks)),
@@ -13,7 +13,8 @@
 
 <h2>
   <%= link_to l(:label_customers), customers_path %> &#187;
-  <% if @customer %><%= link_to @customer.name, customer_path(@customer) %> &#187;<% end %>
+  <% if @customer %><%= link_to @customer.name, customer_path(@customer) %> &#187;
+    <%= link_to l(:label_payments), qbo_payments_path(customer_id: @customer.id) %> &#187;<% end %>
   <%= l(:label_payment) %> <%= number_to_currency(@payment.total) %>
 </h2>
 

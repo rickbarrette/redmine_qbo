@@ -14,6 +14,9 @@
   <% if RedmineQboBilling.invoice_writer? %>
     <%= render partial: 'qbo_invoices/customer_link', locals: { customer: @customer } %>
   <% end %>
+  <% if RedmineQboBilling.payment_viewer? %>
+    <%= link_to sprite_icon('list', l(:label_payments)), qbo_payments_path(customer_id: @customer.id), class: 'icon icon-list' %>
+  <% end %>
   <% if RedmineQboBilling.payment_receiver? %>
     <%= link_to sprite_icon('add', l(:button_receive_payment)), new_qbo_payment_path(customer_id: @customer.id), class: 'icon icon-add' %>
   <% else %>

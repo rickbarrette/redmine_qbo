@@ -43,6 +43,11 @@ module RedmineQboBilling
     user.allowed_to?(:receive_payments, nil, global: true)
   end
 
+  # True when the user may see customer payments (receiving them includes seeing them)
+  def self.payment_viewer?(user = User.current)
+    user.allowed_to?(:view_payments, nil, global: true) || payment_receiver?(user)
+  end
+
   # True when the user may write invoices
   def self.invoice_writer?(user = User.current)
     user.allowed_to?(:write_invoices, nil, global: true)
