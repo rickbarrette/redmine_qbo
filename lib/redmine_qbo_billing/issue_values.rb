@@ -14,9 +14,9 @@ module RedmineQboBilling
   #
   # :qbo_billing_issue_values, { issues: [Issue, ...] }
   #   Return a hash of field => { issue_id => value }, e.g. redmine_qbo_vehicles returns
-  #   { vin: { 116 => "1C4HJXDG5JW123456" } }. This plugin answers it too with { mileage: ... } from the
-  #   issue custom field named "Mileage" (Hooks::IssueMileageListener).
-  #   The invoice's VIN and mileage boxes are filled from them when time or estimates are imported.
+  #   { vin: { 116 => "1C4HJXDG5JW123456" }, mileage: { 116 => "48210" } } (mileage from the issue custom
+  #   field named "Mileage"). The invoice's VIN and mileage boxes are filled from them when time or
+  #   estimates are imported (the highest mileage wins).
   #
   # :qbo_billing_validate, { document: "invoice" or "estimate", form: EstimateForm, issues: [Issue, ...] }
   #   Return an error message (or a list of them) to stop the save, e.g. redmine_qbo_vehicles refuses an

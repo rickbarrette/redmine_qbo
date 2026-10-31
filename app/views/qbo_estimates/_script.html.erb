@@ -283,12 +283,14 @@ $(function () {
       loadedEmail = info.email || '';
       $('#qbo-estimate-address').text(info.billing_address || '');
 
+      // VINs plugins suggest for this customer (e.g. their vehicles); one fills an empty VIN box
+      var options = info.vin_options || [];
       var $list = $('#qbo-estimate-vins').empty();
-      (info.vehicles || []).forEach(function (vehicle) {
-        $('<option>').attr('value', vehicle.vin).text(vehicle.name).appendTo($list);
+      options.forEach(function (option) {
+        $('<option>').attr('value', option.vin).text(option.name).appendTo($list);
       });
-      if ($vin.length && !$vin.prop('disabled') && !$vin.val().trim() && (info.vehicles || []).length === 1) {
-        $vin.val(info.vehicles[0].vin);
+      if ($vin.length && !$vin.prop('disabled') && !$vin.val().trim() && options.length === 1) {
+        $vin.val(options[0].vin);
       }
     });
   });
@@ -381,7 +383,7 @@ $(function () {
       return ids;
     };
 
-    // VIN and mileage from the work orders (via plugins such as redmine_qbo_vehicles and redmine_mileage_cp):
+    // VIN and mileage from the work orders (via plugins such as redmine_qbo_vehicles):
     // one vehicle fills the VIN box; the highest mileage fills the mileage box
     var updateVehicleFields = function (issueIds) {
       var values = (importData && importData.issue_values) || {};

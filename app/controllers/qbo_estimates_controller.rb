@@ -106,18 +106,18 @@ class QboEstimatesController < ApplicationController
     end
   end
 
-  # Customer details for the editor when a customer is picked: email, billing address and vehicles (VINs)
+  # Customer details for the editor when a customer is picked: email, billing address and the VINs plugins
+  # suggest for the VIN box (RedmineQboBilling.vin_options)
   def customer_info
     customer = Customer.find_by(id: params[:customer_id])
     return render(json: {}, status: :not_found) unless customer
 
-    vehicles = customer.respond_to?(:vehicles) ? customer.vehicles.to_a : []
     render json: {
       id: customer.id,
       name: customer.name,
       email: RedmineQboBilling::EstimateWriter.customer_email(customer),
       billing_address: RedmineQboBilling::EstimateWriter.customer_address(customer),
-      vehicles: vehicles.select { |v| v.vin.present? }.map { |v| { vin: v.vin, name: v.to_s } }
+      vin_options: RedmineQboBilling.vin_options(customer)
     }
   end
 

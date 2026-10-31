@@ -4,7 +4,8 @@
   vin_field = company.vin_field
   mileage_field = company.mileage_field
   customer = Customer.find_by(id: form.customer_id) if form.customer_id.present?
-  vehicles = customer.respond_to?(:vehicles) ? customer.vehicles.select { |v| v.vin.present? } : []
+  # VINs other plugins suggest for the VIN box (e.g. redmine_qbo_vehicles: the customer's vehicles)
+  vin_options = RedmineQboBilling.vin_options(customer)
   # When QuickBooks' settings couldn't be read at all, the page header says so instead of each field
   settings_read = company.settings.present?
   # The same editor writes estimates and invoices
@@ -121,8 +122,8 @@
         <%= text_field_tag 'estimate[vin]', form.vin, id: 'qbo_estimate_vin', list: 'qbo-estimate-vins', maxlength: 31,
                            autocomplete: 'off', spellcheck: false, disabled: vin_field.nil? %>
         <datalist id="qbo-estimate-vins">
-          <% vehicles.each do |vehicle| %>
-            <option value="<%= vehicle.vin %>"><%= vehicle.to_s %></option>
+          <% vin_options.each do |option| %>
+            <option value="<%= option[:vin] %>"><%= option[:name] %></option>
           <% end %>
         </datalist>
         <% if settings_read && !vin_field %>

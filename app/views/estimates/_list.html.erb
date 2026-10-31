@@ -2,7 +2,7 @@
 
   <% estimates.sort.reverse.each do |estimate| %>
     <div class="row">
-      <%= check_box_tag "estimate_ids[]", estimate.id, false, onchange: "updateLink()", data: { text: "Estimate ##{estimate.doc_number}" }, class: "estimate-checkbox appointment" %>
+      <%= check_box_tag "estimate_ids[]", estimate.id, false, onchange: "updateLink()", data: { text: "Estimate ##{estimate.doc_number}", new_issue_param: 'issue[estimate_id]' }, class: "estimate-checkbox appointment" %>
       <b><%= link_to "##{estimate.doc_number}", estimate_path(estimate), target: :_blank %></b> <%= estimate.txn_date %>
       <%= render partial: 'qbo_estimates/estimate_actions', locals: { estimate: estimate } if RedmineQboBilling.writer? %>
     </div>

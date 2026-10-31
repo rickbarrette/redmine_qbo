@@ -19,13 +19,28 @@ module RedmineQboBilling
 
     # Hooks
     RedmineQboBilling::Hooks::QboHookListener
-    RedmineQboBilling::Hooks::IssueMileageListener
 
     # Administration menu: the QuickBooks product/service list (accounts are reached from it)
     Redmine::MenuManager.map :admin_menu do |menu|
       menu.push :redmine_qbo_items, { controller: 'items', action: 'index' }, icon: 'list', caption: :label_items,
                 html: { class: 'icon icon-list' } unless menu.exists?(:redmine_qbo_items)
     end
+  end
+
+  # VINs to suggest in the estimate/invoice VIN box for a customer, from plugins answering
+  #   :qbo_billing_vin_options, { customer: } => [{ vin:, name: }, ...] (e.g. redmine_qbo_vehicles: the
+  #   customer's vehicles)
+  def self.vin_options(customer)
+    return [] unless customer
+
+    Redmine::Hook.call_hook(:qbo_billing_vin_options, { customer: customer }).flatten.compact.filter_map do |option|
+      option = option.to_h.symbolize_keys
+      vin = option[:vin].to_s.strip
+      { vin: vin, name: option[:name].to_s.presence || vin } unless vin.empty?
+    end.uniq { |o| o[:vin].upcase }
+  rescue StandardError => e
+    Rails.logger.warn "[RedmineQboBilling] VIN suggestions failed: #{e.message}"
+    []
   end
 
   # True when the user may write estimates

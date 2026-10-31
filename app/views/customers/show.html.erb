@@ -1,5 +1,5 @@
 <div class="contextual">
-  <%# New issue for this customer; picks up the estimate / vehicle ticked on this page %>
+  <%# New issue for this customer; picks up what's ticked on this page (an estimate, other plugins' items) %>
   <%= link_to sprite_icon('add', l(:label_new_issue)), new_issue_path(issue: { customer_id: @customer.id }),
               id: 'dynamic-new-issue-link', class: 'icon icon-add', target: :_blank %>
   <%# Plugins add their customer actions here (e.g. redmine_qbo_calendar's Add appointment) %>

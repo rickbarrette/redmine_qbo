@@ -1,59 +1,45 @@
 <%#
-  Adds the estimate and vehicle ticked on the customer page to the "New issue" link
-  (#dynamic-new-issue-link in the contextual area). One of each can be ticked.
+  Adds what's ticked on the customer page to the "New issue" link (#dynamic-new-issue-link in the contextual
+  area). Any checkbox with data-new-issue-param="issue[field]" takes part, one ticked per field: this plugin's
+  estimates (issue[estimate_id]), and other plugins' lists (e.g. redmine_qbo_vehicles' issue[vehicle_id]).
 %>
 <script>
-  function handleSingleSelect(event, className) {
-    if (event.target.checked) {
-      // Uncheck all other checkboxes of the same type
-      document.querySelectorAll('.' + className).forEach(cb => {
-        if (cb !== event.target) {
-          cb.checked = false;
-        }
+  function newIssueParamBoxes(param) {
+    return Array.prototype.filter.call(document.querySelectorAll('input[data-new-issue-param]'), function (cb) {
+      return !param || cb.getAttribute('data-new-issue-param') === param;
+    });
+  }
+
+  // One box per field: ticking one unticks the others for the same field
+  document.addEventListener('change', function (event) {
+    var box = event.target;
+    if (!box.matches || !box.matches('input[data-new-issue-param]')) return;
+    if (box.checked) {
+      newIssueParamBoxes(box.getAttribute('data-new-issue-param')).forEach(function (cb) {
+        if (cb !== box) cb.checked = false;
       });
     }
     updateLink();
-  }
-
-  // Bind single-select behavior to checkboxes once the DOM is loaded
-  document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.estimate-checkbox').forEach(cb => {
-      cb.addEventListener('change', (e) => handleSingleSelect(e, 'estimate-checkbox'));
-    });
-    document.querySelectorAll('.vehicle-checkbox').forEach(cb => {
-      cb.addEventListener('change', (e) => handleSingleSelect(e, 'vehicle-checkbox'));
-    });
   });
 
   function updateLink() {
-    const link = document.getElementById('dynamic-new-issue-link');
+    var link = document.getElementById('dynamic-new-issue-link');
     if (!link) return;
 
     // Cache the pristine base URL on first run
-    if (!link.dataset.baseUrl) {
-      link.dataset.baseUrl = link.getAttribute('href');
-    }
+    if (!link.dataset.baseUrl) link.dataset.baseUrl = link.getAttribute('href');
+    var url = new URL(link.dataset.baseUrl, window.location.origin);
 
-    // Build base URL object
-    let url = new URL(link.dataset.baseUrl, window.location.origin);
+    newIssueParamBoxes().forEach(function (cb) {
+      var param = cb.getAttribute('data-new-issue-param');
+      var ticked = newIssueParamBoxes(param).filter(function (b) { return b.checked; })[0];
+      if (ticked) {
+        url.searchParams.set(param, ticked.value);
+      } else {
+        url.searchParams.delete(param);
+      }
+    });
 
-    // 1. Handle Single Estimate
-    const checkedEstimate = document.querySelector('.estimate-checkbox:checked');
-    if (checkedEstimate) {
-      url.searchParams.set('issue[estimate_id]', checkedEstimate.value);
-    } else {
-      url.searchParams.delete('issue[estimate_id]');
-    }
-
-    // 2. Handle Single Vehicle
-    const checkedVehicle = document.querySelector('.vehicle-checkbox:checked');
-    if (checkedVehicle) {
-      url.searchParams.set('issue[vehicle_id]', checkedVehicle.value);
-    } else {
-      url.searchParams.delete('issue[vehicle_id]');
-    }
-
-    // Update the link's href attribute
     link.setAttribute('href', url.toString());
   }
 </script>

@@ -12,7 +12,7 @@ module RedmineQboBilling
   # Turns the labor lines of a QuickBooks estimate into proposed issues, and creates the ones the user selects
   # on the "Create issues from estimate" page (moved here from redmine_qbo_calendar).
   #
-  # - Only lines whose item matches a configured item code (e.g. "Labor", "Alignments") are proposed
+  # - Only lines with a labor product/service (LaborItems, e.g. "Labor") are proposed
   # - Subject = the line's description; estimated hours = the line's quantity
   # - Lines already turned into issues are shown but can't be created again
   # - Creation is all-or-nothing: if any issue fails validation, none are saved
@@ -20,8 +20,10 @@ module RedmineQboBilling
   #
   # Other plugins fill in more through hooks:
   #   :qbo_billing_issue_defaults, { estimate:, params: } => a hash of start_date, due_date, assignee,
-  #     vehicle_id, description, project, return_path, return_label (e.g. redmine_qbo_calendar, when the page is
-  #     opened from an appointment)
+  #     description, project, return_path, return_label, plus anything a plugin's own fields need (e.g.
+  #     redmine_qbo_calendar's vehicle_id, when the page is opened from an appointment)
+  #   :qbo_billing_build_issue, { issue:, estimate:, defaults: } for each new issue before it's saved, to set
+  #     plugins' own fields (e.g. redmine_qbo_vehicles sets the vehicle)
   #   :qbo_billing_issues_created, { estimate:, issues:, params: } after issues are created
   class EstimateIssueBuilder
     include Redmine::I18n
@@ -89,7 +91,7 @@ module RedmineQboBilling
     attr_reader :estimate, :defaults, :errors
 
     # estimate: redmine_qbo's local Estimate (its QuickBooks details give the lines)
-    # defaults: start_date, due_date, assignee, vehicle_id, description (from another plugin's hook)
+    # defaults: start_date, due_date, assignee, description and plugins' own values (from :qbo_billing_issue_defaults)
     def initialize(estimate, defaults: {})
       @estimate = estimate
       @defaults = (defaults || {}).to_h.symbolize_keys
@@ -218,27 +220,13 @@ module RedmineQboBilling
       assignee = defaults[:assignee]
       issue.assigned_to = assignee if assignee && issue.assignable_users.include?(assignee)
 
-      # Customer / vehicle / estimate fields are added to issues by redmine_qbo and redmine_qbo_vehicles
       issue.customer_id = estimate.customer_id if issue.respond_to?(:customer_id=)
-      issue.vehicle_id = vehicle_id if issue.respond_to?(:vehicle_id=)
       issue.estimate_id = estimate.id if issue.respond_to?(:estimate_id=)
 
+      # Plugins set their own fields (e.g. redmine_qbo_vehicles: the vehicle)
+      Redmine::Hook.call_hook(:qbo_billing_build_issue, { issue: issue, estimate: estimate, defaults: defaults })
+
       issue
-    end
-
-    # The vehicle from the hook, or the customer's vehicle whose VIN is on the estimate
-    def vehicle_id
-      return defaults[:vehicle_id] if defaults[:vehicle_id].present?
-
-      customer = estimate.customer
-      return nil unless customer.respond_to?(:vehicles)
-
-      vin = EstimateWriter.custom_value(estimate.details, Company.vin_field, Company::VIN_NAME).to_s.strip
-      return nil if vin.empty?
-
-      customer.vehicles.detect { |v| v.vin.to_s.casecmp?(vin) }&.id
-    rescue StandardError
-      nil
     end
 
     def default_description
