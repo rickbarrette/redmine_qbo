@@ -14,7 +14,7 @@ Redmine::Plugin.register :redmine_qbo do
   name 'Redmine QBO plugin'
   author 'Rick Barrette'
   description 'A pluging for Redmine to connect with QuickBooks Online: customers, time activities for billable hours when an issue is closed, and estimates, invoices and payments written in Redmine'
-  version '2026.10.1'
+  version '2026.11.1'
   url 'https://github.com/rickbarrette/redmine_qbo'
   author_url 'https://barrettefabrication.com'
   settings default: {empty: true}, partial: 'qbo/settings'
