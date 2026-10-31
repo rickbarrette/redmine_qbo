@@ -44,13 +44,47 @@ $(function () {
   var dirty = false;
 
   // ---- numbers ----
+  // A number, or simple arithmetic typed into a quantity or rate box (e.g. 33*1.3, (120+15)/2): + - * / and
+  // parentheses only, worked out here (never run as code). null when empty, NaN when it can't be read.
+  function isMath(text) { return /[*\/()+x×]/.test(text) || /.-/.test(text); }
+  function evaluateMath(text) {
+    var tokens = text.replace(/[x×]/g, '*').match(/\d*\.?\d+|[-+*\/()]/g);
+    if (!tokens || tokens.join('') !== text.replace(/[x×]/g, '*')) return NaN;
+    var i = 0;
+    var peek = function () { return tokens[i]; };
+    var expr, term, factor;
+    factor = function () {
+      var t = tokens[i++];
+      if (t === '-') return -factor();
+      if (t === '+') return factor();
+      if (t === '(') { var v = expr(); if (tokens[i++] !== ')') return NaN; return v; }
+      return t !== undefined && /^\d*\.?\d+$/.test(t) ? parseFloat(t) : NaN;
+    };
+    term = function () {
+      var v = factor();
+      while (peek() === '*' || peek() === '/') { var op = tokens[i++], r = factor(); v = op === '*' ? v * r : v / r; }
+      return v;
+    };
+    expr = function () {
+      var v = term();
+      while (peek() === '+' || peek() === '-') { var op = tokens[i++], r = term(); v = op === '+' ? v + r : v - r; }
+      return v;
+    };
+    var result = expr();
+    return i === tokens.length && isFinite(result) ? result : NaN;
+  }
   function parseNumber(value) {
     var text = String(value == null ? '' : value).replace(/[$,\s]/g, '');
     if (text === '') return null;
+    if (isMath(text)) return evaluateMath(text);
     var n = Number(text);
     return isFinite(n) ? n : NaN;
   }
-  function round(n, places) { var f = Math.pow(10, places); return Math.round(n * f) / f; }
+  // Rounds half up exactly (1.005 -> 1.01; multiplying first would give 1.00)
+  function round(n, places) {
+    if (/e/i.test(String(n))) { var f = Math.pow(10, places); return Math.round(n * f) / f; }
+    return Number(Math.round(Number(n + 'e' + places)) + 'e-' + places);
+  }
   function plain(n, places) { return String(round(n, places)); }
 
   // ---- rows ----
@@ -263,6 +297,8 @@ $(function () {
   // still places the cursor)
   var tabbedAt = 0;
   $(document).on('keydown', function (event) { if (event.key === 'Tab') tabbedAt = Date.now(); });
+  // A click right after a Tab is still a click
+  $(document).on('mousedown touchstart', function () { tabbedAt = 0; });
   $tbody.on('focus', '.qbo-line-description-input, .qbo-line-qty-input, .qbo-line-rate-input', function () {
     if (Date.now() - tabbedAt > 500) return;
     var box = this;
@@ -291,6 +327,8 @@ $(function () {
       var n = parseNumber(this.value);
       if (n === null || isNaN(n)) return;
       var isRate = $(this).hasClass('qbo-line-rate-input');
+      // Math in the rate box is rounded to the nearest penny
+      if (isRate && isMath(this.value.replace(/[$,\s]/g, ''))) n = round(n, 2);
       this.value = isRate && round(n, 2) === round(n, 5) ? n.toFixed(2) : plain(n, 5);
     });
   }
@@ -633,6 +671,8 @@ $(function () {
       $email.trigger('focus');
       return;
     }
+    // Math still in a box is worked out before saving
+    rows().each(function () { tidyNumbers($(this)); });
     dirty = false;
   });
 
