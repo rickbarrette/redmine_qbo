@@ -93,6 +93,10 @@ Invoices containing an Issue reference (e.g. `#123`) automatically attach to the
 
 Customer records are automatically updated in the local database when changes occur in QuickBooks.
 
+### Estimates, Invoices and Payments
+
+Estimates and invoices keep their number, date, customer, total and **man-hours** (the quantities of the products/services set as "Replaced by imported time", including lines inside bundles; the estimate item codes are used while that setting is blank). Payments keep their customer, date, amount and unapplied amount. These cached figures feed the business report.
+
 ---
 
 ## Billing: Estimates, Invoices and Payments
@@ -131,6 +135,16 @@ Customer records are automatically updated in the local database when changes oc
 * The saved payment's page shows where it was applied and has **Print**, QuickBooks' payment PDF.
 * **Payments** on the customer page lists all of the customer's payments from QuickBooks, newest first: date, method, reference no., the invoices each was applied to (or Deposit), memo, amount and what's still unapplied, with totals. Each date opens the payment's page and **Print** opens its PDF.
 
+### Business report
+
+**Business report** in the top menu compares, for a period (this or last month, quarter or year, or custom dates):
+
+* **Sales**: estimates written, invoices written and payments received (totals and counts), invoiced vs. estimated, collected vs. invoiced, and what's still owed on those invoices.
+* **Hours**: estimated hours on estimates, issues' estimated time, invoiced hours on invoices and time spent, with invoiced vs. spent and spent vs. estimated.
+* **By month**: every figure month by month, with totals.
+
+Estimates, invoices and payments count by their QuickBooks date. Issues' estimated time counts issues created in the period, leaving out parents so subtasks aren't counted twice. Spent time counts time logged in the period. Estimates and invoices synced before these figures were added have no total or hours until a full sync (the report says how many); run one again after changing "Replaced by imported time".
+
 ### QuickBooks custom fields
 
 Nothing is configured in Redmine. The plugin reads QuickBooks' sales form settings, and the custom fields on the 20 most recently changed estimates, and finds the fields by name:
@@ -168,6 +182,7 @@ Administration → Items lists the QuickBooks product/service list (synced from 
         * **Create issues from estimates**: the Create issues page (was redmine_qbo_calendar's "Create issues from appointment estimates")
         * **View payments**: a customer's Payments list, the payment page and its PDF
         * **Receive payments**: the Receive payment page, plus everything View payments allows
+        * **View business reports**: the Business report
         * **Write invoices**: create and edit invoices, and import time and estimates into them
         * **Email invoices**: email invoices to customers
 

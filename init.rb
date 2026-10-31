@@ -52,10 +52,13 @@ Redmine::Plugin.register :redmine_qbo do
   permission :view_payments, { qbo_payments: [:index, :show, :pdf] }, global: true
   permission :receive_payments, { qbo_payments: [:index, :new, :create, :show, :pdf, :open_invoices],
                                   qbo_estimates: [:customer_info] }, global: true
+  permission :view_business_reports, { qbo_reports: [:index] }, global: true
   # The product/service list, accounts and their syncs are admin-only (see ItemsController, AccountsController)
   
   # Register top menu items
   menu :top_menu, :customers, { controller: :customers, action: :index }, caption: :label_customers, if: Proc.new {User.current.allowed_to?(:view_customers, nil, global: true)}
+  menu :top_menu, :qbo_reports, { controller: :qbo_reports, action: :index }, caption: :label_business_report,
+       after: :customers, if: Proc.new { User.current.allowed_to?(:view_business_reports, nil, global: true) }
     
   Redmine::Search.map do |search|
     search.register :customers

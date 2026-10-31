@@ -1,0 +1,148 @@
+<% html_title l(:label_business_report) %>
+<% money = @report.money %>
+<% hours = @report.hours %>
+<% ratios = @report.ratios %>
+<% max_money = [money[:estimates][:total], money[:invoices][:total], money[:payments][:total]].max.to_f %>
+<% max_hours = hours.values.max.to_f %>
+<% bar = ->(value, max) { max > 0 ? (value.to_f / max * 100).round(1) : 0 } %>
+<% fmt_hours = ->(h) { format('%.1f', h.to_f) } %>
+<% pct = ->(v) { v.nil? ? '–' : "#{v}%" } %>
+
+<h2><%= l(:label_business_report) %></h2>
+
+<%= form_tag qbo_reports_path, method: :get, id: 'qbo-report-form' do %>
+  <fieldset class="box">
+    <legend><%= l(:label_report_period) %></legend>
+    <%= select_tag 'period',
+                   options_for_select(RedmineQboBilling::BusinessReport::PERIODS.map { |p| [l("label_report_period_#{p}"), p] }, @report.period),
+                   id: 'qbo-report-period' %>
+    <span id="qbo-report-dates">
+      <%= date_field_tag 'from', @report.from.iso8601, id: 'qbo-report-from' %>
+      &ndash;
+      <%= date_field_tag 'to', @report.to.iso8601, id: 'qbo-report-to' %>
+    </span>
+    <%= submit_tag l(:button_apply), name: nil %>
+  </fieldset>
+<% end %>
+
+<p class="qbo-report-range"><%= format_date(@report.from) %> &ndash; <%= format_date(@report.to) %></p>
+
+<% if @report.unsynced_count > 0 %>
+  <p class="warning"><%= l(:text_report_needs_sync, count: @report.unsynced_count) %></p>
+<% end %>
+
+<div class="splitcontent">
+  <div class="splitcontentleft">
+    <h3><%= l(:label_report_money) %></h3>
+    <table class="list qbo-report">
+      <tbody>
+        <% [[:estimates, l(:label_report_estimates_written)], [:invoices, l(:label_report_invoices_written)],
+            [:payments, l(:label_report_payments_received)]].each do |key, label| %>
+          <tr>
+            <td class="name"><%= label %> <span class="count">(<%= money[key][:count] %>)</span></td>
+            <td class="bar"><div class="qbo-bar qbo-bar-<%= key %>" style="width: <%= bar.call(money[key][:total], max_money) %>%"></div></td>
+            <td class="value"><%= number_to_currency(money[key][:total]) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <p class="qbo-report-ratios">
+      <%= l(:label_report_invoiced_of_estimated) %>: <strong><%= pct.call(ratios[:invoiced_of_estimated]) %></strong><br />
+      <%= l(:label_report_collected_of_invoiced) %>: <strong><%= pct.call(ratios[:collected_of_invoiced]) %></strong><br />
+      <%= l(:label_report_open_balance) %>: <strong><%= number_to_currency(money[:invoices][:balance]) %></strong>
+    </p>
+  </div>
+
+  <div class="splitcontentright">
+    <h3><%= l(:label_report_hours) %></h3>
+    <table class="list qbo-report">
+      <tbody>
+        <% [[:estimate_hours, l(:label_report_estimate_hours)], [:issue_hours, l(:label_report_issue_hours)],
+            [:invoice_hours, l(:label_report_invoice_hours)], [:spent_hours, l(:label_report_spent_hours)]].each do |key, label| %>
+          <tr>
+            <td class="name"><%= label %></td>
+            <td class="bar"><div class="qbo-bar qbo-bar-<%= key %>" style="width: <%= bar.call(hours[key], max_hours) %>%"></div></td>
+            <td class="value"><%= fmt_hours.call(hours[key]) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <p class="qbo-report-ratios">
+      <%= l(:label_report_invoiced_of_spent) %>: <strong><%= pct.call(ratios[:invoiced_of_spent]) %></strong><br />
+      <%= l(:label_report_spent_of_estimated) %>: <strong><%= pct.call(ratios[:spent_of_estimated]) %></strong>
+    </p>
+  </div>
+</div>
+
+<h3><%= l(:label_report_by_month) %></h3>
+<div class="autoscroll">
+  <table class="list qbo-report-months">
+    <thead>
+      <tr>
+        <th class="month"><%= l(:label_month) %></th>
+        <th><%= l(:label_report_estimates_written) %></th>
+        <th><%= l(:label_report_invoices_written) %></th>
+        <th><%= l(:label_report_payments_received) %></th>
+        <th class="hours-start"><%= l(:label_report_estimate_hours) %></th>
+        <th><%= l(:label_report_issue_hours) %></th>
+        <th><%= l(:label_report_invoice_hours) %></th>
+        <th><%= l(:label_report_spent_hours) %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @report.months.each do |row| %>
+        <tr>
+          <td class="month"><%= ::I18n.t('date.abbr_month_names')[row[:month].month] %> <%= row[:month].year %></td>
+          <td><%= number_to_currency(row[:estimates]) %></td>
+          <td><%= number_to_currency(row[:invoices]) %></td>
+          <td><%= number_to_currency(row[:payments]) %></td>
+          <td class="hours-start"><%= fmt_hours.call(row[:estimate_hours]) %></td>
+          <td><%= fmt_hours.call(row[:issue_hours]) %></td>
+          <td><%= fmt_hours.call(row[:invoice_hours]) %></td>
+          <td><%= fmt_hours.call(row[:spent_hours]) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+    <tfoot>
+      <tr class="total">
+        <td class="month"><strong><%= l(:label_total) %></strong></td>
+        <td><strong><%= number_to_currency(money[:estimates][:total]) %></strong></td>
+        <td><strong><%= number_to_currency(money[:invoices][:total]) %></strong></td>
+        <td><strong><%= number_to_currency(money[:payments][:total]) %></strong></td>
+        <td class="hours-start"><strong><%= fmt_hours.call(hours[:estimate_hours]) %></strong></td>
+        <td><strong><%= fmt_hours.call(hours[:issue_hours]) %></strong></td>
+        <td><strong><%= fmt_hours.call(hours[:invoice_hours]) %></strong></td>
+        <td><strong><%= fmt_hours.call(hours[:spent_hours]) %></strong></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+<p class="info"><%= l(:text_report_notes) %></p>
+
+<style>
+  table.qbo-report td { padding: 6px 4px; }
+  table.qbo-report td.name { text-align: left; white-space: nowrap; width: 1%; }
+  table.qbo-report td.name .count { color: #888; }
+  table.qbo-report td.bar { width: 100%; }
+  table.qbo-report td.value { text-align: right; white-space: nowrap; font-weight: bold; width: 1%; }
+  .qbo-bar { height: 14px; border-radius: 2px; min-width: 1px; background: #628db6; }
+  .qbo-bar-invoices, .qbo-bar-invoice_hours { background: #e8a33d; }
+  .qbo-bar-payments, .qbo-bar-spent_hours { background: #5aa05a; }
+  .qbo-bar-issue_hours { background: #9b7fc0; }
+  .qbo-report-ratios { margin: 8px 4px; line-height: 1.7; }
+  .qbo-report-range { color: #666; margin: 4px 0 10px; }
+  table.qbo-report-months td, table.qbo-report-months th { text-align: right; white-space: nowrap; }
+  table.qbo-report-months .month { text-align: left; }
+  table.qbo-report-months .hours-start { border-left: 2px solid #ddd; }
+  table.qbo-report-months tfoot td { border-top: 2px solid #ccc; }
+  #qbo-report-form select, #qbo-report-form input { vertical-align: middle; }
+</style>
+
+<%= javascript_tag do %>
+  $(function() {
+    var $period = $('#qbo-report-period'), $dates = $('#qbo-report-from, #qbo-report-to');
+    // Picking a preset fills its dates on Apply; changing a date switches to Custom
+    $dates.on('change', function() { $period.val('custom'); });
+    $period.on('change', function() { if ($period.val() !== 'custom') { $('#qbo-report-form').submit(); } });
+  });
+<% end %>

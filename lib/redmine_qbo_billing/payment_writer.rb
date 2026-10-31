@@ -100,8 +100,9 @@ module RedmineQboBilling
       saved = with_service('Payment') { |service| service.create(payment) }
       raise Error, I18n.t(:error_payment_not_saved) unless saved
 
-      # Invoice balances changed: update the local invoices
+      # Invoice balances changed: update the local invoices, and cache the payment for reports
       applied.each { |invoice, _| sync_invoice(invoice[:id]) }
+      sync_payment(saved.id)
       saved
     end
 
@@ -147,6 +148,12 @@ module RedmineQboBilling
 
     def with_service(entity, &block)
       QboConnectionService.with_qbo_service(entity: entity, &block)
+    end
+
+    def sync_payment(id)
+      PaymentSyncService.new.sync_by_id(id)
+    rescue StandardError => e
+      Rails.logger.warn "[RedmineQboBilling] Could not cache payment #{id}: #{e.message}"
     end
 
     def sync_invoice(id)

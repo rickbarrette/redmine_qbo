@@ -24,6 +24,8 @@ class InvoiceSyncService < SyncServiceBase
 
   map_attributes :balance, :doc_number, :due_date, :txn_date
   map_attribute :total_amount, :total
+  # Man-hours: quantities of the products/services set as "Replaced by imported time"
+  map_attribute(:hours) { |remote| RedmineQboBilling::ManHours.hours(remote) }
   map_attribute :qbo_updated_at, "meta_data.last_updated_time"
   map_belongs_to :customer
 

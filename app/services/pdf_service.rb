@@ -12,7 +12,7 @@ class PdfService
   require 'combine_pdf'
 
   # Subclasses should initialize with a QBO client instance
-  def initialize(entity: entity)
+  def initialize(entity:)
     raise "An entity to sync is required" unless entity
     @entity = entity
   end

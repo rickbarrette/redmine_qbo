@@ -14,7 +14,8 @@ class QboSyncDispatcher
     Customer,
     Estimate,
     Invoice,
-    Employee
+    Employee,
+    Payment
   ].freeze
 
   # Dispatches all synchronization jobs to perform a full sync of QuickBooks entities with the local database. 
@@ -27,7 +28,7 @@ class QboSyncDispatcher
   private
 
   # Dynamically enques all sync jobs
-  def self.enque_jobs(full_sync: full_sync)
+  def self.enque_jobs(full_sync: false)
     jobs = SYNC_JOBS.dup
 
     # Allow other plugins to add addtional sync jobs via Hooks

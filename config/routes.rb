@@ -93,3 +93,6 @@ resources :accounts do
     get :sync
   end
 end
+
+# Business report (estimates, invoices, payments and hours for a period)
+get 'qbo_reports', to: 'qbo_reports#index', as: :qbo_reports

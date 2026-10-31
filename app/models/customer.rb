@@ -16,6 +16,7 @@ class Customer < QboBaseModel
   has_many :issues
   has_many :invoices
   has_many :estimates
+  has_many :payments
   validates_presence_of :name
   before_validation :normalize_phone_numbers
   self.primary_key = :id
