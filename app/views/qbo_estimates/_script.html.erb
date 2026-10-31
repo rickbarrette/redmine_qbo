@@ -197,6 +197,30 @@ $(function () {
     changed();
   }
 
+  // Keyboard subtotal: typed in a line's product box, then Tab or Enter
+  var SUBTOTAL_SHORTCUTS = ['sub', 'subtotal', '='];
+
+  // Puts a subtotal where the shortcut was typed: an otherwise empty line becomes the subtotal; a line with a
+  // description, quantity or rate keeps them (the shortcut text is cleared) and the subtotal goes after it.
+  // Then the next line's product box gets the focus, to carry on typing.
+  function insertSubtotalAt($row) {
+    var $subtotal = $(subtotalTemplate.replace(/__KEY__/g, String(nextKey++)));
+    var $product = $row.find('.qbo-line-item-name');
+    var otherwiseEmpty = !$row.find('.qbo-line-description-input').val().trim() &&
+                         !$row.find('.qbo-line-qty-input').val().trim() && !$row.find('.qbo-line-rate-input').val().trim();
+    if (otherwiseEmpty) {
+      $row.replaceWith($subtotal);
+    } else {
+      $product.val('');
+      $row.removeClass('qbo-line-unmatched').after($subtotal);
+    }
+    renumber();
+    changed();
+    var $next = $subtotal.nextAll('tr.qbo-line').not('.qbo-line-subtotal').first();
+    if (!$next.length) $next = addRow();
+    $next.find('.qbo-line-item-name').trigger('focus');
+  }
+
   // The product typed text points to: an exact name match, else the only result, else the only one whose name
   // starts with the text (e.g. "lab" -> Labor). Nothing when it's ambiguous.
   function bestItem(term, items) {
@@ -228,6 +252,20 @@ $(function () {
         applyItem($input, ui.item.item);
         return false;
       }
+    });
+
+    // Typing "sub", "subtotal" or "=" then Tab or Enter makes a subtotal here (see insertSubtotalAt)
+    $input.on('keydown', function (event) {
+      if ((event.key !== 'Tab' && event.key !== 'Enter') || event.shiftKey) return;
+      var $row = $input.closest('tr');
+      if (SUBTOTAL_SHORTCUTS.indexOf($input.val().trim().toLowerCase()) < 0 || $row.find('.qbo-line-item-id').val()) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      var search = $input.autocomplete('instance');
+      clearTimeout(search.searching);
+      search.cancelSearch = true;
+      $input.autocomplete('close');
+      insertSubtotalAt($row);
     });
 
     // Tab picks the product the text points to (an item highlighted in the list is picked by the
@@ -301,8 +339,8 @@ $(function () {
   $(document).on('mousedown touchstart', function () { tabbedAt = 0; });
   $tbody.on('focus', '.qbo-line-description-input, .qbo-line-qty-input, .qbo-line-rate-input', function () {
     if (Date.now() - tabbedAt > 500) return;
-    var box = this;
-    setTimeout(function () { if (document.activeElement === box) box.select(); }, 0);
+    // Right away, so the first key typed already replaces the text
+    this.select();
   });
 
   // ---- line events ----
