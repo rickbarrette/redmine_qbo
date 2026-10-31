@@ -11,8 +11,16 @@
 class Item < QboBaseModel
   belongs_to :account, optional: true
   
-  validates_presence_of :id, :description
+  # QuickBooks only requires a name: services such as Labor often have no description or rate
+  validates_presence_of :id, :name
   validates :unit_price, numericality: { greater_than_or_equal_to: 0 }
+
+  # QuickBooks item types that can't go on an estimate or invoice line themselves
+  UNSELLABLE_TYPES = %w[Category Group].freeze
+
+  # Active products/services that can go on a line (services, non-inventory and inventory items), for the
+  # pickers and the labor products/services setting
+  scope :sellable, -> { where(active: true).where.not(type: UNSELLABLE_TYPES).or(where(active: true, type: nil)) }
   self.primary_key = :id
   self.inheritance_column = :_type_disabled
   qbo_sync push: true

@@ -55,7 +55,7 @@ module RedmineQboBilling
       return chosen if chosen.any?
 
       list = codes
-      Item.where(active: true).pluck(:id, :name).select { |_, name| name_matches?(name, list) }.map { |id, _| id.to_s }
+      Item.sellable.pluck(:id, :name).select { |_, name| name_matches?(name, list) }.map { |id, _| id.to_s }
     rescue StandardError
       []
     end

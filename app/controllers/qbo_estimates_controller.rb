@@ -125,7 +125,7 @@ class QboEstimatesController < ApplicationController
   def items
 
     term = "%#{ActiveRecord::Base.sanitize_sql_like(params[:q].to_s.strip)}%"
-    items = Item.where(active: true)
+    items = Item.sellable
                 .where("name LIKE :t OR sku LIKE :t OR description LIKE :t", t: term)
                 .order(:name)
                 .limit(25)

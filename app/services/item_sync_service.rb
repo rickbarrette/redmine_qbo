@@ -30,6 +30,10 @@ class ItemSyncService < SyncServiceBase
     account_id = remote.income_account_ref&.value
     account_id.present? ? Account.find_by(id: account_id.to_i) : nil
   end
-  map_attributes :description, :id, :name, :sku, :type, :unit_price
+  map_attributes :id, :name, :sku, :type
+  # Services such as Labor often have no description or rate in QuickBooks; they sync as blank and 0
+  # instead of failing validation and being skipped
+  map_attribute(:description) { |remote| remote.description.to_s }
+  map_attribute(:unit_price) { |remote| remote.unit_price || 0 }
 
 end

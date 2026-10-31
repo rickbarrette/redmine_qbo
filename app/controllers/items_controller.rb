@@ -23,7 +23,7 @@ class ItemsController < ApplicationController
     term = ActiveRecord::Base.sanitize_sql_like(params[:q].to_s)
 
     items = Item.where("description LIKE :t OR name LIKE :t OR sku LIKE :t", t: "%#{term}%")
-      .where(active: true)
+      .merge(Item.sellable)
       .order(:description)
       .limit(20)
 

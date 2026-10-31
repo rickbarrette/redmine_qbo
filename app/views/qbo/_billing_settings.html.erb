@@ -11,7 +11,7 @@
     <label for="settings_labor_item_ids"><%= l(:label_labor_items) %></label>
     <%= hidden_field_tag 'settings[labor_item_ids][]', '', id: nil %>
     <%= select_tag 'settings[labor_item_ids][]',
-                   options_from_collection_for_select(Item.where(active: true).order(:name), :id, :name,
+                   options_from_collection_for_select(Item.sellable.order(:name), :id, :name,
                                                       RedmineQboBilling::LaborItems.item_ids),
                    multiple: true, size: 8, id: 'settings_labor_item_ids' %>
     <em class="info"><%= l(:text_labor_items) %></em>
