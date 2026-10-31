@@ -10,17 +10,16 @@
 
 
 module RedmineQboBilling
-  # The man-hours on a QuickBooks estimate or invoice: the quantities of its lines whose product/service is set
-  # as "Replaced by imported time" (e.g. Labor), including lines inside bundles. While that setting is blank,
-  # lines matching the estimate item codes are counted instead (counting every line would include parts).
+  # The man-hours on a QuickBooks estimate or invoice: the quantities of its labor lines (the plugin setting
+  # "Labor products/services", see LaborItems), including lines inside bundles.
   module ManHours
     module_function
 
-    def hours(document, item_ids: InvoiceWriter.replaceable_item_ids, codes: nil)
+    def hours(document, item_ids: LaborItems.ids, codes: nil)
       return 0.0 if document.nil?
 
       ids = Array(item_ids).map(&:to_s).reject(&:blank?)
-      codes ||= EstimateIssueBuilder.item_codes if ids.empty?
+      codes ||= LaborItems.codes if ids.empty?
       sum_lines(document.line_items, ids, codes).round(2)
     end
 
@@ -30,7 +29,7 @@ module RedmineQboBilling
         next sum_lines(group.line_items, ids, codes) if group
 
         detail = sales_detail(line)
-        next 0.0 unless detail&.item_ref && man_hour_item?(detail.item_ref, ids, codes)
+        next 0.0 unless detail && LaborItems.match?(detail.item_ref, ids: ids, codes: codes)
         detail.quantity.to_f
       end
     end
@@ -39,11 +38,6 @@ module RedmineQboBilling
       if line.respond_to?(:sales_line_item_detail) then line.sales_line_item_detail
       elsif line.respond_to?(:sales_item_line_detail) then line.sales_item_line_detail
       end
-    end
-
-    def man_hour_item?(ref, ids, codes)
-      return ids.include?(ref.value.to_s) if ids.any?
-      EstimateIssueBuilder.item_matches?(ref.name, codes)
     end
   end
 end

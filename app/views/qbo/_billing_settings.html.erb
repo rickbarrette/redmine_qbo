@@ -5,26 +5,22 @@
                          min: 0, step: 1, size: 6 %>
     <em class="info"><%= l(:text_estimate_expiration_days) %></em>
   </p>
+  <%# Labor: issues from estimates, lines imported time replaces on invoices, and hours for the business report.
+      While none are chosen, items named "Labor" are used and shown selected. %>
   <p>
-    <label for="settings_replaceable_item_ids"><%= l(:label_replaceable_items) %></label>
-    <%= hidden_field_tag 'settings[replaceable_item_ids][]', '', id: nil %>
-    <%= select_tag 'settings[replaceable_item_ids][]',
+    <label for="settings_labor_item_ids"><%= l(:label_labor_items) %></label>
+    <%= hidden_field_tag 'settings[labor_item_ids][]', '', id: nil %>
+    <%= select_tag 'settings[labor_item_ids][]',
                    options_from_collection_for_select(Item.where(active: true).order(:name), :id, :name,
-                                                      Array(@settings['replaceable_item_ids']).map(&:to_s)),
-                   multiple: true, size: 8, id: 'settings_replaceable_item_ids' %>
-    <em class="info"><%= l(:text_replaceable_items) %></em>
+                                                      RedmineQboBilling::LaborItems.item_ids),
+                   multiple: true, size: 8, id: 'settings_labor_item_ids' %>
+    <em class="info"><%= l(:text_labor_items) %></em>
   </p>
 </div>
 
-<%# Issues from estimates (moved from redmine_qbo_calendar; its old values are shown until these are saved) %>
 <% issue_builder = RedmineQboBilling::EstimateIssueBuilder %>
 <fieldset class="box tabular">
   <legend><%= l(:label_estimate_issue_settings) %></legend>
-  <p>
-    <label for="settings_issue_item_codes"><%= l(:label_estimate_item_codes) %></label>
-    <%= text_area_tag 'settings[issue_item_codes]', issue_builder.item_codes.join("\n"), rows: 5, cols: 30, id: 'settings_issue_item_codes' %>
-    <em class="info"><%= l(:text_estimate_item_codes_info) %></em>
-  </p>
   <p>
     <label for="settings_issue_default_project_id"><%= l(:label_default_project) %></label>
     <%= select_tag 'settings[issue_default_project_id]',

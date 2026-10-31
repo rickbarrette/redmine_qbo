@@ -26,57 +26,34 @@ module RedmineQboBilling
   class EstimateIssueBuilder
     include Redmine::I18n
 
-    DEFAULT_ITEM_CODES = ['Labor'].freeze
-
     Proposal = Struct.new(:line_id, :item_name, :description, :hours, :existing_issue, keyword_init: true) do
       def created?
         existing_issue.present?
       end
     end
 
-    # Item codes from the plugin settings, one per line (commas also accepted). Until they're set here, the
-    # ones redmine_qbo_calendar used are kept.
-    def self.item_codes
-      raw = setting('issue_item_codes', 'item_codes').to_s
-      codes = raw.split(/[\n,]/).map(&:strip).reject(&:blank?)
-      codes.presence || DEFAULT_ITEM_CODES
-    end
-
     def self.default_tracker_id
-      setting('issue_default_tracker_id', 'default_tracker_id').to_i
+      setting('issue_default_tracker_id').to_i
     end
 
     def self.default_project_id
-      setting('issue_default_project_id', 'default_project_id').to_i
+      setting('issue_default_project_id').to_i
     end
 
-    # This plugin's setting, or redmine_qbo_calendar's old one while this one is blank
-    def self.setting(key, calendar_key)
-      ours = (Setting.plugin_redmine_qbo || {})[key]
-      return ours if ours.present?
-
-      calendar = Setting.respond_to?(:plugin_redmine_qbo_calendar) ? (Setting.plugin_redmine_qbo_calendar || {}) : {}
-      calendar[calendar_key]
+    def self.setting(key)
+      (Setting.plugin_redmine_qbo || {})[key]
     rescue StandardError
       nil
     end
 
-    # A line matches a code if its QBO item name equals the code, or any part of a
-    # "Category:Item" name does. Case-insensitive.
-    def self.item_matches?(item_name, codes = item_codes)
-      name = item_name.to_s.strip.downcase
-      parts = name.split(':').map(&:strip)
-      codes.map { |c| c.strip.downcase }.any? { |code| name == code || parts.include?(code) }
-    end
-
-    # The estimate's labor hours: the quantities of its lines whose item matches an item code
+    # The estimate's labor hours: the quantities of its labor lines (LaborItems)
     # (e.g. for an appointment's hours, which shouldn't be less)
     def self.labor_hours(estimate)
       return 0.0 if estimate.nil?
 
       Array(estimate.line_items).sum do |line|
         detail = line.respond_to?(:sales_line_item_detail) ? line.sales_line_item_detail : nil
-        next 0.0 if detail.nil? || detail.item_ref.nil? || !item_matches?(detail.item_ref.name)
+        next 0.0 if detail.nil? || !LaborItems.match?(detail.item_ref)
         detail.quantity.to_f
       end
     end
@@ -172,7 +149,8 @@ module RedmineQboBilling
     def build_proposals
       return [] if estimate.blank?
 
-      codes = self.class.item_codes
+      ids = LaborItems.ids
+      codes = LaborItems.codes
       links = QboEstimateLineIssue.where(estimate_id: estimate.id).includes(:issue).index_by(&:line_id)
 
       Array(estimate.line_items).each_with_index.filter_map do |line, index|
@@ -180,7 +158,7 @@ module RedmineQboBilling
         next if detail.nil? || detail.item_ref.nil?
 
         item_name = detail.item_ref.name.to_s.strip
-        next unless self.class.item_matches?(item_name, codes)
+        next unless LaborItems.match?(detail.item_ref, ids: ids, codes: codes)
 
         # The subject comes from the line's description, so lines without one are skipped
         description = line.description.to_s.strip

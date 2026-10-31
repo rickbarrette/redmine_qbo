@@ -39,14 +39,6 @@ module RedmineQboBilling
       EstimateWriter
     end
 
-    # The plugin setting "Replaced by imported time": only lines with these products/services are offered
-    # under Replace these lines when time is imported (e.g. an estimate's Labor lines); empty offers every line
-    def replaceable_item_ids
-      Array(Setting.plugin_redmine_qbo['replaceable_item_ids']).map(&:to_s).reject(&:blank?).uniq
-    rescue StandardError
-      []
-    end
-
     # A blank invoice for the customer, dated today
     def new_form(customer: nil, user: User.current)
       EstimateForm.new(

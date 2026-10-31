@@ -95,7 +95,7 @@ Customer records are automatically updated in the local database when changes oc
 
 ### Estimates, Invoices and Payments
 
-Estimates and invoices keep their number, date, customer, total and **man-hours** (the quantities of the products/services set as "Replaced by imported time", including lines inside bundles; the estimate item codes are used while that setting is blank). Payments keep their customer, date, amount and unapplied amount. These cached figures feed the business report.
+Estimates and invoices keep their number, date, customer, total and **man-hours** (the quantities of the labor products/services, including lines inside bundles). Payments keep their customer, date, amount and unapplied amount. These cached figures feed the business report.
 
 ---
 
@@ -105,7 +105,7 @@ Estimates and invoices keep their number, date, customer, total and **man-hours*
 * **Edit** any estimate from the Edit link next to it on the customer page or the issue page.
 * **Duplicate** an estimate to start a similar one: same customer, lines, subtotals, VIN and messages, dated today, with the current user as sales person.
 * **Read-only once linked to an issue**: an estimate that an issue is linked to can be viewed, emailed and duplicated, but not changed, so the work doesn't drift from what was quoted. The list shows a View link for these instead of Edit.
-* **Create issues** from an estimate's labor lines (moved here from redmine_qbo_calendar): each line whose item matches an **estimate item code** (e.g. Labor) becomes an issue with the line's description as subject and its quantity as estimated hours. Pick the project, trackers, templates and shared custom fields first. Lines already turned into issues can't be created twice, and issues from the same estimate are related to each other. Opened from an appointment, the issues get the appointment's dates, technician and vehicle.
+* **Create issues** from an estimate's labor lines (moved here from redmine_qbo_calendar): each line with one of the **labor products/services** (e.g. Labor) becomes an issue with the line's description as subject and its quantity as estimated hours. Pick the project, trackers, templates and shared custom fields first. Lines already turned into issues can't be created twice, and issues from the same estimate are related to each other. Opened from an appointment, the issues get the appointment's dates, technician and vehicle.
 * **Email** the estimate with QuickBooks' own estimate email, with **Save and send** or the Email link.
 * The page follows QuickBooks' estimate screen: customer, customer email, billing address, estimate date, expiration date, estimate number, then the product/service lines (#, product/service, description, qty, rate, amount, tax), the message displayed on the estimate, the memo, and the totals.
 * Lines work like QuickBooks: the product list opens when the box is clicked, picking a product fills in its description, rate and tax, typing an amount works out the rate, a spare empty line is always at the bottom, and lines are reordered by dragging them by the handle.
@@ -117,7 +117,7 @@ Estimates and invoices keep their number, date, customer, total and **man-hours*
 
 * **Create invoice** on an estimate's page makes an invoice from it (customer, lines, subtotals, VIN), like QuickBooks' "Create invoice". **Create invoice** on the customer page starts a blank one, and the Edit link next to each invoice on the customer page opens it.
 * **Import time & estimates** lists the customer's billable QuickBooks time (the time activities redmine_qbo makes from an issue's time entries) and their open estimates (e.g. the ones redmine_qbo_lineitems makes for parts that weren't quoted).
-  * Tick the time to bill and, under **Replace these lines**, the lines it replaces (e.g. the estimate's labor lines). When products/services are set as **Replaced by imported time** in the plugin settings, only lines with one of them are offered there; with none set, every line is. The time goes where the first ticked line was and the ticked lines are removed, so the invoice reads in the same order.
+  * Tick the time to bill and, under **Replace these lines**, the lines it replaces (e.g. the estimate's labor lines). Only lines with one of the **labor products/services** from the plugin settings are offered there. The time goes where the first ticked line was and the ticked lines are removed, so the invoice reads in the same order.
   * Ticked estimates go right after the time for the same issue: a redmine_qbo_lineitems estimate starting "Added from: Install #116: …" lands after the time for #116, without that note line, since the time line already names the issue. Estimates with no matching time keep the note and go at the end.
   * **Undo import** puts the lines back until the invoice is saved.
 * **An estimate is billed once**: an estimate that's on an invoice (linked to one, or closed) or was rejected can't be made into an invoice or imported, and its page shows the invoice it's billed on. This is checked against QuickBooks again when the invoice is saved, so an estimate invoiced meanwhile (in another tab, by someone else, or in QuickBooks) stops the save.
@@ -143,7 +143,7 @@ Estimates and invoices keep their number, date, customer, total and **man-hours*
 * **Hours**: estimated hours on estimates, issues' estimated time, invoiced hours on invoices and time spent, with invoiced vs. spent and spent vs. estimated.
 * **By month**: every figure month by month, with totals.
 
-Estimates, invoices and payments count by their QuickBooks date. Issues' estimated time counts issues created in the period, leaving out parents so subtasks aren't counted twice. Spent time counts time logged in the period. Estimates and invoices synced before these figures were added have no total or hours until a full sync (the report says how many); run one again after changing "Replaced by imported time".
+Estimates, invoices and payments count by their QuickBooks date. Issues' estimated time counts issues created in the period, leaving out parents so subtasks aren't counted twice. Spent time counts time logged in the period. Estimates and invoices synced before these figures were added have no total or hours until a full sync (the report says how many); run one again after changing the labor products/services.
 
 ### QuickBooks custom fields
 
@@ -188,9 +188,9 @@ Administration → Items lists the QuickBooks product/service list (synced from 
 
 2. Settings (Administration -> Plugins -> Configure)
     * **Estimates expire after (days)**: new estimates get an expiration date this many days after the estimate date (e.g. 30). Leave blank for none.
-    * **Issues from estimates**: the estimate item codes (also an estimate's labor hours, which an appointment's hours can't be less than), the default project and the default tracker. Until saved here, redmine_qbo_calendar's old values are used.
-    * **Replaced by imported time**: the products/services (e.g. Labor) whose invoice lines time can replace. Only those lines are offered under Replace these lines; leave empty to offer every line.
-    * Item and account counts, the default income account, and Sync Items / Sync Accounts.
+    * **Labor products/services** (e.g. Labor): one list used three ways. An estimate's lines with them can become issues (their quantities are also the estimate's labor hours, which an appointment's hours can't be less than); an invoice's lines with them are offered under Replace these lines when time is imported; and their quantities are the hours on estimates and invoices in the business report. While none are chosen, products/services named Labor are used.
+    * **Issues from estimates**: the default project and the default tracker.
+    * Item and account counts, the default income account and their syncs are under Synchronization.
 
 3. Writing an estimate
 
@@ -312,7 +312,7 @@ The settings page has three sections:
 
 * **QuickBooks connection**: client ID and secret, webhook token, sandbox, when the access token expires, and Connect to QuickBooks.
 * **Synchronization**: customers, employees, estimates, invoices, payments, products/services (items) and accounts, with how many of each are stored, when each last synced and a **Sync** link for each (it re-reads every record of that type). **Sync changes** reads only what changed since the last sync; **Full sync** re-reads everything. The default income account for new products/services is shown here too.
-* **Billing**: estimate expiration, "Replaced by imported time" and the issues-from-estimates settings.
+* **Billing**: estimate expiration, the labor products/services and the issues-from-estimates defaults.
 
 ---
 

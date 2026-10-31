@@ -45,7 +45,7 @@
 <% if proposals.empty? %>
   <p class="nodata">
     <%= l(:error_no_labor_lines_found) %>
-    (<%= l(:label_estimate_item_codes) %>: <%= RedmineQboBilling::EstimateIssueBuilder.item_codes.join(', ') %>)
+    (<%= l(:label_labor_items) %>: <%= RedmineQboBilling::LaborItems.names.join(', ') %>)
     <% if User.current.admin? %>
       &middot; <%= link_to l(:label_settings), plugin_settings_path(id: 'redmine_qbo') %>
     <% end %>

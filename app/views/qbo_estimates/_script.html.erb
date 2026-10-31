@@ -414,9 +414,9 @@ $(function () {
     };
 
     // The invoice's lines, for ticking the ones the time replaces (e.g. the estimate's labor lines).
-    // When products/services are set as replaceable by time in the plugin settings, only lines with one of
-    // them are offered; with none set, every line is.
-    var replaceable = ($form.data('replaceableItemIds') || []).map(String);
+    // Only lines with one of the labor products/services (plugin settings) are offered; if none are known,
+    // every line is.
+    var replaceable = ($form.data('laborItemIds') || []).map(String);
     var fillReplaceList = function () {
       var $list = $('#qbo-import-replace').empty();
       rows().each(function () {

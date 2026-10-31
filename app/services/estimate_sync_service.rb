@@ -27,7 +27,7 @@ class EstimateSyncService < SyncServiceBase
 
   map_attributes :doc_number, :txn_date
   map_attribute :total_amount, :total
-  # Man-hours: quantities of the products/services set as "Replaced by imported time"
+  # Man-hours: quantities of the labor products/services (plugin settings)
   map_attribute(:hours) { |remote| RedmineQboBilling::ManHours.hours(remote) }
   map_belongs_to :customer
 

@@ -26,7 +26,7 @@
              data: {
                document: form.document,
                import_url: (import_options_qbo_invoices_path if invoice),
-               replaceable_item_ids: (RedmineQboBilling::InvoiceWriter.replaceable_item_ids if invoice),
+               labor_item_ids: (RedmineQboBilling::LaborItems.item_ids if invoice),
                items_url: items_qbo_estimates_path,
                customer_info_url: customer_info_qbo_estimates_path,
                saved_subtotal: (form.persisted? ? form.subtotal.to_s('F') : ''),
