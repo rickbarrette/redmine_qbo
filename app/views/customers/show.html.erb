@@ -4,12 +4,10 @@
               id: 'dynamic-new-issue-link', class: 'icon icon-add', target: :_blank %>
   <%# Plugins add their customer actions here (e.g. redmine_qbo_calendar's Add appointment) %>
   <%= call_hook :view_customers_show_contextual, { customer: @customer } %>
-  <%# Estimates, invoices and payments are written here; users without those permissions get QuickBooks' screens %>
+  <%# Estimates, invoices and payments are handled here, each shown to users with its permission. The customer's
+      name below links to their QuickBooks account page as a fallback. %>
   <% if RedmineQboBilling.writer? %>
     <%= render partial: 'qbo_estimates/customer_link', locals: { customer: @customer } %>
-  <% else %>
-    <%= link_to sprite_icon('document', l(:label_create_estimate)), "https://qbo.intuit.com/app/estimate?nameId=#{@customer.id}",
-                class: 'icon icon-document', target: :_blank %>
   <% end %>
   <% if RedmineQboBilling.invoice_writer? %>
     <%= render partial: 'qbo_invoices/customer_link', locals: { customer: @customer } %>
@@ -19,9 +17,6 @@
   <% end %>
   <% if RedmineQboBilling.payment_receiver? %>
     <%= link_to sprite_icon('add', l(:button_receive_payment)), new_qbo_payment_path(customer_id: @customer.id), class: 'icon icon-add' %>
-  <% else %>
-    <%= link_to sprite_icon('add', l(:label_create_payment)), "https://qbo.intuit.com/app/recvpayment?nameId=#{@customer.id}",
-                class: 'icon icon-add', target: :_blank %>
   <% end %>
   <% if User.current.allowed_to?(:edit_customers, nil, global: true) %>
     <%= link_to sprite_icon('edit', l(:button_edit)), edit_customer_path(@customer),

@@ -97,7 +97,7 @@ Customer records are automatically updated in the local database when changes oc
 
 ## Billing: Estimates, Invoices and Payments
 
-* **New estimate** from the customer page (the Create Estimate link opens the Redmine editor instead of QuickBooks).
+* **New estimate** from the customer page: Create Estimate opens the Redmine editor. The customer page no longer links to QuickBooks' estimate or payment screens; the customer's name still opens their QuickBooks account page as a fallback.
 * **Edit** any estimate from the Edit link next to it on the customer page or the issue page.
 * **Duplicate** an estimate to start a similar one: same customer, lines, subtotals, VIN and messages, dated today, with the current user as sales person.
 * **Read-only once linked to an issue**: an estimate that an issue is linked to can be viewed, emailed and duplicated, but not changed, so the work doesn't drift from what was quoted. The list shows a View link for these instead of Edit.
@@ -124,7 +124,7 @@ Customer records are automatically updated in the local database when changes oc
 
 ### Payments
 
-* **Receive payment** on the customer page (it replaces the link to QuickBooks' receive payment screen) or on an unpaid invoice: the customer, payment date, payment method (QuickBooks' list: Cash, Check...), reference number (e.g. the check number), amount and a memo.
+* **Receive payment** on the customer page or on an unpaid invoice: the customer, payment date, payment method (QuickBooks' list: Cash, Check...), reference number (e.g. the check number), amount and a memo.
 * Tick open invoices to fill in the amount (their open balances added up) and pay just those; the header box ticks them all.
 * With none ticked, the payment is applied to the customer's open invoices **oldest first**, like QuickBooks does; the page shows how it will be split as the amount is typed, and it's worked out again from QuickBooks when saving. Anything more than the open balances stays as a credit.
 * Tick **Deposit** to keep the whole payment as a credit on the customer's account without paying any invoice (also what happens when there are no open invoices).
