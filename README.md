@@ -308,6 +308,12 @@ Administration → Plugins → Configure
 
 Once authentication succeeds, the plugin performs an **initial synchronization**.
 
+The settings page has three sections:
+
+* **QuickBooks connection**: client ID and secret, webhook token, sandbox, when the access token expires, and Connect to QuickBooks.
+* **Synchronization**: customers, employees, estimates, invoices, payments, products/services (items) and accounts, with how many of each are stored, when each last synced and a **Sync** link for each (it re-reads every record of that type). **Sync changes** reads only what changed since the last sync; **Full sync** re-reads everything. The default income account for new products/services is shown here too.
+* **Billing**: estimate expiration, "Replaced by imported time" and the issues-from-estimates settings.
+
 ---
 
 # User Mapping

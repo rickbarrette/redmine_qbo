@@ -70,7 +70,7 @@ class QboController < ApplicationController
     full_sync = ActiveModel::Type::Boolean.new.cast(params[:full_sync])
     QboSyncDispatcher.sync!(full_sync: full_sync)
 
-    redirect_to :home, flash: { notice: I18n.t(:label_syncing) }
+    redirect_back fallback_location: home_path, flash: { notice: I18n.t(:label_syncing) }
   end
 
   # Endpoint to receive QuickBooks webhook notifications. Validates the request and processes the payload to sync relevant data to Redmine. Responds with appropriate HTTP status codes based on success or failure of processing.

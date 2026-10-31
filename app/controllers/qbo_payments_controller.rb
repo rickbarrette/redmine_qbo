@@ -13,9 +13,16 @@
 # listed on their payments page.
 class QboPaymentsController < ApplicationController
 
-  before_action :authorize_global
+  before_action :authorize_global, except: :sync
+  before_action :require_admin, only: :sync
 
   QBO_ERRORS = QboEstimatesController::QBO_ERRORS
+
+  # Re-reads every payment from QuickBooks into the local cache (admin, from the plugin settings)
+  def sync
+    Payment.sync
+    redirect_back fallback_location: home_path, flash: { notice: I18n.t(:label_syncing) }
+  end
 
   # The customer's payments, newest first, read from QuickBooks
   def index

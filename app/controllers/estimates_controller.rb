@@ -31,7 +31,7 @@ class EstimatesController < ApplicationController
 
   def sync
     Estimate.sync
-    redirect_to :home, flash: { notice: I18n.t(:label_syncing) }
+    redirect_back fallback_location: home_path, flash: { notice: I18n.t(:label_syncing) }
   end
 
   private

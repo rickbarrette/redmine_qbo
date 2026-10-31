@@ -74,6 +74,7 @@ resources :qbo_payments, only: [:index, :new, :create, :show] do
     get :pdf
   end
   collection do
+    get :sync
     get :open_invoices
   end
 end

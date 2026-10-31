@@ -3,81 +3,93 @@
   intuit.ipp.anywhere.setup({menuProxy: '/path/to/blue-dot', grantUrl: '<%= qbo_authenticate_path %>'});
 </script>
 
+<%# QuickBooks connection: app keys, webhook token, sandbox, and the OAuth connection %>
+<h3><%= l(:label_qbo_connection) %></h3>
 <div class="box tabular">
   <p>
     <label><%= t(:label_client_id) %></label>
     <%= text_field_tag 'settings[oauth_consumer_key]', settings[:oauth_consumer_key], size: 50 %>
   </p>
-
   <p>
     <label><%= t(:label_client_secret) %></label>
     <%= password_field_tag 'settings[oauth_consumer_secret]', settings[:oauth_consumer_secret], size: 50 %>
   </p>
-  
   <p>
     <label><%= t(:label_webhook_token) %></label>
     <%= text_field_tag 'settings[webhook_token]', settings[:webhook_token], size: 50 %>
   </p>
-
   <p>
     <label><%= t(:label_sandbox) %></label>
     <%= check_box_tag 'settings[sandbox]', 1, settings[:sandbox] %>
   </p>
-
-  <hr />
-
   <p>
     <label><%= t(:label_oauth_expires) %></label>
     <span class="icon <%= Qbo.oauth2_access_token_expires_at&.future? ? 'icon-ok' : 'icon-warning' %>">
-      <%= Qbo.oauth2_access_token_expires_at || 'N/A' %>
+      <%= Qbo.oauth2_access_token_expires_at ? format_time(Qbo.oauth2_access_token_expires_at) : 'N/A' %>
     </span>
   </p>
-
   <p>
-    <label><%= t(:label_customer_count) %></label>
-    <%= Customer.count %> 
-    <em style="color: #777; font-size: 0.9em; margin-left: 8px;">(@ <%= Customer.last_sync %>)</em>
-  </p>
-
-  <p>
-    <label><%= t(:label_employee_count) %></label>
-    <%= Employee.count %> 
-    <em style="color: #777; font-size: 0.9em; margin-left: 8px;">(@ <%= Employee.last_sync %>)</em>
-  </p>
-
-  <p>
-    <label><%= t(:label_invoice_count) %></label>
-    <%= Invoice.count %> 
-    <em style="color: #777; font-size: 0.9em; margin-left: 8px;">(@ <%= Invoice.last_sync %>)</em>
-  </p>
-
-  <p>
-    <label><%= t(:label_estimate_count) %></label>
-    <%= Estimate.count %> 
-    <em style="color: #777; font-size: 0.9em; margin-left: 8px;">(@ <%= Estimate.last_sync %>)</em>
-  </p>
-
-  <p>
-    <label><%= t(:label_last_sync) %> (QBO)</label>
-    <%= Qbo.exists? ? Qbo.last_sync : 'Never synced' %>
+    <label></label>
+    <ipp:connectToIntuit></ipp:connectToIntuit>
   </p>
 </div>
 
-<fieldset class="box">
-  <legend>Management & Synchronization</legend>
-  
-  <div style="margin-bottom: 20px;">
-    <ipp:connectToIntuit></ipp:connectToIntuit>
-  </div>
+<%# Everything kept in step with QuickBooks: how many records there are, when each last changed, and a sync
+    button for each. A type's sync re-reads all of its records from QuickBooks. %>
+<% sync_rows = [
+     [l(:label_customers), Customer, sync_customers_path, customers_path],
+     [l(:label_employee_plural), Employee, employees_sync_path, nil],
+     [l(:label_estimates), Estimate, estimates_sync_path, nil],
+     [l(:label_invoices), Invoice, invoices_sync_path, nil],
+     [l(:label_payments), Payment, sync_qbo_payments_path, nil],
+     [l(:label_items), Item, sync_items_path, items_path],
+     [l(:label_accounts), Account, sync_accounts_path, accounts_path]
+   ] %>
+<h3><%= l(:label_management_and_sync) %></h3>
+<div class="box">
+  <table class="list qbo-sync-table">
+    <thead>
+      <tr>
+        <th class="name"></th>
+        <th class="count"><%= l(:label_qbo_records) %></th>
+        <th class="updated"><%= l(:label_last_sync) %></th>
+        <th class="buttons"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% sync_rows.each do |label, model, sync_path, list_path| %>
+        <tr>
+          <td class="name"><%= list_path ? link_to(label, list_path) : label %></td>
+          <td class="count"><%= model.count %></td>
+          <td class="updated"><%= model.last_sync %></td>
+          <td class="buttons"><%= link_to sprite_icon('reload', l(:label_sync)), sync_path, class: 'icon icon-reload' %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
 
-  <div style="margin-bottom: 15px;">
-    <%= link_to t(:label_sync_now_customers), sync_customers_path, class: 'button icon icon-reload' %>
-    <%= link_to t(:label_sync_now_employees), employees_sync_path, class: 'button icon icon-reload' %>
-    <%= link_to t(:label_sync_now_invoices), invoices_sync_path, class: 'button icon icon-reload' %>
-    <%= link_to t(:label_sync_now_estimate), estimates_sync_path, class: 'button icon icon-reload' %>
-  </div>
-</fieldset>
+  <p class="qbo-sync-default-account">
+    <strong><%= t(:label_default_account) %>:</strong> <%= Account.get_default || '–' %>
+    <em class="info"><%= l(:text_default_account_info) %></em>
+  </p>
 
-<%# Billing: estimates, issues from estimates, invoices, the product/service list and accounts %>
+  <p class="qbo-sync-all">
+    <strong><%= t(:label_last_sync) %> (QBO):</strong> <%= Qbo.exists? ? Qbo.last_sync : l(:label_never_synced) %>
+    <%= link_to sprite_icon('reload', l(:label_sync_changes)), qbo_sync_path, class: 'button icon icon-reload' %>
+    <%= link_to sprite_icon('reload', l(:label_full_sync)), qbo_sync_path(full_sync: true), class: 'button icon icon-reload' %>
+  </p>
+  <em class="info"><%= l(:text_qbo_sync_info) %></em>
+</div>
+
+<style>
+  table.qbo-sync-table { margin-bottom: 10px; }
+  table.qbo-sync-table td.name, table.qbo-sync-table th.name { text-align: left; }
+  table.qbo-sync-table td.count { text-align: right; width: 8em; }
+  table.qbo-sync-table td.updated { width: 14em; }
+  table.qbo-sync-table td.buttons { width: 6em; }
+  .qbo-sync-all .button { margin-left: 8px; }
+</style>
+
+<%# Billing: estimates, issues from estimates and invoices %>
 <h3><%= l(:label_billing_settings) %></h3>
 <%= render partial: 'qbo/billing_settings', locals: { settings: settings } %>
