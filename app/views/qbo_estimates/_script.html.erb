@@ -310,11 +310,12 @@ $(function () {
   $tbody.on('change', '.qbo-line-taxable', changed);
   $tbody.on('input', '.qbo-line-description-input', function () { autoGrow(this); });
 
-  // Typing an amount works out the rate from the quantity
+  // Typing an amount (or math, e.g. 300*1.1, rounded to the penny) works out the rate from the quantity
   $tbody.on('input', '.qbo-line-amount-input', function () {
     var $row = $(this).closest('tr');
     var amount = parseNumber($(this).val());
     if (amount === null || isNaN(amount)) return;
+    if (isMath($(this).val().replace(/[$,\s]/g, ''))) amount = round(amount, 2);
     var qty = parseNumber($row.find('.qbo-line-qty-input').val());
     if (qty === null || isNaN(qty) || qty === 0) qty = 1;
     $row.find('.qbo-line-rate-input').val(plain(amount / qty, 5));
