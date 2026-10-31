@@ -38,6 +38,7 @@ class SyncServiceBase
         entries.each do |remote|
           persist(remote)
         end
+        QboSyncStatus.progress(@entity.name, entries.size)
       end
     end
 

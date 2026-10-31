@@ -45,6 +45,7 @@
      [l(:label_items), Item, sync_items_path, items_path],
      [l(:label_accounts), Account, sync_accounts_path, accounts_path]
    ] %>
+<% sync_statuses = QboSyncStatus.by_entity %>
 <h3><%= l(:label_management_and_sync) %></h3>
 <div class="box">
   <table class="list qbo-sync-table">
@@ -61,7 +62,16 @@
         <tr>
           <td class="name"><%= list_path ? link_to(label, list_path) : label %></td>
           <td class="count"><%= model.count %></td>
-          <td class="updated"><%= model.last_sync %></td>
+          <td class="updated">
+            <% status = sync_statuses[model.name] %>
+            <% if status&.running? %>
+              <span class="icon icon-reload qbo-sync-busy"><%= l(:text_qbo_sync_running_short, count: number_with_delimiter(status.processed)) %></span>
+            <% elsif status %>
+              <span class="qbo-sync-busy"><%= l(:text_qbo_sync_queued) %></span>
+            <% else %>
+              <%= model.last_sync %>
+            <% end %>
+          </td>
           <td class="buttons"><%= link_to sprite_icon('reload', l(:label_sync)), sync_path, class: 'icon icon-reload' %></td>
         </tr>
       <% end %>
@@ -88,6 +98,7 @@
   table.qbo-sync-table td.updated { width: 14em; }
   table.qbo-sync-table td.buttons { width: 6em; }
   .qbo-sync-all .button { margin-left: 8px; }
+  .qbo-sync-busy { font-style: italic; color: #b06d00; }
 </style>
 
 <%# Billing: estimates, issues from estimates and invoices %>

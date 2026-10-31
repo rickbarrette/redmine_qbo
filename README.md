@@ -144,7 +144,7 @@ Estimates and invoices keep their number, date, customer, total and **man-hours*
 * **Hours**: estimated hours on estimates, issues' estimated time, invoiced hours on invoices and time spent, with invoiced vs. spent and spent vs. estimated.
 * **By month**: every figure month by month, with totals.
 
-Estimates, invoices and payments count by their QuickBooks date. Issues' estimated time counts issues created in the period, leaving out parents so subtasks aren't counted twice. Spent time counts time logged in the period. Estimates and invoices synced before these figures were added have no total or hours until a full sync (the report says how many); run one again after changing the labor products/services.
+Estimates, invoices and payments count by their QuickBooks date. Issues' estimated time counts issues created in the period, leaving out parents so subtasks aren't counted twice. Spent time counts time logged in the period. While estimates, invoices or payments are syncing, the report says so (with how many have been read) and refreshes every 30 seconds; the settings page's Synchronization table shows the same per type. Estimates and invoices synced before these figures were added have no total or hours until a full sync (the report says how many); run one again after changing the labor products/services.
 
 ### QuickBooks custom fields
 

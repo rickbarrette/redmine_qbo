@@ -27,6 +27,30 @@
 
 <p class="qbo-report-range"><%= format_date(@report.from) %> &ndash; <%= format_date(@report.to) %></p>
 
+<% if Array(@syncing).any? %>
+  <% sync_labels = { 'Estimate' => l(:label_estimates), 'Invoice' => l(:label_invoices), 'Payment' => l(:label_payments) } %>
+  <div class="warning qbo-report-syncing">
+    <%= l(:text_report_syncing) %>
+    <ul>
+      <% @syncing.each do |status| %>
+        <li>
+          <strong><%= sync_labels[status.entity] || status.entity %></strong>:
+          <% if status.running? %>
+            <%= l(:text_qbo_sync_running, count: number_with_delimiter(status.processed),
+                  time: format_time(status.started_at)) %>
+          <% else %>
+            <%= l(:text_qbo_sync_queued) %>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+  <%= javascript_tag do %>
+    // Refresh while QuickBooks is syncing, so the figures fill in
+    setTimeout(function () { window.location.reload(); }, 30000);
+  <% end %>
+<% end %>
+
 <% if @report.unsynced_count > 0 %>
   <p class="warning"><%= l(:text_report_needs_sync, count: @report.unsynced_count) %></p>
 <% end %>
@@ -131,6 +155,7 @@
   .qbo-bar-issue_hours { background: #9b7fc0; }
   .qbo-report-ratios { margin: 8px 4px; line-height: 1.7; }
   .qbo-report-range { color: #666; margin: 4px 0 10px; }
+  .qbo-report-syncing ul { display: inline-block; text-align: left; margin: 6px 0 0; }
   table.qbo-report-months td, table.qbo-report-months th { text-align: right; white-space: nowrap; }
   table.qbo-report-months .month { text-align: left; }
   table.qbo-report-months .hours-start { border-left: 2px solid #ddd; }

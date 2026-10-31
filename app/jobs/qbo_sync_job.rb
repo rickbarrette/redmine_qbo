@@ -25,7 +25,13 @@ class QboSyncJob < ApplicationJob
     elsif doc_number.present?
       service.sync_by_doc_number(doc_number)
     else
-      service.sync(full_sync: full_sync)
+      # Shown on the business report and the settings page while it runs
+      QboSyncStatus.running(entity)
+      begin
+        service.sync(full_sync: full_sync)
+      ensure
+        QboSyncStatus.finished(entity)
+      end
     end
   end
 

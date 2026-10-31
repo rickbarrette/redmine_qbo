@@ -70,6 +70,7 @@ class QboBaseModel < ActiveRecord::Base
 
   # Sync all entities, typically triggered by a scheduled task or manual sync request
   def self.sync
+    QboSyncStatus.queued(model_name.name)
     QboSyncJob.perform_later(entity: model_name.name, full_sync: true)
   end
 

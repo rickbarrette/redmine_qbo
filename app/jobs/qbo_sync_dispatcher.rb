@@ -40,7 +40,10 @@ class QboSyncDispatcher
         end
     end
 
-    jobs.each { |job| QboSyncJob.perform_later(entity: job, full_sync: full_sync) }
+    jobs.each do |job|
+      QboSyncStatus.queued(job.to_s)
+      QboSyncJob.perform_later(entity: job, full_sync: full_sync)
+    end
   end
 
   def self.log(msg)

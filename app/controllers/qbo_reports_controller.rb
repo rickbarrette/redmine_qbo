@@ -18,5 +18,7 @@ class QboReportsController < ApplicationController
   def index
     @report = RedmineQboBilling::BusinessReport.new(period: params[:period].presence || 'this_year',
                                                     from: params[:from], to: params[:to], today: User.current.today)
+    # Syncs still running for what the report counts: its figures are incomplete until they finish
+    @syncing = QboSyncStatus.by_entity(%w[Estimate Invoice Payment]).values.sort_by(&:entity)
   end
 end
