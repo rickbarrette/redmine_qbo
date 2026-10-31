@@ -22,4 +22,11 @@ class Invoice < QboBaseModel
     doc_number
   end
 
+  # Paid, partially paid, overdue, open or voided, from the cached total, balance and due date
+  # (RedmineQboBilling::InvoiceStatus); nil when the balance isn't cached
+  def status(today: User.current.today)
+    RedmineQboBilling::InvoiceStatus.status(total: self[:total_amount], balance: self[:balance],
+                                            due_date: self[:due_date], today: today)
+  end
+
 end

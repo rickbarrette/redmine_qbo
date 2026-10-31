@@ -126,6 +126,7 @@ Estimates and invoices keep their number, date, customer, total and **man-hours*
 * Time lines are linked to their time activities, so QuickBooks marks the time as billed. Estimates the invoice was made from, or imported into it, are linked and closed when it's saved.
 * **Custom fields from the work orders**: the issues behind an invoice are the ones its time lines and lineitems estimates name. Plugins can fill custom fields from them when they're imported, and block a save (e.g. redmine_qbo_vehicles fills the VIN and mileage and allows one vehicle per invoice). On its own, redmine_qbo leaves the boxes as typed.
 * **Sales person**: an invoice credits the sales person on the estimate it was made from (the first linked estimate that names one); if none does, the user who writes the invoice.
+* Invoices show their status, worked out from the balance and due date like QuickBooks' invoice list: **Paid**, **Partially paid**, **Overdue**, **Open** or **Voided** (a zero total), on the customer page's invoice list and the invoice page.
 * Invoices with a payment applied open read-only. The due date is left to QuickBooks (from the customer's terms) unless one is picked. The "default message shown on invoices" fills in the message.
 
 ### Payments

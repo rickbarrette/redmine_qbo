@@ -15,9 +15,13 @@
     <% if form.sent? %>
       <span class="qbo-estimate-status qbo-estimate-status-sent"><%= l(:label_estimate_sent) %></span>
     <% end %>
-    <% if invoice && form.locked == :paid %>
-      <% fully_paid = form.balance.to_d.zero? %>
-      <span class="qbo-estimate-status qbo-estimate-status-<%= fully_paid ? 'closed' : 'accepted' %>"><%= l(fully_paid ? :label_invoice_paid : :label_invoice_partially_paid) %></span>
+    <% if invoice %>
+      <% status = RedmineQboBilling::InvoiceStatus.status(total: form.total, balance: form.balance,
+                                                         due_date: RedmineQboBilling::EstimateForm.date(form.due_date),
+                                                         today: User.current.today) %>
+      <% if status %>
+        <span class="qbo-estimate-status qbo-invoice-status-<%= status %>"><%= RedmineQboBilling::InvoiceStatus.label(status) %></span>
+      <% end %>
     <% elsif !invoice && form.txn_status.present? %>
       <span class="qbo-estimate-status qbo-estimate-status-<%= form.txn_status.downcase %>"><%= form.txn_status %></span>
     <% end %>

@@ -1,4 +1,5 @@
 <% unless invoices.empty? %>
+  <%= render partial: 'qbo_estimates/status_styles' %>
 
   <%= form_with(url: invoice_path, method: :get) do |form| %>
 
@@ -10,13 +11,19 @@
       <hr>
     <% end %>
 
+    <div class="qbo-invoice-list">
     <% invoices.sort.reverse.each do |invoice| %>
       <div class="row">
         <%= check_box_tag "invoice_ids[]", invoice.id, false,  onchange: "updateLink()", data: { url: invoice_path(invoice), text: "Invoice ##{invoice.to_s}" }, class: "invoice-checkbox appointment" if invoices.count > 1 %>
         <b><%= link_to "##{invoice.doc_number}", invoice_path(invoice), target: :_blank %></b> <%= invoice.txn_date %>
+        <%# Paid / partially paid / overdue / open / voided, from the cached balance and due date %>
+        <% if (status = invoice.status) %>
+          <span class="qbo-estimate-status qbo-invoice-status-<%= status %>"><%= RedmineQboBilling::InvoiceStatus.label(status) %></span>
+        <% end %>
         <%= render partial: 'qbo_invoices/invoice_actions', locals: { invoice: invoice } if RedmineQboBilling.invoice_writer? %>
       </div>
     <% end %>
+    </div>
 
     <% if invoices.count > 1 %>
       <%= form.submit t(:button_bulk_pdf) %>
