@@ -135,6 +135,46 @@ $(function () {
   }
 
   // ---- product/service search ----
+
+  // Fills a line from a product/service: name, id, description (unless the user typed their own), rate,
+  // quantity 1 if empty, taxable
+  function applyItem($input, item) {
+    var $row = $input.closest('tr');
+    var $description = $row.find('.qbo-line-description-input');
+    var previous = $row.data('itemDescription');
+
+    $input.val(item.name);
+    $row.find('.qbo-line-item-id').val(item.id);
+    $row.removeClass('qbo-line-unmatched');
+    // Keep a description the user typed; replace one that came from the previous product
+    if (!$description.val().trim() || $description.val() === previous) {
+      $description.val(item.description || '');
+      autoGrow($description[0]);
+      // Tabbed into it already (the product was filled in after the search came back): keep it selected
+      if (document.activeElement === $description[0]) $description[0].select();
+    }
+    $row.data('itemDescription', item.description || '');
+    if (item.price !== null && item.price !== undefined && item.price !== '') {
+      $row.find('.qbo-line-rate-input').val(plain(parseFloat(item.price), 5));
+      tidyNumbers($row);
+    }
+    if (!$row.find('.qbo-line-qty-input').val().trim()) $row.find('.qbo-line-qty-input').val('1');
+    $row.find('.qbo-line-taxable').prop('checked', item.taxable !== false);
+    changed();
+  }
+
+  // The product typed text points to: an exact name match, else the only result, else the only one whose name
+  // starts with the text (e.g. "lab" -> Labor). Nothing when it's ambiguous.
+  function bestItem(term, items) {
+    var t = term.trim().toLowerCase();
+    if (!t || !items || !items.length) return null;
+    var exact = items.filter(function (i) { return String(i.name).toLowerCase() === t; });
+    if (exact.length === 1) return exact[0];
+    if (items.length === 1) return items[0];
+    var starts = items.filter(function (i) { return String(i.name).toLowerCase().indexOf(t) === 0; });
+    return starts.length === 1 ? starts[0] : null;
+  }
+
   function setupItemSearch($input) {
     $input.autocomplete({
       appendTo: 'body',
@@ -143,6 +183,7 @@ $(function () {
       source: function (request, response) {
         $.getJSON($form.data('itemsUrl'), { q: request.term })
           .done(function (items) {
+            $input.data('qboResults', { term: request.term, items: items });
             response(items.map(function (item) {
               return { label: item.name, value: item.name, item: item };
             }));
@@ -150,29 +191,32 @@ $(function () {
           .fail(function () { response([]); });
       },
       select: function (event, ui) {
-        var $row = $input.closest('tr');
-        var item = ui.item.item;
-        var $description = $row.find('.qbo-line-description-input');
-        var previous = $row.data('itemDescription');
-
-        $input.val(item.name);
-        $row.find('.qbo-line-item-id').val(item.id);
-        $row.removeClass('qbo-line-unmatched');
-        // Keep a description the user typed; replace one that came from the previous product
-        if (!$description.val().trim() || $description.val() === previous) {
-          $description.val(item.description || '');
-          autoGrow($description[0]);
-        }
-        $row.data('itemDescription', item.description || '');
-        if (item.price !== null && item.price !== undefined && item.price !== '') {
-          $row.find('.qbo-line-rate-input').val(plain(parseFloat(item.price), 5));
-          tidyNumbers($row);
-        }
-        if (!$row.find('.qbo-line-qty-input').val().trim()) $row.find('.qbo-line-qty-input').val('1');
-        $row.find('.qbo-line-taxable').prop('checked', item.taxable !== false);
-        changed();
+        applyItem($input, ui.item.item);
         return false;
       }
+    });
+
+    // Tab picks the product the text points to (an item highlighted in the list is picked by the
+    // autocomplete itself). If the search hasn't come back yet, the line is filled in when it does.
+    $input.on('keydown', function (event) {
+      if (event.key !== 'Tab' || event.shiftKey) return;
+      var menu = $input.autocomplete('instance').menu;
+      if (menu && menu.active) return;
+      var $row = $input.closest('tr');
+      var term = $input.val();
+      if ($row.find('.qbo-line-item-id').val() || !term.trim()) return;
+
+      var known = $input.data('qboResults');
+      if (known && known.term.trim().toLowerCase() === term.trim().toLowerCase()) {
+        var pick = bestItem(term, known.items);
+        if (pick) applyItem($input, pick);
+        $input.autocomplete('close');
+        return;
+      }
+      $.getJSON($form.data('itemsUrl'), { q: term }).done(function (items) {
+        var pick = bestItem(term, items);
+        if (pick && $input.val() === term && !$row.find('.qbo-line-item-id').val()) applyItem($input, pick);
+      });
     });
 
     $input.autocomplete('instance')._renderItem = function (ul, entry) {
@@ -213,6 +257,17 @@ $(function () {
     recalc();
     ensureSpareRow();
   }
+
+  // ---- keyboard ----
+  // Tabbing into a line's description, quantity or rate selects what's there, so typing replaces it (a click
+  // still places the cursor)
+  var tabbedAt = 0;
+  $(document).on('keydown', function (event) { if (event.key === 'Tab') tabbedAt = Date.now(); });
+  $tbody.on('focus', '.qbo-line-description-input, .qbo-line-qty-input, .qbo-line-rate-input', function () {
+    if (Date.now() - tabbedAt > 500) return;
+    var box = this;
+    setTimeout(function () { if (document.activeElement === box) box.select(); }, 0);
+  });
 
   // ---- line events ----
   $tbody.on('input', '.qbo-line-qty-input, .qbo-line-rate-input, .qbo-line-description-input, .qbo-line-item-name', changed);
