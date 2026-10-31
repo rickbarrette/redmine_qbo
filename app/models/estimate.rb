@@ -20,6 +20,12 @@ class Estimate < QboBaseModel
     to_s
   end
 
+  # True once QuickBooks has turned it into an invoice (status cached by the sync). The estimate page also
+  # checks for a linked invoice; either way a billed estimate can't be changed in Redmine.
+  def billed?
+    RedmineQboBilling::EstimateWriter::BILLED_STATUSES.include?(self[:txn_status].to_s)
+  end
+
   # returns a human readable string
   def to_s
     return self[:doc_number]

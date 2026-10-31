@@ -35,16 +35,6 @@
   </p>
 <% end %>
 
-<% if !invoice && Array(form.invoiced_on).any? %>
-  <div class="warning qbo-estimate-notice">
-    <%= l(:text_estimate_billed_on) %>
-    <ul>
-      <% form.invoiced_on.each do |invoice_id, number| %>
-        <li><%= link_to "#{l(:label_invoice)} ##{number}", RedmineQboBilling.invoice_writer? ? edit_qbo_invoice_path(invoice_id) : invoice_path(invoice_id) %></li>
-      <% end %>
-    </ul>
-  </div>
-<% end %>
 
 <% if form.duplicated_from.present? %>
   <div class="flash notice"><%= l(:text_estimate_duplicated_from, number: form.duplicated_from) %></div>
@@ -53,7 +43,18 @@
   <div class="flash notice"><%= l(:text_invoice_from_estimate, number: form.converted_from) %></div>
 <% end %>
 
-<% if form.locked == :linked %>
+<% if form.locked == :billed %>
+  <div class="warning qbo-estimate-notice">
+    <%= l(:error_estimate_billed) %>
+    <% if Array(form.invoiced_on).any? %>
+      <ul>
+        <% form.invoiced_on.each do |invoice_id, number| %>
+          <li><%= link_to "#{l(:label_invoice)} ##{number}", RedmineQboBilling.invoice_writer? ? edit_qbo_invoice_path(invoice_id) : invoice_path(invoice_id) %></li>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+<% elsif form.locked == :linked %>
   <div class="warning qbo-estimate-notice">
     <%= l(:error_estimate_linked_to_issues) %>
     <ul>
@@ -66,8 +67,6 @@
   <p class="warning"><%= l(:error_invoice_paid) %></p>
 <% elsif form.locked == :bundles %>
   <p class="warning"><%= l(invoice ? :error_invoice_has_bundles : :error_estimate_has_bundles) %></p>
-<% elsif !invoice && %w[Converted Closed].include?(form.txn_status.to_s) && Array(form.invoiced_on).empty? %>
-  <p class="warning"><%= l(:text_estimate_closed) %></p>
 <% end %>
 
 <% if RedmineQboBilling::Company.settings.empty? %>

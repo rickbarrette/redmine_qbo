@@ -4,7 +4,7 @@
   <%# Plugins add estimate actions here (e.g. redmine_qbo_calendar's Add appointment) %>
   <%= call_hook :view_qbo_estimate_contextual, { estimate_id: @form.id, customer_id: @form.customer_id, vin: @form.vin, doc_number: @form.doc_number } %>
   <%# An estimate is billed once: no Create invoice once it's on an invoice, closed or rejected %>
-  <% if RedmineQboBilling.invoice_writer? && Array(@form.invoiced_on).empty? && !%w[Converted Closed Rejected].include?(@form.txn_status.to_s) %>
+  <% if RedmineQboBilling.invoice_writer? && @form.locked != :billed && @form.txn_status.to_s != 'Rejected' %>
     <%= link_to sprite_icon('document', l(:button_create_invoice)), new_qbo_invoice_path(estimate_id: @form.id), class: 'icon icon-document' %>
   <% end %>
   <% if User.current.allowed_to?(:create_estimate_issues, nil, global: true) %>

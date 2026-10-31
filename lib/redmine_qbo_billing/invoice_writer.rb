@@ -29,7 +29,7 @@ module RedmineQboBilling
     # Estimates in these states can still be imported (Converted/Closed ones are already invoiced, Rejected ones lost)
     OPEN_ESTIMATE_STATUSES = ['', 'Pending', 'Accepted'].freeze
     # How QuickBooks marks an invoiced estimate: Converted when it made the invoice, Closed when closed by hand
-    BILLED_ESTIMATE_STATUSES = %w[Converted Closed].freeze
+    BILLED_ESTIMATE_STATUSES = EstimateWriter::BILLED_STATUSES
     # How far back to look for billable time if QuickBooks won't filter time activities by customer
     TIME_LOOKBACK = 400
 

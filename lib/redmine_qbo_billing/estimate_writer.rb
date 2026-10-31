@@ -121,6 +121,7 @@ module RedmineQboBilling
           remote = service.fetch_by_id(form.id)
           raise Error, I18n.t(:notice_estimate_not_found) unless remote
           raise Conflict, I18n.t(:error_estimate_changed_in_quickbooks) if remote.sync_token.to_s != form.sync_token.to_s
+          raise Error, I18n.t(:error_estimate_billed) if billed?(remote)
           raise Error, I18n.t(:error_estimate_has_bundles) if group_lines?(remote)
           raise Error, I18n.t(:error_estimate_linked_to_issues) if linked_issues(form.id).any?
 
@@ -150,6 +151,16 @@ module RedmineQboBilling
 
     # ---- QuickBooks estimate -> form ----
 
+    # Statuses QuickBooks gives an estimate that has been turned into an invoice
+    BILLED_STATUSES = %w[Converted Closed].freeze
+
+    # True once the estimate is billed: converted or closed, or linked to an invoice. Billed estimates (including
+    # redmine_qbo_lineitems' once they're invoiced) can't be changed here.
+    def billed?(remote)
+      BILLED_STATUSES.include?(remote.txn_status.to_s) ||
+        Array(remote.linked_transactions).any? { |t| t.txn_type.to_s == 'Invoice' }
+    end
+
     def form_from_remote(remote)
       EstimateForm.new(
         id: remote.id.to_s,
@@ -175,8 +186,10 @@ module RedmineQboBilling
         invoiced_on: Array(remote.linked_transactions).select { |t| t.txn_type.to_s == 'Invoice' }.map { |t|
           [t.txn_id.to_s, InvoiceWriter.invoice_number(t.txn_id)]
         }.uniq,
-        # Read-only when it has bundles, or once an issue is linked to it (the work is under way)
-        locked: (:bundles if group_lines?(remote)) || (:linked if linked_issues(remote.id).any?)
+        # Read-only once it's billed (converted, closed or on an invoice), when it has bundles, or once an issue
+        # is linked to it (the work is under way)
+        locked: (:billed if billed?(remote)) || (:bundles if group_lines?(remote)) ||
+                (:linked if linked_issues(remote.id).any?)
       )
     end
 
