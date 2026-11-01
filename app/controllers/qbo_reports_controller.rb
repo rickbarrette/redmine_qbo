@@ -19,8 +19,8 @@ class QboReportsController < ApplicationController
   PROJECTS_PREF = :qbo_report_project_ids
 
   def index
-    # Projects for the issues and spent time: the projects picker can choose some
-    @projects = Project.visible.to_a
+    # Projects for the issues and spent time: the projects picker can choose some of the open ones
+    @projects = Project.visible.active.to_a
     @project_ids = report_project_ids
     @report = RedmineQboBilling::BusinessReport.new(period: params[:period].presence || 'this_year',
                                                     from: params[:from], to: params[:to], today: User.current.today,
@@ -35,7 +35,7 @@ class QboReportsController < ApplicationController
   private
 
   # The form's projects (none picked is every project), or the user's saved ones when the address has none.
-  # "Remember these projects" saves the form's choice. Only projects the user can see are kept.
+  # "Remember these projects" saves the form's choice. Only open projects the user can see are kept.
   def report_project_ids
     visible = @projects.map(&:id)
     if params.key?(:project_ids)
