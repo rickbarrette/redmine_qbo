@@ -17,7 +17,10 @@ class QboReportsController < ApplicationController
 
   def index
     @report = RedmineQboBilling::BusinessReport.new(period: params[:period].presence || 'this_year',
-                                                    from: params[:from], to: params[:to], today: User.current.today)
+                                                    from: params[:from], to: params[:to], today: User.current.today,
+                                                    week_start: RedmineQboBilling::BusinessReport.week_start_from_setting(Setting.start_of_week))
+    # Last year's lines on the charts
+    @compare = params[:compare] == '1'
     # Syncs still running for what the report counts: its figures are incomplete until they finish
     @syncing = QboSyncStatus.by_entity(%w[Estimate Invoice Payment]).values.sort_by(&:entity)
   end

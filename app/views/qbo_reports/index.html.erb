@@ -7,6 +7,44 @@
 <% bar = ->(value, max) { max > 0 ? (value.to_f / max * 100).round(1) : 0 } %>
 <% fmt_hours = ->(h) { format('%.1f', h.to_f) } %>
 <% pct = ->(v) { v.nil? ? '–' : "#{v}%" } %>
+<%# Line charts: a label and a tooltip title per point, from the chart's granularity %>
+<% chart = @report.chart %>
+<% months_abbr = ::I18n.t('date.abbr_month_names') %>
+<% days_abbr = ::I18n.t('date.abbr_day_names') %>
+<% one_year = @report.from.year == @report.to.year %>
+<% point_label = lambda do |date|
+     case chart[:granularity]
+     when :day  then "#{days_abbr[date.wday]} #{date.day}"
+     when :week then "#{months_abbr[date.month]} #{date.day}"
+     else one_year ? months_abbr[date.month] : "#{months_abbr[date.month]} #{date.year}"
+     end
+   end %>
+<% point_title = lambda do |first, last|
+     case chart[:granularity]
+     when :day  then format_date(first)
+     when :week then "#{format_date(first)} – #{format_date(last)}"
+     else "#{::I18n.t('date.month_names')[first.month]} #{first.year}"
+     end
+   end %>
+<% previous_ends = chart[:previous_points].each_with_index.map { |p, i| Date.parse(p) + (Date.parse(chart[:ends][i]) - Date.parse(chart[:points][i])) } %>
+<% chart_points = {
+     labels: chart[:points].map { |p| point_label.call(Date.parse(p)) },
+     titles: chart[:points].each_with_index.map { |p, i| point_title.call(Date.parse(p), Date.parse(chart[:ends][i])) },
+     previous_titles: chart[:previous_points].each_with_index.map { |p, i| point_title.call(Date.parse(p), previous_ends[i]) },
+     last_year: l(:label_report_last_year)
+   } %>
+<% chart_series = lambda do |keys|
+     keys.map do |key, label, color|
+       { label: label, color: color, current: chart[:current][key], previous: chart[:previous][key] }
+     end
+   end %>
+<% sales_series = chart_series.call([[:estimates, l(:label_report_estimates_written), '#628db6'],
+                                     [:invoices, l(:label_report_invoices_written), '#e8a33d'],
+                                     [:payments, l(:label_report_payments_received), '#5aa05a']]) %>
+<% hours_series = chart_series.call([[:estimate_hours, l(:label_report_estimate_hours), '#628db6'],
+                                     [:issue_hours, l(:label_report_issue_hours), '#9b7fc0'],
+                                     [:invoice_hours, l(:label_report_invoice_hours), '#e8a33d'],
+                                     [:spent_hours, l(:label_report_spent_hours), '#5aa05a']]) %>
 
 <h2><%= l(:label_business_report) %></h2>
 
@@ -22,6 +60,10 @@
       <%= date_field_tag 'to', @report.to.iso8601, id: 'qbo-report-to' %>
     </span>
     <%= submit_tag l(:button_apply), name: nil %>
+    <label class="qbo-report-compare">
+      <%= check_box_tag 'compare', '1', @compare, id: 'qbo-report-compare' %>
+      <%= l(:label_report_compare_last_year) %>
+    </label>
   </fieldset>
 <% end %>
 
@@ -58,6 +100,9 @@
 <div class="splitcontent">
   <div class="splitcontentleft">
     <h3><%= l(:label_report_money) %></h3>
+    <div class="qbo-report-chart">
+      <canvas id="qbo-chart-sales" data-kind="money" data-series="<%= sales_series.to_json %>"></canvas>
+    </div>
     <table class="list qbo-report">
       <tbody>
         <% [[:estimates, l(:label_report_estimates_written)], [:invoices, l(:label_report_invoices_written)],
@@ -79,6 +124,9 @@
 
   <div class="splitcontentright">
     <h3><%= l(:label_report_hours) %></h3>
+    <div class="qbo-report-chart">
+      <canvas id="qbo-chart-hours" data-kind="hours" data-series="<%= hours_series.to_json %>"></canvas>
+    </div>
     <table class="list qbo-report">
       <tbody>
         <% [[:estimate_hours, l(:label_report_estimate_hours)], [:issue_hours, l(:label_report_issue_hours)],
@@ -181,6 +229,8 @@
   table.qbo-report-months .hours-start { border-left: 2px solid #ddd; }
   table.qbo-report-months tfoot td { border-top: 2px solid #ccc; }
   #qbo-report-form select, #qbo-report-form input { vertical-align: middle; }
+  #qbo-report-form .qbo-report-compare { margin-left: 12px; white-space: nowrap; }
+  .qbo-report-chart { position: relative; height: 260px; margin: 4px 4px 16px; }
 </style>
 
 <%= javascript_tag do %>
@@ -190,4 +240,142 @@
     $dates.on('change', function() { $period.val('custom'); });
     $period.on('change', function() { if ($period.val() !== 'custom') { $('#qbo-report-form').submit(); } });
   });
+
+  // Line charts (Chart.js 4): the same figures and colors as the bars, a point per day,
+  // week or month. "Compare with last year" adds last year's lines, dashed and faded, without reloading.
+  (function() {
+    var points = <%= raw chart_points.to_json %>;
+    // The currency layout the tables use, e.g. "$%n"
+    var currencyFormat = <%= raw number_to_currency(0, precision: 0).to_s.sub('0', '%n').to_json %>;
+    var charts = [];
+
+    function money(v, decimals) {
+      var n = Number(v || 0).toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+      return currencyFormat.replace('%n', n);
+    }
+    function hours(v) { return Number(v || 0).toFixed(1); }
+    function faded(hex) {
+      var n = parseInt(hex.slice(1), 16);
+      return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',0.45)';
+    }
+
+    function draw(Chart, canvas, compare) {
+      var series = JSON.parse(canvas.getAttribute('data-series'));
+      var isMoney = canvas.getAttribute('data-kind') === 'money';
+      var datasets = [];
+      series.forEach(function(s) {
+        datasets.push({ label: s.label, data: s.current, borderColor: s.color, backgroundColor: s.color,
+                        fill: false, cubicInterpolationMode: 'monotone', pointRadius: 3, pointHoverRadius: 5, spanGaps: false, order: 1 });
+      });
+      series.forEach(function(s) {
+        datasets.push({ label: s.label + ' (' + points.last_year + ')', data: s.previous, previous: true,
+                        borderColor: faded(s.color), backgroundColor: faded(s.color), borderDash: [6, 4],
+                        borderWidth: 2, fill: false, cubicInterpolationMode: 'monotone', pointRadius: 2, pointHoverRadius: 4,
+                        hidden: !compare, order: 2 });
+      });
+      return new Chart(canvas, {
+        type: 'line',
+        data: { labels: points.labels, datasets: datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            // One entry per figure (clicking it hides this year's and last year's line), plus a single
+            // dashed "last year" entry while comparing (clicking it turns comparing off)
+            legend: {
+              position: 'bottom',
+              labels: {
+                boxWidth: 12,
+                generateLabels: function(chart) {
+                  var items = Chart.defaults.plugins.legend.labels.generateLabels(chart).filter(function(item) {
+                    return !chart.data.datasets[item.datasetIndex].previous;
+                  });
+                  if (chart.data.datasets.some(function(ds) { return ds.previous && !ds.hidden; })) {
+                    items.push({ text: points.last_year, fillStyle: 'rgba(0,0,0,0)', strokeStyle: '#999', lineWidth: 2,
+                                 lineDash: [4, 3], hidden: false, datasetIndex: -1 });
+                  }
+                  return items;
+                }
+              },
+              onClick: function(e, item, legend) {
+                var chart = legend.chart;
+                if (item.datasetIndex === -1) { $('#qbo-report-compare').prop('checked', false).trigger('change'); return; }
+                var visible = !chart.isDatasetVisible(item.datasetIndex);
+                chart.setDatasetVisibility(item.datasetIndex, visible);
+                // last year's line follows (shown only while comparing)
+                chart.getDatasetMeta(item.datasetIndex + series.length).hidden = visible ? null : true;
+                chart.update();
+              }
+            },
+            tooltip: {
+              callbacks: {
+                title: function(items) {
+                  if (!items.length) { return ''; }
+                  var i = items[0].dataIndex, lines = [points.titles[i]];
+                  if (items.some(function(it) { return it.dataset.previous; })) {
+                    lines.push(points.last_year + ': ' + points.previous_titles[i]);
+                  }
+                  return lines;
+                },
+                label: function(item) {
+                  return item.dataset.label + ': ' + (isMoney ? money(item.raw, 2) : hours(item.raw));
+                }
+              }
+            }
+          },
+          scales: {
+            y: { beginAtZero: true, ticks: { precision: isMoney ? 0 : 1, callback: function(v) { return isMoney ? money(v, 0) : v; } } }
+          }
+        }
+      });
+    }
+
+    // Chart.js from the module: its default export or a named one. Chart.js 2 has no register() and is skipped.
+    function chartClass(mod) {
+      var found = [mod && mod.default, mod && mod.Chart, mod && mod.default && mod.default.Chart];
+      for (var i = 0; i < found.length; i++) {
+        if (typeof found[i] === 'function' && typeof found[i].register === 'function') { return found[i]; }
+      }
+      return null;
+    }
+
+    function setCompare(on) {
+      charts.forEach(function(chart) {
+        var n = chart.data.datasets.length / 2;
+        for (var j = 0; j < n; j++) {
+          chart.data.datasets[j + n].hidden = !on;
+          // a figure hidden from the legend keeps last year's line hidden too
+          chart.getDatasetMeta(j + n).hidden = chart.isDatasetVisible(j) ? null : true;
+        }
+        chart.update();
+      });
+      // Keep the choice in the address, so reloading or changing the period keeps it
+      if (window.history && history.replaceState) {
+        var url = new URL(window.location.href);
+        if (on) { url.searchParams.set('compare', '1'); } else { url.searchParams.delete('compare'); }
+        history.replaceState(null, '', url);
+      }
+    }
+
+    $(function() {
+      var $compare = $('#qbo-report-compare');
+      // Chart.js 4 ships with this plugin (assets/javascripts), so the charts don't depend on how Redmine or
+      // other plugins provide it (redmine_indicator puts Chart.js 2 on every page)
+      import(<%= raw asset_path('plugin_assets/redmine_qbo/chart-4.5.1.min.js').to_json %>).then(function(mod) {
+        var Chart = chartClass(mod);
+        if (!Chart) {
+          console.warn('Business report: Chart.js did not load', Object.keys(mod || {}));
+          $('.qbo-report-chart').hide();
+          return;
+        }
+        $('.qbo-report-chart canvas').each(function() { charts.push(draw(Chart, this, $compare.is(':checked'))); });
+        window.qboReportCharts = charts;
+      }).catch(function(error) {
+        console.warn('Business report: Chart.js did not load', error);
+        $('.qbo-report-chart').hide();
+      });
+      $compare.on('change', function() { setCompare(this.checked); });
+    });
+  })();
 <% end %>

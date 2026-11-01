@@ -18,15 +18,21 @@ module RedmineQboBilling
   # the day they were created (only issues without subtasks, so parents' totals aren't counted twice), and
   # spent time by the day it was spent.
   class BusinessReport
-    PERIODS = %w[this_month last_month this_quarter last_quarter this_year last_year custom].freeze
+    PERIODS = %w[this_week last_week this_month last_month this_quarter last_quarter this_year last_year custom].freeze
+    WEEK_DAYS = { 1 => :monday, 6 => :saturday, 7 => :sunday }.freeze
+    # Chart points: a day each for up to two weeks, a week each up to about three months, else a month each
+    DAILY_UP_TO = 14
+    WEEKLY_UP_TO = 93
     MONEY = %i[estimates invoices payments].freeze
     HOURS = %i[estimate_hours issue_hours invoice_hours spent_hours].freeze
 
     attr_reader :from, :to, :period
 
     # The dates for a period, from today: [from, to]. "custom" uses the given dates (either can be blank).
-    def self.range_for(period, today: Date.current, from: nil, to: nil)
+    def self.range_for(period, today: Date.current, from: nil, to: nil, week_start: :monday)
       case period.to_s
+      when 'this_week'    then [today.beginning_of_week(week_start), today.end_of_week(week_start)]
+      when 'last_week'    then w = today - 7; [w.beginning_of_week(week_start), w.end_of_week(week_start)]
       when 'this_month'   then [today.beginning_of_month, today.end_of_month]
       when 'last_month'   then m = today.prev_month; [m.beginning_of_month, m.end_of_month]
       when 'this_quarter' then [today.beginning_of_quarter, today.end_of_quarter]
@@ -49,11 +55,87 @@ module RedmineQboBilling
 
     # data (for tests): { estimates: [[date, total, hours]], invoices: [[date, total, hours, balance]],
     # payments: [[date, total]], issues: [[date, estimated_hours]], time_entries: [[date, hours]] }
-    def initialize(period: 'this_year', from: nil, to: nil, today: Date.current, data: nil)
+    # week_start: the first day of a week (:monday, :saturday or :sunday); see week_start_from_setting.
+    # previous_data (for tests): last year's data, like data.
+    def initialize(period: 'this_year', from: nil, to: nil, today: Date.current, data: nil, week_start: :monday,
+                   previous_data: nil)
       @period = PERIODS.include?(period.to_s) ? period.to_s : 'this_year'
-      @from, @to = self.class.range_for(@period, today: today, from: from, to: to)
+      @week_start = week_start
+      @from, @to = self.class.range_for(@period, today: today, from: from, to: to, week_start: week_start)
       @today = today
       @data = data
+      @previous_data = previous_data
+    end
+
+    # Redmine's "Start calendars on" setting (1 Monday, 6 Saturday, 7 Sunday); Monday when it follows the language
+    def self.week_start_from_setting(value)
+      WEEK_DAYS[value.to_i] || :monday
+    end
+
+    # ---- charts ----
+
+    # :day, :week or :month, from the length of the period
+    def granularity
+      days = (to - from).to_i + 1
+      return :day if days <= DAILY_UP_TO
+      days <= WEEKLY_UP_TO ? :week : :month
+    end
+
+    # The chart's points as [first day, last day] pairs covering the period
+    def buckets
+      @buckets ||= begin
+        list = []
+        case granularity
+        when :day
+          (from..to).each { |day| list << [day, day] }
+        when :week
+          start = from.beginning_of_week(@week_start)
+          while start <= to
+            list << [[start, from].max, [start + 6, to].min]
+            start += 7
+          end
+        else
+          start = from.beginning_of_month
+          while start <= to
+            list << [[start, from].max, [start.end_of_month, to].min]
+            start = start.next_month
+          end
+        end
+        list
+      end
+    end
+
+    # The same points a year earlier. Days and weeks go back 52 weeks, so a Monday lines up with a Monday;
+    # months go back to the same month.
+    def previous_buckets
+      @previous_buckets ||= if granularity == :month
+                              buckets.map { |a, b| [a.prev_year, b.prev_year] }
+                            else
+                              buckets.map { |a, b| [a - 364, b - 364] }
+                            end
+    end
+
+    # Everything the line charts need: the points' start dates, this period's figures per point (nil after
+    # today, so the line stops there), and last year's for the same points (the toggle shows them).
+    #   { granularity:, points: ["2026-10-26", ...],
+    #     current: { estimates: [...], invoices:, payments:, estimate_hours:, issue_hours:, invoice_hours:, spent_hours: },
+    #     previous: { same keys } }
+    def chart
+      current = sums_by_bucket(data, buckets)
+      current.each_value { |values| buckets.each_with_index { |(a, _), i| values[i] = nil if a > @today } }
+      {
+        granularity: granularity,
+        points: buckets.map { |a, _| a.iso8601 },
+        ends: buckets.map { |_, b| b.iso8601 },
+        previous_points: previous_buckets.map { |a, _| a.iso8601 },
+        current: current,
+        previous: sums_by_bucket(previous_data, previous_buckets)
+      }
+    end
+
+    # Last year's data for the chart's points
+    def previous_data
+      @previous_data ||= load_data(previous_buckets.first[0], previous_buckets.last[1])
     end
 
     def data
@@ -146,7 +228,26 @@ module RedmineQboBilling
 
     private
 
-    def load_data
+    # { money key or hours key => [sum per bucket] } for the data, in buckets ([first day, last day] pairs)
+    def sums_by_bucket(rows, bucket_list)
+      sums = (MONEY + HOURS).index_with { |_| Array.new(bucket_list.size, 0.0) }
+      find = lambda do |date|
+        bucket_list.index { |a, b| date >= a && date <= b }
+      end
+      columns = {
+        estimates: [:estimates, 1], invoices: [:invoices, 1], payments: [:payments, 1],
+        estimate_hours: [:estimates, 2], issue_hours: [:issues, 1], invoice_hours: [:invoices, 2], spent_hours: [:time_entries, 1]
+      }
+      columns.each do |key, (source, col)|
+        Array(rows[source]).each do |row|
+          i = find.call(row[0]) or next
+          sums[key][i] += MONEY.include?(key) ? to_d(row[col]).to_f : row[col].to_f
+        end
+      end
+      sums.transform_values { |values| values.map { |v| v.round(2) } }
+    end
+
+    def load_data(from = self.from, to = self.to)
       dates = from..to
       times = from.in_time_zone.beginning_of_day..to.in_time_zone.end_of_day
       leaf = "#{Issue.table_name}.rgt IS NULL OR #{Issue.table_name}.rgt - #{Issue.table_name}.lft = 1"
