@@ -16,7 +16,8 @@ module RedmineQboBilling
   #   hours: man-hours on estimates, issues' estimated time, man-hours invoiced, time spent
   # with a month-by-month breakdown. Estimates, invoices and payments count by their QuickBooks date, issues by
   # the day they were created (only issues without subtasks, so parents' totals aren't counted twice), and
-  # spent time by the day it was spent.
+  # spent time by the day it was spent. project_ids limits the issues and spent time to those projects; the
+  # QuickBooks figures have no project, so they always cover the whole business.
   class BusinessReport
     PERIODS = %w[this_week last_week this_month last_month this_quarter last_quarter this_year last_year custom].freeze
     WEEK_DAYS = { 1 => :monday, 6 => :saturday, 7 => :sunday }.freeze
@@ -26,7 +27,7 @@ module RedmineQboBilling
     MONEY = %i[estimates invoices payments].freeze
     HOURS = %i[estimate_hours issue_hours invoice_hours spent_hours].freeze
 
-    attr_reader :from, :to, :period
+    attr_reader :from, :to, :period, :project_ids
 
     # The dates for a period, from today: [from, to]. "custom" uses the given dates (either can be blank).
     def self.range_for(period, today: Date.current, from: nil, to: nil, week_start: :monday)
@@ -57,14 +58,21 @@ module RedmineQboBilling
     # payments: [[date, total]], issues: [[date, estimated_hours]], time_entries: [[date, hours]] }
     # week_start: the first day of a week (:monday, :saturday or :sunday); see week_start_from_setting.
     # previous_data (for tests): last year's data, like data.
+    # project_ids: the projects whose issues and spent time count; blank for every project.
     def initialize(period: 'this_year', from: nil, to: nil, today: Date.current, data: nil, week_start: :monday,
-                   previous_data: nil)
+                   previous_data: nil, project_ids: nil)
       @period = PERIODS.include?(period.to_s) ? period.to_s : 'this_year'
       @week_start = week_start
       @from, @to = self.class.range_for(@period, today: today, from: from, to: to, week_start: week_start)
       @today = today
       @data = data
       @previous_data = previous_data
+      @project_ids = Array(project_ids).map(&:to_i).select(&:positive?).uniq
+    end
+
+    # Whether the issues and spent time are limited to some projects
+    def projects_filtered?
+      project_ids.any?
     end
 
     # Redmine's "Start calendars on" setting (1 Monday, 6 Saturday, 7 Sunday); Monday when it follows the language
@@ -251,13 +259,18 @@ module RedmineQboBilling
       dates = from..to
       times = from.in_time_zone.beginning_of_day..to.in_time_zone.end_of_day
       leaf = "#{Issue.table_name}.rgt IS NULL OR #{Issue.table_name}.rgt - #{Issue.table_name}.lft = 1"
+      issues = Issue.where(created_on: times).where(leaf).where.not(estimated_hours: nil)
+      time_entries = TimeEntry.where(spent_on: dates)
+      if projects_filtered?
+        issues = issues.where(project_id: project_ids)
+        time_entries = time_entries.where(project_id: project_ids)
+      end
       {
         estimates: Estimate.where(txn_date: dates).pluck(:txn_date, :total_amount, :hours),
         invoices: Invoice.where(txn_date: dates).pluck(:txn_date, :total_amount, :hours, :balance),
         payments: Payment.where(txn_date: dates).pluck(:txn_date, :total_amount),
-        issues: Issue.where(created_on: times).where(leaf).where.not(estimated_hours: nil)
-                     .pluck(:created_on, :estimated_hours).map { |t, h| [t.in_time_zone.to_date, h] },
-        time_entries: TimeEntry.where(spent_on: dates).pluck(:spent_on, :hours)
+        issues: issues.pluck(:created_on, :estimated_hours).map { |t, h| [t.in_time_zone.to_date, h] },
+        time_entries: time_entries.pluck(:spent_on, :hours)
       }
     end
 

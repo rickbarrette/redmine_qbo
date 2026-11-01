@@ -64,10 +64,36 @@
       <%= check_box_tag 'compare', '1', @compare, id: 'qbo-report-compare' %>
       <%= l(:label_report_compare_last_year) %>
     </label>
+    <%# Projects for the issues and spent time; the blank value sends project_ids when none are picked (every project) %>
+    <div class="qbo-report-projects">
+      <label for="qbo-report-project-ids"><%= l(:label_project_plural) %></label>
+      <%= hidden_field_tag 'project_ids[]', '', id: nil %>
+      <%= select_tag 'project_ids[]',
+                     project_tree_options_for_select(@projects, selected: @projects.select { |p| @project_ids.include?(p.id) }),
+                     multiple: true, size: [[@projects.size, 3].max, 8].min, id: 'qbo-report-project-ids' %>
+      <span class="qbo-report-projects-options">
+        <em class="info"><%= l(:text_report_projects) %></em>
+        <label>
+          <%= check_box_tag 'save_projects', '1', false, id: 'qbo-report-save-projects' %>
+          <%= l(:label_report_remember_projects) %>
+        </label>
+        <% if @saved_project_ids.any? %>
+          <em class="info"><%= l(:text_report_saved_projects, projects: @projects.select { |p| @saved_project_ids.include?(p.id) }.map(&:name).join(', ')) %></em>
+        <% end %>
+      </span>
+    </div>
   </fieldset>
 <% end %>
 
-<p class="qbo-report-range"><%= format_date(@report.from) %> &ndash; <%= format_date(@report.to) %></p>
+<p class="qbo-report-range">
+  <%= format_date(@report.from) %> &ndash; <%= format_date(@report.to) %>
+  <% if @report.projects_filtered? %>
+    &middot; <%= l(:label_project_plural) %>: <%= @projects.select { |p| @project_ids.include?(p.id) }.map(&:name).join(', ') %>
+  <% end %>
+</p>
+<% if @report.projects_filtered? %>
+  <p class="info qbo-report-projects-note"><%= l(:text_report_projects_filtered) %></p>
+<% end %>
 
 <% if Array(@syncing).any? %>
   <% sync_labels = { 'Estimate' => l(:label_estimates), 'Invoice' => l(:label_invoices), 'Payment' => l(:label_payments) } %>
@@ -230,6 +256,10 @@
   table.qbo-report-months tfoot td { border-top: 2px solid #ccc; }
   #qbo-report-form select, #qbo-report-form input { vertical-align: middle; }
   #qbo-report-form .qbo-report-compare { margin-left: 12px; white-space: nowrap; }
+  #qbo-report-form .qbo-report-projects { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px 10px; margin-top: 8px; }
+  #qbo-report-form .qbo-report-projects select { min-width: 220px; max-width: 100%; }
+  #qbo-report-form .qbo-report-projects-options { display: flex; flex-direction: column; gap: 4px; }
+  #qbo-report-form .qbo-report-projects-options label { white-space: nowrap; }
   .qbo-report-chart { position: relative; height: 260px; margin: 4px 4px 16px; }
 </style>
 
