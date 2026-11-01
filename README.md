@@ -103,7 +103,7 @@ Estimates and invoices keep their number, date, customer, total and **man-hours*
 
 ## Billing: Estimates, Invoices and Payments
 
-* **New estimate** from the customer page: Create Estimate opens the Redmine editor. The customer page no longer links to QuickBooks' estimate or payment screens; the customer's name still opens their QuickBooks account page as a fallback.
+* **New estimate** from the customer page: Create Estimate opens the Redmine editor. The customer page no longer links to QuickBooks' estimate or payment screens; **Open in QuickBooks** opens their QuickBooks account page as a fallback.
 * **Edit** any estimate from the Edit link next to it on the customer page or the issue page.
 * **Keyboard entry**: in a line's product box, Tab picks the product the text points to (an exact name, the only match, or the only name starting with it, e.g. "lab" → Labor) and fills the line. Tabbing into the description, quantity or rate selects it, so typing replaces it. The quantity, rate and amount boxes take simple math (e.g. `33*1.3`, `(120+15)/2`; `+ - * /`, `x` for times, parentheses), worked out when you leave the box; math in the rate or amount is rounded to the nearest penny, and an amount sets the rate from the quantity. Typing `sub`, `subtotal` or `=` in a product box, then Tab or Enter, adds a subtotal there (an empty line becomes the subtotal; a line with a description keeps it and gets the subtotal after it) and moves on to the next line.
 * **Duplicate** an estimate to start a similar one: same customer, lines, subtotals, custom fields and messages, dated today, with the current user as sales person.
@@ -218,7 +218,7 @@ Available hooks:
 
 |Type|Hook|Note
 |--|--|--|
-View Hook|:view_customers_show_contextual, { customer: @customer } | Used to add action links to the customer page's top-right action area (return links styled like Redmine's, e.g. `link_to sprite_icon('add', 'Label'), path, class: 'icon icon-add'`). Replaces `customer_actions_top` / `customer_actions_bottom`
+View Hook|:view_customers_show_contextual, { customer: @customer } | Used to add action links to the customer page's action area, under the title (return links styled like Redmine's, e.g. `link_to sprite_icon('add', 'Label'), path, class: 'icon icon-add'`). Replaces `customer_actions_top` / `customer_actions_bottom`
 View Hook|:pdf_left, { issue: issue }  | Used to add text to left side of PDF
 View Hook|:pdf_right, { issue: issue }  | Used to add text to right side of PDF
 View Hook|:show_customer_view_right, { customer: customer } | Used to show partials on right side of customer view

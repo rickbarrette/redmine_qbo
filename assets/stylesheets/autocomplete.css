@@ -3,3 +3,12 @@
   color: #888;
   font-size: 0.9em;
 }
+/* Contextual links on their own line under the page title (customer and vehicle pages), where a long title and
+   many links would otherwise crowd each other */
+#content .contextual.qbo-under-title {
+  float: none;
+  text-align: right;
+  white-space: normal;
+  margin: -4px 0 10px;
+  padding-left: 0;
+}
