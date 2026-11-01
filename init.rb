@@ -27,9 +27,6 @@ Redmine::Plugin.register :redmine_qbo do
   User.safe_attributes :employee_id
   TimeEntry.safe_attributes :billed
   
-  # set per_page globally
-  WillPaginate.per_page = 20
-
   # Global Permissions
   # autocomplete and the filter_* actions feed the customer, estimate and invoice pickers on issue forms
   permission :view_customers, { customers: [:index, :show, :autocomplete,

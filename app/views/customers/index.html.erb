@@ -1,24 +1,66 @@
-<h2><%=t(:field_customers)%> <span style="float:right"> <%= render partial: 'customers/search' %> </span> </h2>
-<% if @customers.present? %>
-  <br/>
-  <% @customers.each do |c| %>
-    <div class="row">
-      <div class="span6 columns">
-        <%= link_to c, customer_path(c.id) %>
-      </div>
-    </div>
+<% html_title l(:label_customers) %>
+<% phone = ->(digits) { digits.present? ? number_to_phone(digits.gsub(/\D/, '').to_i, area_code: true) : '' } %>
+
+<div class="contextual">
+  <% if User.current.allowed_to?(:add_customers, nil, global: true) %>
+    <%= link_to sprite_icon('add', l(:label_new_customer)), new_customer_path, class: 'icon icon-add' %>
   <% end %>
-
-<p><%=t(:label_matching)%> <%= @customers.count %> <%=t(:field_customers)%> </p>
-
-<div class="actions">
-  <%= will_paginate @customers %>
+  <% if User.current.admin? %>
+    <%= link_to sprite_icon('reload', l(:label_sync)), qbo_sync_path, class: 'icon icon-reload' %>
+  <% end %>
 </div>
 
-<% else %>
-  <p><%=t(:label_no_customers)%> <%= params[:search] %>.</p>
+<h2><%= l(:label_customers) %></h2>
+
+<%= form_tag(customers_path, method: :get, id: 'customer-search-form') do %>
+  <p class="qbo-customer-search">
+    <%= text_field_tag :search, @search, class: 'customer-name', size: 40, placeholder: t(:label_search_customers),
+                       autocomplete: 'off', data: { autocomplete_url: '/customers/autocomplete' } %>
+    <%= submit_tag l(:label_search), name: nil %>
+    <% if @search.present? %>
+      <%= link_to sprite_icon('reload', l(:button_clear)), customers_path, class: 'icon icon-reload' %>
+    <% end %>
+  </p>
 <% end %>
 
-<div>
-  <%= render partial: 'qbo/stats' %>
-</div>
+<% if @customers.empty? %>
+  <p class="nodata"><%= @search.present? ? l(:label_no_customers, search: @search) : l(:label_no_data) %></p>
+<% else %>
+  <% if @best_first %>
+    <p class="info"><%= l(:text_customers_best_match, count: @customer_count) %></p>
+  <% end %>
+  <div class="autoscroll">
+    <table class="list customers odd-even">
+      <thead>
+        <tr>
+          <%= sort_header_tag('name', caption: l(:field_name)) %>
+          <%= sort_header_tag('phone', caption: l(:label_primary_phone)) %>
+          <%= sort_header_tag('mobile', caption: l(:label_mobile_phone)) %>
+          <th><%= l(:label_issue_plural) %></th>
+          <%= sort_header_tag('updated', caption: l(:field_updated_on), default_order: 'desc') %>
+        </tr>
+      </thead>
+      <tbody>
+        <% @customers.each do |customer| %>
+          <tr class="<%= cycle('odd', 'even') %>">
+            <td class="name"><%= link_to customer.name, customer_path(customer.id) %></td>
+            <td class="phone"><%= phone.call(customer.phone_number) %></td>
+            <td class="phone"><%= phone.call(customer.mobile_phone_number) %></td>
+            <td class="issues"><%= @issue_counts[customer.id] || 0 %></td>
+            <td class="updated_on"><%= format_time(customer.updated_at) if customer.updated_at %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <span class="pagination"><%= pagination_links_full @customer_pages, @customer_count %></span>
+<% end %>
+
+<p class="qbo-customer-stats"><%= render partial: 'qbo/stats' %></p>
+
+<style>
+  table.customers td.name { text-align: left; }
+  table.customers td.phone, table.customers td.updated_on { white-space: nowrap; }
+  table.customers td.issues { width: 1%; text-align: center; }
+  .qbo-customer-search input { vertical-align: middle; }
+</style>

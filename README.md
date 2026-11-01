@@ -69,8 +69,10 @@ This ensures Time Activities are recorded under the correct employee in QuickBoo
 The plugin provides basic Customer management:
 
 *   Create Customers directly from Redmine
+
+*   Browse every Customer on the **Customers** page: a Redmine list with phone numbers, issue counts and last update, sortable by column and paged with Redmine's own pagination (and its per-page choices)
     
-*   Search Customers by **name or phone number**
+*   Search Customers by **name or phone number**: the best matches come first (click a column to sort them instead), and a single match opens that Customer
     
 *   View and edit Customer information
     

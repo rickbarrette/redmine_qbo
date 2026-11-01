@@ -117,13 +117,33 @@ class CustomersController < ApplicationController
     @filtered_invoices = Invoice.all.where(customer_id: params[:selected_customer])
   end
 
+  # Most matches a search lists (best first)
+  SEARCH_LIMIT = 200
+
+  # Every customer, sortable and paged like Redmine's lists; a search narrows it to the best matches (a single
+  # match opens that customer). Sorting a search's results by a column replaces the best-first order.
   def index
-    if params[:search]
-      @customers = CustomerSearchService.call(name: params[:search], limit: 200).paginate(page: params[:page])
-      if only_one_non_zero?(@customers)
-        redirect_to @customers.first
-      end
+    sort_init 'name', 'asc'
+    sort_update 'name' => "#{Customer.table_name}.name",
+                'phone' => "#{Customer.table_name}.phone_number",
+                'mobile' => "#{Customer.table_name}.mobile_phone_number",
+                'updated' => "#{Customer.table_name}.updated_at"
+
+    @search = params[:search].to_s.strip
+    if @search.present?
+      scope = CustomerSearchService.call(name: @search, limit: SEARCH_LIMIT)
+      @best_first = params[:sort].blank?
+    else
+      scope = Customer.all
     end
+    scope = scope.reorder(sort_clause).order(:id) unless @best_first
+
+    @customer_count = scope.count
+    return redirect_to(scope.first) if @search.present? && @customer_count == 1
+
+    @customer_pages = Paginator.new @customer_count, per_page_option, params['page']
+    @customers = scope.limit(@customer_pages.per_page).offset(@customer_pages.offset).to_a
+    @issue_counts = Issue.where(customer_id: @customers.map(&:id)).group(:customer_id).count
   end
 
   def load_issue_data
@@ -155,17 +175,6 @@ class CustomersController < ApplicationController
     if request.xhr?
       render partial: 'form', layout: false, locals: { hide_submit: true, hide_toolbar: true }
     end
-  end
-
-  def only_one_non_zero?(array)
-    found_non_zero = false
-    array.each do |val|
-      if val != 0
-        return false if found_non_zero
-        found_non_zero = true
-      end
-    end
-    found_non_zero
   end
 
   def share
