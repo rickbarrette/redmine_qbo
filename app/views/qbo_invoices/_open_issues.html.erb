@@ -1,0 +1,17 @@
+<%# A new invoice's customer still has open issues (work orders), so they're not left behind once billed.
+    Replaced when the customer is changed (customer_info's open_issues_html). %>
+<%
+  issues = customer ? customer.issues.open.visible.order(id: :desc).to_a : []
+%>
+<div id="qbo-open-issues">
+  <% if issues.any? %>
+    <div class="warning qbo-estimate-notice">
+      <%= l(:text_invoice_customer_open_issues, count: issues.size) %>
+      <ul>
+        <% issues.each do |issue| %>
+          <li><%= link_to_issue(issue, truncate: 60) %> (<%= issue.status %>)</li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+</div>

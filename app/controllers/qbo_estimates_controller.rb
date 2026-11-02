@@ -116,13 +116,19 @@ class QboEstimatesController < ApplicationController
     customer = Customer.find_by(id: params[:customer_id])
     return render(json: {}, status: :not_found) unless customer
 
-    render json: {
+    info = {
       id: customer.id,
       name: customer.name,
       email: RedmineQboBilling::EstimateWriter.customer_email(customer),
       billing_address: RedmineQboBilling::EstimateWriter.customer_address(customer),
       field_options: RedmineQboBilling.field_options(customer)
     }
+    # A new invoice warns about the customer's open issues
+    if params[:document] == 'invoice'
+      info[:open_issues_html] = render_to_string(partial: 'qbo_invoices/open_issues', formats: [:html],
+                                                 locals: { customer: customer })
+    end
+    render json: info
   end
 
   # Product/service search for the line table (the QuickBooks item list)

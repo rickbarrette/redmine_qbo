@@ -256,6 +256,9 @@ en:
   notice_invoice_sent: "Invoice #%{number} emailed to %{email}"
   text_email_invoice_confirmation: "Email invoice #%{number} to %{email}?"
   text_invoice_from_estimate: "Made from estimate #%{number}. The estimate is closed when the invoice is saved."
+  text_invoice_customer_open_issues:
+    one: "This customer has an open issue. Make sure its work is finished and billed so it isn't left open:"
+    other: "This customer has %{count} open issues. Make sure their work is finished and billed so none are left open:"
   text_line_bills_time: "Bills a QuickBooks time activity; saving marks the time as billed"
   text_replace_lines: "Tick the lines the time replaces (e.g. the estimate's labor lines). Each time entry takes the place of the line with its issue's description (e.g. Install Lift Kit), then any others in order."
 

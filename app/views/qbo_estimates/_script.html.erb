@@ -446,7 +446,9 @@ $(function () {
     var id = $(this).val();
     if (!id) return;
     dirty = true;
-    $.getJSON($form.data('customerInfoUrl'), { customer_id: id }).done(function (info) {
+    $.getJSON($form.data('customerInfoUrl'), { customer_id: id, document: $form.data('document') }).done(function (info) {
+      // A new invoice's open issues notice follows the customer
+      if (info.open_issues_html !== undefined) $('#qbo-open-issues').replaceWith(info.open_issues_html);
       // Replace the email only if it was the previous customer's (or empty)
       if (!$email.val().trim() || $email.val() === loadedEmail) $email.val(info.email || '');
       loadedEmail = info.email || '';
