@@ -289,9 +289,28 @@
       return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',0.45)';
     }
 
+    // Grid lines and text from the page's colours, so a dark mode (e.g. redmine_dark_mode) can set
+    // --qbo-chart-grid and --qbo-chart-text; Chart.js' own colours otherwise
+    function chartColors() {
+      var style = getComputedStyle(document.documentElement);
+      return { grid: style.getPropertyValue('--qbo-chart-grid').trim() || 'rgba(0,0,0,0.1)',
+               text: style.getPropertyValue('--qbo-chart-text').trim() || '#666' };
+    }
+    function applyColors(chart) {
+      var c = chartColors();
+      ['x', 'y'].forEach(function(axis) {
+        var scale = chart.options.scales[axis];
+        scale.grid.color = c.grid;
+        scale.border.color = c.grid;
+        scale.ticks.color = c.text;
+      });
+      chart.options.plugins.legend.labels.color = c.text;
+    }
+
     function draw(Chart, canvas, compare) {
       var series = JSON.parse(canvas.getAttribute('data-series'));
       var isMoney = canvas.getAttribute('data-kind') === 'money';
+      var colors = chartColors();
       var datasets = [];
       series.forEach(function(s) {
         datasets.push({ label: s.label, data: s.current, borderColor: s.color, backgroundColor: s.color,
@@ -317,6 +336,7 @@
               position: 'bottom',
               labels: {
                 boxWidth: 12,
+                color: colors.text,
                 generateLabels: function(chart) {
                   var items = Chart.defaults.plugins.legend.labels.generateLabels(chart).filter(function(item) {
                     return !chart.data.datasets[item.datasetIndex].previous;
@@ -355,7 +375,9 @@
             }
           },
           scales: {
-            y: { beginAtZero: true, ticks: { precision: isMoney ? 0 : 1, callback: function(v) { return isMoney ? money(v, 0) : v; } } }
+            x: { grid: { color: colors.grid }, border: { color: colors.grid }, ticks: { color: colors.text } },
+            y: { beginAtZero: true, grid: { color: colors.grid }, border: { color: colors.grid },
+                 ticks: { color: colors.text, precision: isMoney ? 0 : 1, callback: function(v) { return isMoney ? money(v, 0) : v; } } }
           }
         }
       });
@@ -406,6 +428,10 @@
         $('.qbo-report-chart').hide();
       });
       $compare.on('change', function() { setCompare(this.checked); });
+      // Switching between light and dark (redmine_dark_mode) recolours the charts
+      document.addEventListener('redmine:color-scheme', function() {
+        charts.forEach(function(chart) { applyColors(chart); chart.update('none'); });
+      });
     });
   })();
 <% end %>
