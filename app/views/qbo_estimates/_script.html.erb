@@ -415,10 +415,18 @@ $(function () {
   });
 
   $('#qbo-estimate-clear-lines').on('click', function () {
-    if (!window.confirm($(this).data('confirmText'))) return;
-    rows().remove();
-    addRow(); addRow();
-    changed();
+    function clearLines() {
+      rows().remove();
+      addRow(); addRow();
+      changed();
+    }
+    // redmine_dark_mode asks in a dark dialog on dark pages; otherwise the browser's own box
+    var message = $(this).data('confirmText');
+    if (window.RedmineDarkMode && window.RedmineDarkMode.confirm) {
+      window.RedmineDarkMode.confirm(message, clearLines);
+    } else if (window.confirm(message)) {
+      clearLines();
+    }
   });
 
   // Drag lines by the handle to reorder them; they're saved in table order
