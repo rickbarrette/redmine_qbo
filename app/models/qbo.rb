@@ -23,16 +23,17 @@ class Qbo < ActiveRecord::Base
     return I18n.t(:label_qbo_never_synced)
   end
 
+  # Token expiry times, or nil when QuickBooks isn't connected (the settings page shows N/A)
   def self.oauth2_access_token_expires_at
     QboConnectionService.current!.oauth2_access_token_expires_at
   rescue
-    return I18n.t(:label_qbo_never_synced)
+    nil
   end
 
   def self.oauth2_refresh_token_expires_at
     QboConnectionService.current!.oauth2_refresh_token_expires_at
   rescue
-    return I18n.t(:label_qbo_never_synced)
+    nil
   end
   
   # Updates last sync time stamp
