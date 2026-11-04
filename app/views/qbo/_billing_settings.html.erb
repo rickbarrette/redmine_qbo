@@ -16,6 +16,36 @@
                    multiple: true, size: 8, id: 'settings_labor_item_ids' %>
     <em class="info"><%= l(:text_labor_items) %></em>
   </p>
+  <%# QuickBooks custom fields to leave out of estimates and invoices (see RedmineQboBilling::Company). Hidden
+      fields that aren't found right now (e.g. no recent estimate has them) are kept as hidden. %>
+  <% company = RedmineQboBilling::Company %>
+  <% qbo_fields = company.all_custom_fields %>
+  <% hidden_ids = company.hidden_field_ids %>
+  <% sales_field = company.sales_person_field %>
+  <p class="qbo-custom-fields-setting">
+    <label><%= l(:label_qbo_hidden_custom_fields) %></label>
+    <%= hidden_field_tag 'settings[hidden_custom_field_ids][]', '', id: nil %>
+    <% (hidden_ids - qbo_fields.map { |f| f.id.to_i }).each do |id| %>
+      <%= hidden_field_tag 'settings[hidden_custom_field_ids][]', id, id: nil %>
+    <% end %>
+    <% if qbo_fields.empty? %>
+      <%= l(:label_none) %>
+    <% else %>
+      <% qbo_fields.each do |field| %>
+        <label class="block">
+          <%= check_box_tag 'settings[hidden_custom_field_ids][]', field.id, hidden_ids.include?(field.id.to_i),
+                            id: "settings_hidden_custom_field_#{field.id}" %>
+          <%= field.name %>
+          <% if sales_field && sales_field.id.to_i == field.id.to_i %>
+            <em>(<%= l(:text_qbo_sales_person_field) %>)</em>
+          <% end %>
+        </label>
+      <% end %>
+    <% end %>
+    <%= link_to sprite_icon('reload', l(:button_refresh_quickbooks_fields)), refresh_company_qbo_estimates_path,
+                method: :post, class: 'icon icon-reload' %>
+    <em class="info"><%= l(:text_qbo_hidden_custom_fields) %></em>
+  </p>
 </div>
 
 <% issue_builder = RedmineQboBilling::EstimateIssueBuilder %>

@@ -34,9 +34,24 @@ module RedmineQboBilling
 
     module_function
 
-    # All enabled sales form custom fields, in QuickBooks' order
+    # The sales form custom fields the plugin uses, in QuickBooks' order: all those found, except the ones
+    # hidden in the plugin settings. Everything else (the editor, the sales person, other plugins' VIN and
+    # mileage) goes through here, so a hidden field is never shown or filled in.
     def custom_fields
+      hidden = hidden_field_ids
+      all_custom_fields.reject { |f| hidden.include?(f.id.to_i) }
+    end
+
+    # Every custom field found, hidden ones included (listed on the plugin settings page)
+    def all_custom_fields
       Array(settings[:custom_fields]).map { |f| Field.new(f[:id], f[:name]) }
+    end
+
+    # Fields hidden in the plugin settings. QuickBooks doesn't tell apps which custom fields are inactive,
+    # and a field stays on its old estimates after it's turned off (e.g. a renamed "Sales Rep old"), so the
+    # plugin can't leave those out by itself.
+    def hidden_field_ids
+      Array((Setting.plugin_redmine_qbo || {})['hidden_custom_field_ids']).map(&:to_i).reject(&:zero?)
     end
 
     # The first enabled custom field whose name matches, e.g. a plugin's VIN field (/\bvin\b/i), or nil

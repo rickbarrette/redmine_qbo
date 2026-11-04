@@ -129,6 +129,9 @@ en:
   button_email_estimate: "Email"
   button_open_in_quickbooks: "Open in QuickBooks"
   button_refresh_quickbooks_fields: "Refresh QuickBooks fields"
+  label_qbo_hidden_custom_fields: "Hide QuickBooks custom fields"
+  text_qbo_sales_person_field: "filled in with the sales person"
+  text_qbo_hidden_custom_fields: "Ticked fields are left off estimates and invoices. QuickBooks doesn't tell apps which custom fields are inactive, and a field stays on its old estimates after it's turned off, so tick ones you no longer use (e.g. a renamed \"Sales Rep old\"). The sales person goes in the first field shown whose name has \"sales\" or \"rep\" in it."
   button_reload_estimate: "Reload the estimate"
   button_save_and_send: "Save and send"
 
