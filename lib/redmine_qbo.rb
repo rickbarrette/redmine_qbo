@@ -26,6 +26,7 @@ module RedmineQbo
     RedmineQbo::Patches::AttachmentsControllerPatch.apply
 
     # === Helpers / Exports ===
+    IssuesHelper.prepend RedmineQbo::Patches::IssuesHelperPatch
     Redmine::Export::PDF::IssuesPdfHelper.prepend RedmineQbo::Patches::PdfPatch
 
     # === Hooks ===

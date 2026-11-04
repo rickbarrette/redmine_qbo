@@ -27,12 +27,25 @@ class InvoiceAttachmentService
       unless issue.invoices.exists?(@invoice.id)
         issue.invoices << @invoice
         issue.save! if issue.changed?
+        journalize(issue)
         log "Attached invoice ##{@invoice.id} to issue ##{issue.id}"
       end
     end
   end
 
   private
+
+  # Records the new invoice in the issue's history (shown by RedmineQbo::Patches::IssuesHelperPatch).
+  # The webhook has no Redmine user, so the entry is by Anonymous. Saving the journal also sends
+  # Redmine's usual issue-updated emails.
+  def journalize(issue)
+    journal = Journal.new(journalized: issue, user: User.anonymous, notes: '')
+    journal.details << JournalDetail.new(property: 'invoice', prop_key: @invoice.id.to_s, value: @invoice.to_s.presence || @invoice.id.to_s)
+    journal.save
+  rescue => e
+    # The invoice is attached either way; a missing history entry shouldn't fail the sync
+    log "Couldn't add invoice ##{@invoice.id} to the history of issue ##{issue.id}: #{e.message}"
+  end
 
   # Extract issue IDs from the invoice's private note and line descriptions
   def extract_issue_ids
