@@ -1,5 +1,6 @@
 <% html_title l(:label_new_invoice) %>
 
 <%= render partial: 'qbo_estimates/header', locals: { form: @form } %>
+<%= render partial: 'qbo_drafts/editor_notice', locals: { draft: @draft, drafts: @customer_drafts } %>
 <%= render partial: 'qbo_invoices/open_issues', locals: { customer: (Customer.find_by(id: @form.customer_id) if @form.customer_id.present?) } %>
-<%= render partial: 'qbo_estimates/form', locals: { form: @form } %>
+<%= render partial: 'qbo_estimates/form', locals: { form: @form, draft: @draft } %>

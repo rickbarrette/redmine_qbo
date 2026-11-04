@@ -1,0 +1,18 @@
+<%# On the new estimate/invoice editor: the draft being continued, or the customer's other drafts of this
+    document so a second one isn't started by accident %>
+<% draft = local_assigns[:draft] %>
+<% drafts = local_assigns[:drafts] || [] %>
+<% if draft %>
+  <div class="flash notice qbo-draft-notice">
+    <%= l(:text_qbo_editing_draft, user: h(draft.user&.name || l(:label_user_anonymous)), age: time_tag(draft.updated_at)).html_safe %>
+  </div>
+<% elsif drafts.any? %>
+  <div class="warning qbo-estimate-notice qbo-draft-notice">
+    <%= l(drafts.first.invoice? ? :text_qbo_customer_has_invoice_drafts : :text_qbo_customer_has_estimate_drafts, count: drafts.size) %>
+    <% drafts.each do |other| %>
+      <%= link_to l(:text_qbo_draft_link, user: other.user&.name || l(:label_user_anonymous),
+                    subtotal: number_to_currency(other.subtotal), date: format_time(other.updated_at)),
+                  other.invoice? ? new_qbo_invoice_path(draft_id: other.id) : new_qbo_estimate_path(draft_id: other.id) %>
+    <% end %>
+  </div>
+<% end %>

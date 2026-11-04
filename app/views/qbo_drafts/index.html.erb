@@ -1,0 +1,11 @@
+<% html_title l(:label_qbo_drafts) %>
+
+<h2><%= link_to l(:label_customers), customers_path %> &#187; <%= l(:label_qbo_drafts) %></h2>
+
+<p class="info"><%= l(:text_qbo_drafts_info) %></p>
+
+<% if @drafts.any? %>
+  <%= render partial: 'qbo_drafts/list', locals: { drafts: @drafts } %>
+<% else %>
+  <p class="nodata"><%= l(:label_no_data) %></p>
+<% end %>

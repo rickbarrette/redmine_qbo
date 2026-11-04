@@ -5,6 +5,11 @@
   <% if User.current.allowed_to?(:add_customers, nil, global: true) %>
     <%= link_to sprite_icon('add', l(:label_new_customer)), new_customer_path, class: 'icon icon-add' %>
   <% end %>
+  <%# Estimate and invoice drafts, for users who may write either %>
+  <% if RedmineQboBilling.writer? || RedmineQboBilling.invoice_writer? %>
+    <% draft_count = QboDraft.visible.count %>
+    <%= link_to sprite_icon('document', "#{l(:label_qbo_drafts)} (#{draft_count})"), qbo_drafts_path, class: 'icon icon-document' %>
+  <% end %>
   <% if User.current.admin? %>
     <%= link_to sprite_icon('reload', l(:label_sync)), qbo_sync_path, class: 'icon icon-reload' %>
   <% end %>

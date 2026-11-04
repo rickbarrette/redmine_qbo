@@ -11,6 +11,7 @@
 # Writes, edits and emails QuickBooks invoices from Redmine, with the same editor as estimates, plus importing
 # billable time and open estimates. The customer and product searches are QboEstimatesController's.
 class QboInvoicesController < ApplicationController
+  include QboDraftHandling
 
   before_action :authorize_global
   before_action :require_sender_for_save_and_send, only: [:create, :update]
@@ -18,8 +19,15 @@ class QboInvoicesController < ApplicationController
 
   QBO_ERRORS = QboEstimatesController::QBO_ERRORS
 
-  # A blank invoice, or one made from an estimate (?estimate_id=<estimate id>)
+  # A blank invoice, one made from an estimate (?estimate_id=<estimate id>), or a draft (?draft_id=, see
+  # QboDraft). A draft stays in Redmine, so QuickBooks can't apply a deposit to it while it's being written.
   def new
+    if params[:draft_id].present?
+      return draft_missing unless find_draft('invoice')
+      @form = form_from_draft(@draft)
+      return
+    end
+
     @form =
       if params[:estimate_id].present?
         RedmineQboBilling::InvoiceWriter.from_estimate(params[:estimate_id], user: User.current)
@@ -27,18 +35,24 @@ class QboInvoicesController < ApplicationController
         customer = Customer.find_by(id: params[:customer_id]) if params[:customer_id].present?
         RedmineQboBilling::InvoiceWriter.new_form(customer: customer, user: User.current)
       end
+    load_customer_drafts('invoice', @form.customer_id)
   rescue *QBO_ERRORS => e
     flash[:error] = qbo_message(e)
     redirect_back_or_default home_path
   end
 
   def create
+    find_draft('invoice')
+    # The sales person shown on the editor is kept with the draft
+    return save_draft('invoice', invoice_params.to_h.merge('sales_person' => params.dig(:estimate, :sales_person).to_s)) if params[:save_draft].present?
+
     @form = RedmineQboBilling::EstimateForm.from_params(invoice_params, document: 'invoice')
     # Display only (e.g. the estimate's sales person); InvoiceWriter.save works out what's saved
     @form.sales_person = params.dig(:estimate, :sales_person).presence || User.current.name
     return show_invalid(:new) unless @form.valid?
 
     saved = RedmineQboBilling::InvoiceWriter.save(@form, user: User.current)
+    discard_draft
     finish_save(saved, l(:notice_invoice_saved_in_quickbooks, number: saved.doc_number))
   rescue *QBO_ERRORS => e
     show_error(e, :new)

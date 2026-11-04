@@ -10,6 +10,8 @@
   settings_read = company.settings.present?
   # The same editor writes estimates and invoices
   invoice = form.invoice?
+  # The draft being continued (QboDraft), if any; new documents can be saved as drafts
+  draft = local_assigns[:draft]
   sender = invoice ? RedmineQboBilling.invoice_sender? : RedmineQboBilling.sender?
   cancel_path = customer ? customer_path(customer) : home_path
   form_url =
@@ -38,6 +40,7 @@
                warn_unsaved: User.current.pref.warn_on_leaving_unsaved != '0'
              }) do %>
   <%= hidden_field_tag 'estimate[sync_token]', form.sync_token, id: nil %>
+  <%= hidden_field_tag 'draft_id', draft.id, id: nil if draft %>
   <%= hidden_field_tag 'estimate[total_tax]', form.total_tax, id: nil %>
   <%= hidden_field_tag 'estimate[discount]', form.discount, id: nil %>
   <%= hidden_field_tag 'estimate[email_status]', form.email_status, id: nil %>
@@ -283,6 +286,15 @@
     <%= link_to l(:button_cancel), cancel_path, class: 'qbo-button qbo-button-dark', id: 'qbo-estimate-cancel' %>
     <% unless form.locked %>
       <span class="qbo-estimate-actions-save">
+        <% unless form.persisted? %>
+          <%# Kept in Redmine only, however incomplete (QboDraftHandling) %>
+          <% if draft %>
+            <%= link_to l(:button_qbo_delete_draft), qbo_draft_path(draft), method: :delete,
+                        data: { confirm: l(:text_are_you_sure) }, class: 'qbo-button qbo-button-dark', id: 'qbo-delete-draft' %>
+          <% end %>
+          <%= submit_tag l(:button_qbo_save_draft), name: 'save_draft', class: 'qbo-button qbo-button-dark',
+                         id: 'qbo-save-draft', formnovalidate: true %>
+        <% end %>
         <%= submit_tag l(:button_save), name: 'save', class: 'qbo-button qbo-button-dark' %>
         <% if sender %>
           <%= submit_tag l(:button_save_and_send), name: 'save_and_send', class: 'qbo-button qbo-button-primary',

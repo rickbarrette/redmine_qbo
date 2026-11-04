@@ -68,6 +68,9 @@ resources :qbo_invoices, only: [:new, :create, :edit, :update] do
   end
 end
 
+# Estimate and invoice drafts, kept in Redmine until they're saved to QuickBooks (continued on the editors)
+resources :qbo_drafts, only: [:index, :destroy]
+
 # Receive payment pages, and a customer's payments (/qbo_payments?customer_id=)
 resources :qbo_payments, only: [:index, :new, :create, :show] do
   member do

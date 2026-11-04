@@ -10,6 +10,7 @@
 
 # Writes, edits and emails QuickBooks estimates from Redmine, on a page laid out like QuickBooks' estimate screen.
 class QboEstimatesController < ApplicationController
+  include QboDraftHandling
 
   before_action :require_admin, only: :refresh_company
   before_action :authorize_global, except: :refresh_company
@@ -25,26 +26,34 @@ class QboEstimatesController < ApplicationController
                 # redmine_qbo raises plain errors when QuickBooks isn't connected or the token can't be refreshed
                 RuntimeError].freeze
 
-  # A blank estimate, or a copy of another one (?duplicate=<estimate id>)
+  # A blank estimate, a copy of another one (?duplicate=<estimate id>), or a draft (?draft_id=, see QboDraft)
   def new
-    if params[:duplicate].present?
+    if params[:draft_id].present?
+      return draft_missing unless find_draft('estimate')
+      @form = form_from_draft(@draft)
+    elsif params[:duplicate].present?
       @form = RedmineQboBilling::EstimateWriter.duplicate_form(params[:duplicate], user: User.current)
     else
       customer = Customer.find_by(id: params[:customer_id]) if params[:customer_id].present?
       @form = RedmineQboBilling::EstimateWriter.new_form(customer: customer, user: User.current)
     end
+    load_customer_drafts('estimate', @form.customer_id)
   rescue *QBO_ERRORS => e
     flash[:error] = qbo_message(e)
     redirect_back_or_default home_path
   end
 
   def create
+    find_draft('estimate')
+    return save_draft('estimate', estimate_params) if params[:save_draft].present?
+
     @form = RedmineQboBilling::EstimateForm.from_params(estimate_params)
     # Shown again if the save fails; the sales person is always the user creating the estimate
     @form.sales_person = User.current.name
     return show_invalid(:new) unless @form.valid?
 
     saved = RedmineQboBilling::EstimateWriter.save(@form, user: User.current)
+    discard_draft
     finish_save(saved, l(:notice_estimate_saved_in_quickbooks, number: saved.doc_number))
   rescue *QBO_ERRORS => e
     show_error(e, :new)

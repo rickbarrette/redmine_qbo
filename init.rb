@@ -40,11 +40,13 @@ Redmine::Plugin.register :redmine_qbo do
 
   # Billing (global): estimates, invoices, payments, issues from estimates
   # customer_info and items feed the customer details and product/service search on the estimate/invoice editor
-  permission :write_estimates, { qbo_estimates: [:new, :create, :edit, :update, :customer_info, :items] }, global: true
+  # Drafts (QboDraft): each user sees the drafts of the documents they may write
+  permission :write_estimates, { qbo_estimates: [:new, :create, :edit, :update, :customer_info, :items],
+                                 qbo_drafts: [:index, :destroy] }, global: true
   permission :send_estimates, { qbo_estimates: [:send_email] }, global: true
   permission :create_estimate_issues, { qbo_estimates: [:issues_preview, :create_issues] }, global: true
   permission :write_invoices, { qbo_invoices: [:new, :create, :edit, :update, :import_options],
-                                qbo_estimates: [:customer_info, :items] }, global: true
+                                qbo_estimates: [:customer_info, :items], qbo_drafts: [:index, :destroy] }, global: true
   permission :send_invoices, { qbo_invoices: [:send_email] }, global: true
   permission :view_payments, { qbo_payments: [:index, :show, :pdf] }, global: true
   permission :receive_payments, { qbo_payments: [:index, :new, :create, :show, :pdf, :open_invoices],

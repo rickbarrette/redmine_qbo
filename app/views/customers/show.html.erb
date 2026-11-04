@@ -58,6 +58,13 @@
           </div>
         </div>
 
+        <%# Estimate and invoice drafts, kept in Redmine until they're saved to QuickBooks %>
+        <% customer_drafts = QboDraft.visible.where(customer_id: @customer.id).includes(:user).newest_first.to_a %>
+        <% if customer_drafts.any? %>
+          <h4><%= l(:label_qbo_drafts) %>:</h4>
+          <%= render partial: 'qbo_drafts/list', locals: { drafts: customer_drafts, show_customer: false } %>
+        <% end %>
+
       </div>
         
       <div class="splitcontentleft">

@@ -1,0 +1,40 @@
+<%# Estimate and invoice drafts (QboDraft) with Continue and Delete. show_customer: false on a customer's page. %>
+<% show_customer = local_assigns.fetch(:show_customer, true) %>
+<table class="list qbo-drafts">
+  <thead>
+    <tr>
+      <th><%= l(:label_qbo_draft_document) %></th>
+      <% if show_customer %><th><%= l(:field_customer) %></th><% end %>
+      <th class="qbo-draft-number"><%= l(:label_qbo_draft_lines) %></th>
+      <th class="qbo-draft-number"><%= l(:label_subtotal) %></th>
+      <th><%= l(:label_qbo_draft_saved_by) %></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% drafts.each do |draft| %>
+      <tr>
+        <td><%= link_to l(draft.invoice? ? :label_qbo_invoice_draft : :label_qbo_estimate_draft),
+                        draft.invoice? ? new_qbo_invoice_path(draft_id: draft.id) : new_qbo_estimate_path(draft_id: draft.id) %></td>
+        <% if show_customer %>
+          <td><%= draft.customer ? link_to(draft.customer.name, customer_path(draft.customer)) : (draft.customer_name || '–') %></td>
+        <% end %>
+        <td class="qbo-draft-number"><%= draft.line_count %></td>
+        <td class="qbo-draft-number"><%= number_to_currency(draft.subtotal) %></td>
+        <td><%= l(:text_qbo_draft_saved_by, user: h(draft.user&.name || l(:label_user_anonymous)), age: time_tag(draft.updated_at)).html_safe %></td>
+        <td class="buttons">
+          <%= link_to sprite_icon('edit', l(:button_qbo_continue_draft)),
+                      draft.invoice? ? new_qbo_invoice_path(draft_id: draft.id) : new_qbo_estimate_path(draft_id: draft.id),
+                      class: 'icon icon-edit' %>
+          <%= link_to sprite_icon('del', l(:button_delete)), qbo_draft_path(draft), method: :delete,
+                      data: { confirm: l(:text_are_you_sure) }, class: 'icon icon-del' %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<style>
+  table.qbo-drafts td, table.qbo-drafts th { text-align: left; }
+  table.qbo-drafts .qbo-draft-number { text-align: right; white-space: nowrap; }
+  table.qbo-drafts td.buttons { white-space: nowrap; }
+</style>
