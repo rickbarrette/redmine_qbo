@@ -17,9 +17,24 @@ class Invoice < QboBaseModel
   self.primary_key = :id
   qbo_sync push: false
 
+  include QboActivity
+  qbo_activity 'qbo_invoices', icon: 'qbo-invoice', permissions: %i[view_customers write_invoices],
+               title: ->(i) { I18n.t(:label_activity_invoice, number: i.doc_number, customer: i.activity_customer) },
+               description: ->(i) { i.activity_description },
+               url: ->(i) { { controller: 'invoices', action: 'show', id: i.id } }
+
   # Return the invoice's document number as its string representation
   def to_s
     doc_number
+  end
+
+  # Amount and where it stands, e.g. "$1,250.00 · Partially paid ($400.00 owed)"
+  def activity_description
+    state = status
+    owed = activity_money(self[:balance]) if state && self[:balance].to_d.positive?
+    [activity_money(self[:total_amount]),
+     (I18n.t(:"label_invoice_status_#{state}", default: state.to_s.humanize) if state),
+     (I18n.t(:text_activity_invoice_owed, amount: owed) if owed && state != :open && state != :overdue)].compact.join(' · ')
   end
 
   # Paid, partially paid, overdue, open or voided, from the cached total, balance and due date

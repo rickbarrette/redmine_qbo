@@ -12,3 +12,8 @@
   margin: -4px 0 10px;
   padding-left: 0;
 }
+
+/* Estimates, invoices and payments on the activity page belong to no project: no " - " after an empty name */
+div#activity span.project:empty:after {
+  content: none;
+}

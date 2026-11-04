@@ -17,6 +17,12 @@ class Estimate < QboBaseModel
   self.primary_key = :id
   qbo_sync push: false
 
+  include QboActivity
+  qbo_activity 'qbo_estimates', icon: 'qbo-estimate', permissions: %i[view_customers write_estimates],
+               title: ->(e) { I18n.t(:label_activity_estimate, number: e.doc_number, customer: e.activity_customer) },
+               description: ->(e) { [e.activity_money(e[:total_amount]), e[:txn_status]].compact.join(' · ') },
+               url: ->(e) { { controller: 'estimates', action: 'show', id: e.id } }
+
   def name
     to_s
   end

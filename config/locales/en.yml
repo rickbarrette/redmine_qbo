@@ -358,3 +358,13 @@ en:
   text_payment_pick_invoices: "Tick invoices to fill in the amount and pay just those. With none ticked, the payment goes on the oldest invoices first."
   text_payment_reference: "e.g. the check number"
   text_payment_unapplied_deposit: "Not applied to any invoice: it's a credit on the customer's account."
+
+  # Activity page
+  label_qbo_estimate_plural: "Estimates"
+  label_qbo_invoice_plural: "Invoices"
+  label_qbo_payment_plural: "Payments"
+  label_activity_estimate: "Estimate #%{number}: %{customer}"
+  label_activity_invoice: "Invoice #%{number}: %{customer}"
+  label_activity_payment: "Payment from %{customer}: %{amount}"
+  text_activity_invoice_owed: "%{amount} owed"
+  text_activity_payment_unapplied: "%{amount} not applied to an invoice"

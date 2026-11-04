@@ -52,6 +52,13 @@ Redmine::Plugin.register :redmine_qbo do
   permission :view_business_reports, { qbo_reports: [:index] }, global: true
   # The product/service list, accounts and their syncs are admin-only (see ItemsController, AccountsController)
   
+  # Estimates, invoices and payments on the activity page (QboActivity): the overall page only, for users with
+  # View customers or Write estimates / invoices, and View or Receive payments
+  # (plugin: picks their icons from this plugin's sprite, assets/images/icons.svg)
+  activity_provider :qbo_estimates, class_name: 'Estimate', plugin: :redmine_qbo
+  activity_provider :qbo_invoices, class_name: 'Invoice', plugin: :redmine_qbo
+  activity_provider :qbo_payments, class_name: 'Payment', plugin: :redmine_qbo
+
   # Register top menu items
   menu :top_menu, :customers, { controller: :customers, action: :index }, caption: :label_customers, if: Proc.new {User.current.allowed_to?(:view_customers, nil, global: true)}
   menu :top_menu, :qbo_reports, { controller: :qbo_reports, action: :index }, caption: :label_business_report,

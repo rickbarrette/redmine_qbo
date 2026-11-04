@@ -18,6 +18,19 @@ class Payment < QboBaseModel
   self.primary_key = :id
   qbo_sync push: false
 
+  include QboActivity
+  qbo_activity 'qbo_payments', icon: 'qbo-payment', permissions: %i[view_payments receive_payments],
+               title: ->(p) { I18n.t(:label_activity_payment, customer: p.activity_customer, amount: p.activity_money(p.total_amount)) },
+               description: ->(p) { p.activity_description },
+               url: ->(p) { { controller: 'qbo_payments', action: 'show', id: p.id } }
+
+  # Money not yet applied to an invoice, when there is some
+  def activity_description
+    return '' unless unapplied_amount.to_d.positive?
+
+    I18n.t(:text_activity_payment_unapplied, amount: activity_money(unapplied_amount))
+  end
+
   def to_s
     "#{txn_date} #{total_amount}"
   end

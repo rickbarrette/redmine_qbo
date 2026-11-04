@@ -18,6 +18,9 @@ module RedmineQbo
     IssueQuery.prepend RedmineQbo::Patches::QueryPatch
     TimeEntryQuery.prepend RedmineQbo::Patches::TimeEntryQueryPatch
 
+    # === Activity: estimates, invoices and payments, for users who may see them ===
+    Redmine::Activity::Fetcher.prepend RedmineQbo::Patches::ActivityFetcherPatch
+
     # === Controllers ===
     RedmineQbo::Patches::IssuesControllerPatch.apply
     RedmineQbo::Patches::AttachmentsControllerPatch.apply
