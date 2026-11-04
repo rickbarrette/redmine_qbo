@@ -291,11 +291,17 @@ module RedmineQboBilling
       # QuickBooks' own subtotal (always after the last line), discount and group lines aren't edited here
     end
 
-    # The custom field's value, found by the field QuickBooks' preferences name, or by name on the estimate
+    # The custom field's value on a QuickBooks estimate or invoice ("" when it isn't there)
     def custom_value(remote, field, name_pattern = nil)
       fields = Array(remote.custom_fields)
-      match = fields.detect { |f| field && f.id.to_i == field.id.to_i } ||
-              (name_pattern && fields.detect { |f| f.name.to_s =~ name_pattern })
+      # The company's field, by id. A document without it has no value: falling back to a similarly named
+      # field picked up retired ones, e.g. a "Sales Rep old" dropdown, which QuickBooks returns as its option
+      # number ("4"), and that number was copied onto invoices as the sales person.
+      return fields.detect { |f| f.id.to_i == field.id.to_i }&.string_value.to_s if field
+
+      # The field isn't known (QuickBooks' settings couldn't be read): found by name, never a hidden one
+      hidden = Company.hidden_field_ids
+      match = name_pattern && fields.detect { |f| f.name.to_s =~ name_pattern && !hidden.include?(f.id.to_i) }
       match&.string_value.to_s
     end
 
