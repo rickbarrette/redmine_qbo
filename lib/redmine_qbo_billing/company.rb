@@ -24,6 +24,8 @@ module RedmineQboBilling
     MISSING_FIELD_CACHE_TIME = 5.minutes
     # Recent estimates also show which custom fields exist, for companies whose preferences don't list them
     RECENT_ESTIMATES = 20
+    # QuickBooks' legacy sales form custom fields; its newer custom fields have larger DefinitionIds
+    LEGACY_FIELD_IDS = (1..3).freeze
 
     # The sales person field is found loosely, e.g. "Sales Person", "Salesperson", "Sales Rep"
     SALES_PERSON_NAME = /sales|\brep\b/i
@@ -105,9 +107,15 @@ module RedmineQboBilling
       nil
     end
 
-    # Fields named in the preferences come first; fields only seen on estimates are added after them.
-    # QuickBooks' newer custom fields (e.g. on Advanced and sandbox companies) may not be in the preferences.
+    # QuickBooks' newer custom fields (made under Settings > Custom fields) aren't in the preferences, which
+    # keep listing the legacy fields (DefinitionIds 1-3) after a company moves to the newer ones, often
+    # renamed or inactive (e.g. "Sales Rep old"). Once estimates show any newer field, those are the
+    # company's fields and the legacy ones are left out. Otherwise the legacy fields named in the
+    # preferences come first, then any only seen on estimates.
     def merge_fields(from_preferences, from_estimates)
+      newer = from_estimates.reject { |f| LEGACY_FIELD_IDS.cover?(f[:id]) }
+      return newer if newer.any?
+
       ids = from_preferences.map { |f| f[:id] }
       from_preferences + from_estimates.reject { |f| ids.include?(f[:id]) }
     end
