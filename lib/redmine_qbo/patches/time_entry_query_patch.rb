@@ -17,7 +17,7 @@ module RedmineQbo
       def available_columns
         unless @available_columns
           @available_columns = self.class.available_columns.dup
-          @available_columns << QueryColumn.new(:billed, sortable: "#{TimeEntry.table_name}.name", groupable: true, caption: :field_billed)
+          @available_columns << QueryColumn.new(:billed, sortable: "#{TimeEntry.table_name}.billed", groupable: "#{TimeEntry.table_name}.billed", caption: :field_billed)
         end
         super
       end
