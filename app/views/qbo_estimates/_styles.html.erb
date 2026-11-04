@@ -2,7 +2,12 @@
 <style>
   .qbo-estimate { --qbo-border: #babec5; --qbo-muted: #6b6c72; --qbo-green: #2ca01c; --qbo-green-dark: #108000; --qbo-bar: #393a3d; }
   .qbo-estimate-sheet { border: 1px solid #e3e5e8; border-radius: 4px; background: #fff; padding: 20px 24px 24px; margin: 0 0 0; min-width: 0; }
-  .qbo-estimate-sheet[disabled] { opacity: .75; }
+  .qbo-estimate-sheet[disabled] { opacity: .85; }
+  /* A locked document is still read here: browsers grey out disabled boxes' text (Safari nearly to nothing,
+     through -webkit-text-fill-color), so it's drawn in the normal text color */
+  .qbo-estimate-sheet[disabled] :is(input, textarea, select) { color: #393a3d; -webkit-text-fill-color: #393a3d; opacity: 1; }
+  /* ...but not hints in empty boxes, which would read as if they were filled in */
+  .qbo-estimate-sheet[disabled] :is(input, textarea)::placeholder { color: transparent; -webkit-text-fill-color: transparent; }
   .qbo-estimate-sheet[disabled] .qbo-estimate-line-buttons, .qbo-estimate-sheet[disabled] .qbo-line-handle svg,
   .qbo-estimate-sheet[disabled] .qbo-line-remove-button { display: none; }
   .qbo-estimate-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
@@ -95,6 +100,9 @@
   .qbo-estimate-totals { border-collapse: collapse; min-width: 300px; align-self: flex-start; font-variant-numeric: tabular-nums; }
   .qbo-estimate-totals th { text-align: right; font-weight: normal; color: #393a3d; padding: 6px 16px 6px 0; }
   .qbo-estimate-totals td { text-align: right; padding: 6px 0; min-width: 110px; }
+  .qbo-estimate-discount th { white-space: nowrap; }
+  .qbo-estimate-discount input { width: 5em; text-align: right; margin-left: 6px; }
+  .qbo-estimate-discount select { width: auto; }
   .qbo-estimate-totals #qbo-estimate-tax.qbo-pending { color: var(--qbo-muted); font-style: italic; font-size: .9em; }
   .qbo-estimate-totals .qbo-estimate-total th, .qbo-estimate-totals .qbo-estimate-total td { font-weight: 700; font-size: 1.15em; border-top: 1px solid #d4d7dc; padding-top: 10px; }
 

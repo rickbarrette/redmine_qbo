@@ -72,7 +72,7 @@ end
 resources :qbo_drafts, only: [:index, :destroy]
 
 # Receive payment pages, and a customer's payments (/qbo_payments?customer_id=)
-resources :qbo_payments, only: [:index, :new, :create, :show] do
+resources :qbo_payments, only: [:index, :new, :create, :show, :edit, :update] do
   member do
     get :pdf
   end

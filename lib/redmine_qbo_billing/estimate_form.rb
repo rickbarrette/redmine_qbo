@@ -92,8 +92,12 @@ module RedmineQboBilling
       end
     end
 
-    # due_date is an invoice's; expiration_date an estimate's
-    HEADER_ATTRIBUTES = %i[customer_id customer_name email txn_date expiration_date due_date doc_number customer_memo private_note].freeze
+    # due_date is an invoice's; expiration_date an estimate's. The discount is a percent of the subtotal
+    # (discount_type "percent") or a dollar amount ("amount"), saved as QuickBooks' discount line.
+    HEADER_ATTRIBUTES = %i[customer_id customer_name email txn_date expiration_date due_date doc_number customer_memo private_note
+                           discount_type discount_value].freeze
+
+    DISCOUNT_TYPES = %w[percent amount].freeze
 
     # "estimate" or "invoice"
     attr_writer :document
@@ -105,8 +109,11 @@ module RedmineQboBilling
                   # Invoices: estimates whose lines are on this invoice (they're linked and closed when saved)
                   :linked_estimate_ids,
                   # Read-only details shown on the editor
+                  # (discount: the discount amount QuickBooks worked out when it was last saved)
                   :billing_address, :total, :total_tax, :discount, :email_status, :txn_status, :duplicated_from,
                   :balance, :converted_from,
+                  # Invoices: a paid invoice opened for editing anyway (Unlock), and the amount paid on it
+                  :unlocked, :amount_paid,
                   # Estimates: the invoices it's billed on ([[id, number], ...])
                   :invoiced_on,
                   # nil, :bundles (has bundle lines), :linked (an issue is linked to the estimate) or
@@ -117,6 +124,7 @@ module RedmineQboBilling
     validate :validate_lines
     validate :validate_dates
     validate :validate_email
+    validate :validate_discount
     # Plugins can block a save (e.g. redmine_qbo_vehicles: one vehicle per invoice); see IssueValues
     validate :validate_with_plugins
 
@@ -193,6 +201,35 @@ module RedmineQboBilling
       filled_lines.sum(BigDecimal('0'), &:amount)
     end
 
+    def discount_type
+      DISCOUNT_TYPES.include?(@discount_type.to_s) ? @discount_type.to_s : 'percent'
+    end
+
+    def percent_discount?
+      discount_type == 'percent'
+    end
+
+    # "10%" reads as 10
+    def discount_value_number
+      self.class.decimal(discount_value.to_s.delete('%'))
+    end
+
+    # A discount is given when a value above zero is entered
+    def discount?
+      (discount_value_number || 0).positive?
+    end
+
+    # The discount in dollars, as QuickBooks works it out: a percent of the subtotal, rounded to the cent
+    def discount_amount
+      return BigDecimal('0') unless discount?
+      percent_discount? ? (subtotal * discount_value_number / 100).round(2) : discount_value_number.round(2)
+    end
+
+    # Invoices: nothing left owing (a payment covers it all)
+    def fully_paid?
+      balance.present? && self.class.decimal(balance).to_d <= 0
+    end
+
     def sent?
       email_status.to_s == 'EmailSent'
     end
@@ -238,6 +275,17 @@ module RedmineQboBilling
       invalid(invoice? ? :label_invoice_date : :label_estimate_date) if txn_date_value.nil?
       invalid(:label_expiration_date) if expiration_date.present? && expiration_date_value.nil?
       invalid(:label_due_date) if due_date.present? && due_date_value.nil?
+    end
+
+    def validate_discount
+      return if discount_value.blank?
+
+      value = discount_value_number
+      if value.nil? || value.negative? || (percent_discount? && value > 100)
+        invalid(:label_discount_from_quickbooks)
+      elsif discount_amount > subtotal
+        errors.add(:base, I18n.t(:error_discount_too_large))
+      end
     end
 
     def validate_with_plugins

@@ -2,6 +2,9 @@
 <% method_name = RedmineQboBilling::PaymentWriter.payment_method_name(@payment) %>
 
 <div class="contextual">
+  <% if RedmineQboBilling.payment_receiver? %>
+    <%= link_to sprite_icon('edit', l(:button_edit)), edit_qbo_payment_path(@payment.id), class: 'icon icon-edit' %>
+  <% end %>
   <%= link_to sprite_icon('application-pdf', l(:button_print_payment)), pdf_qbo_payment_path(@payment.id), class: 'icon icon-pdf', target: :_blank %>
   <% if @customer && RedmineQboBilling.payment_receiver? %>
     <%= link_to sprite_icon('add', l(:button_receive_payment)), new_qbo_payment_path(customer_id: @customer.id), class: 'icon icon-add' %>

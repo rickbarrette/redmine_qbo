@@ -13,8 +13,9 @@ module RedmineQboBilling
   #
   # Subtotal rows are saved the way QuickBooks saves the subtotals added on its own estimate screen: a
   # description-only line reading "Subtotal: $342.60", which prints where it was placed. The subtotal
-  # QuickBooks always adds after the last line isn't shown (QuickBooks adds it back). Discount lines are kept
-  # as they are, and estimates with bundle (group) lines are read-only so a bundle can't be broken up.
+  # QuickBooks always adds after the last line isn't shown (QuickBooks adds it back). The discount (a percent
+  # or an amount) is QuickBooks' discount line after the lines, and estimates with bundle (group) lines are
+  # read-only so a bundle can't be broken up.
   #
   # Estimate numbers are never typed: QuickBooks numbers new estimates, or when its custom transaction
   # numbers are on, the next number is filled in when the estimate is created.
@@ -72,8 +73,8 @@ module RedmineQboBilling
       save(form, user: user)
     end
 
-    # A new estimate copied from an existing one: same customer, lines, custom fields and messages, dated today, with a
-    # new number, the current user as sales person, and no discounts or bundles (those stay in QuickBooks)
+    # A new estimate copied from an existing one: same customer, lines, discount, custom fields and messages, dated
+    # today, with a new number and the current user as sales person (bundles aren't copied)
     def duplicate_form(id, user: User.current)
       source = load(id)
       today = user.today
@@ -88,6 +89,8 @@ module RedmineQboBilling
         custom_fields: source.custom_fields.dup,
         customer_memo: source.customer_memo,
         private_note: source.private_note,
+        discount_type: source.discount_type,
+        discount_value: source.discount_value,
         lines: source.lines.map do |line|
           EstimateForm::Line.new(kind: line.kind, item_id: line.item_id, item_name: line.item_name,
                                  description: line.description, quantity: line.quantity, rate: line.rate,
@@ -258,6 +261,7 @@ module RedmineQboBilling
         total: remote.total,
         total_tax: remote.txn_tax_detail&.total_tax,
         discount: discount_total(remote),
+        **discount_fields(remote),
         email_status: remote.email_status.to_s,
         txn_status: remote.txn_status.to_s,
         invoiced_on: Array(remote.linked_transactions).select { |t| t.txn_type.to_s == 'Invoice' }.map { |t|
@@ -325,7 +329,14 @@ module RedmineQboBilling
       estimate.private_note = form.private_note.to_s
       estimate.custom_fields = build_custom_fields(form, remote, user)
       estimate.line_items = build_lines(form, remote)
+      discount_before_tax(estimate, form)
       estimate
+    end
+
+    # A discount comes off before sales tax: QuickBooks takes the discount from the subtotal, then works out
+    # the tax on what's left (otherwise it taxes the full amount and discounts after)
+    def discount_before_tax(document, form)
+      document.apply_tax_after_discount = true if form.discount?
     end
 
     # Keeps every custom field already on the estimate, then sets the ones edited on the form, and the sales
@@ -371,12 +382,42 @@ module RedmineQboBilling
         built
       end
 
-      # Discounts keep their place after the lines
-      Array(remote&.line_items).select(&:discount_item?).each do |discount|
-        discount.line_num = lines.size + 1
-        lines << discount
-      end
+      # The discount goes after the lines, as on QuickBooks' own screen
+      discount = discount_line(form, remote, lines.size + 1)
+      lines << discount if discount
       lines
+    end
+
+    # QuickBooks' discount line for the form's discount, or nil (taken off before tax, see discount_before_tax). A percent discount is sent as a percent so
+    # QuickBooks works it out from its own subtotal; the discount account already on the document is kept
+    # (otherwise QuickBooks uses its default discount account).
+    def discount_line(form, remote, number)
+      return nil unless form.discount?
+
+      account = Array(remote&.line_items).detect(&:discount_item?)&.discount_line_detail&.discount_account_ref
+      line = Quickbooks::Model::InvoiceLineItem.new
+      line.line_num = number
+      line.amount = form.discount_amount
+      line.discount_item! do |detail|
+        detail.percent_based = form.percent_discount?
+        detail.discount_percent = form.discount_value_number if form.percent_discount?
+        detail.discount_account_ref = account if account
+      end
+      line
+    end
+
+    # The editor's discount fields from a document's discount lines: one percent line stays a percent;
+    # an amount, or several discount lines, become their total in dollars
+    def discount_fields(remote)
+      discounts = Array(remote.line_items).select(&:discount_item?)
+      return {} if discounts.empty?
+
+      detail = discounts.first.discount_line_detail
+      if discounts.size == 1 && detail&.percent_based?.to_s == 'true' && detail.discount_percent
+        { discount_type: 'percent', discount_value: plain_number(detail.discount_percent) }
+      else
+        { discount_type: 'amount', discount_value: plain_number(discount_total(remote)) }
+      end
     end
 
     def build_line(line, number, keep_id:, section_total: BigDecimal('0'))
@@ -449,7 +490,7 @@ module RedmineQboBilling
       "Subtotal: #{'-' if value.negative?}$#{whole.reverse.scan(/\d{1,3}/).join(',').reverse}.#{cents}"
     end
 
-    # Discount lines aren't edited here but count toward the total shown
+    # What the document's discount lines take off, in dollars
     def discount_total(remote)
       discounts = Array(remote.line_items).select(&:discount_item?)
       discounts.empty? ? nil : discounts.sum(BigDecimal('0')) { |l| l.amount || BigDecimal('0') }

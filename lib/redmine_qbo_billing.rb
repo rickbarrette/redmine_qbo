@@ -93,6 +93,13 @@ module RedmineQboBilling
     user.allowed_to?(:write_invoices, nil, global: true)
   end
 
+  # True when the user may unlock and change an invoice with a payment applied: a paid-off one needs
+  # "Edit paid invoices", a partly paid one "Edit partially paid invoices" (both on top of "Write invoices")
+  def self.paid_invoice_editor?(fully_paid, user = User.current)
+    invoice_writer?(user) &&
+      user.allowed_to?(fully_paid ? :edit_paid_invoices : :edit_partially_paid_invoices, nil, global: true)
+  end
+
   # True when the user may email invoices to customers
   def self.invoice_sender?(user = User.current)
     user.allowed_to?(:send_invoices, nil, global: true)

@@ -75,6 +75,11 @@ module RedmineQboBilling
       settings[:custom_txn_numbers] == true
     end
 
+    # Whether QuickBooks has discounts turned on for sales forms (true when its settings couldn't be read)
+    def discounts_allowed?
+      settings[:allow_discount] != false
+    end
+
     # The "default message shown on estimates" from QuickBooks' sales settings
     def estimate_message
       settings[:estimate_message].to_s
@@ -113,6 +118,7 @@ module RedmineQboBilling
         {
           custom_fields: merge_fields(parse_custom_fields(forms&.custom_fields), custom_fields_from_estimates),
           custom_txn_numbers: forms&.custom_txn_numbers? == 'true' || forms&.custom_txn_numbers? == true,
+          allow_discount: forms.nil? || forms.allow_discount?.nil? ? nil : forms.allow_discount?.to_s == 'true',
           estimate_message: forms&.estimate_message.to_s,
           invoice_message: forms&.default_customer_message.to_s
         }

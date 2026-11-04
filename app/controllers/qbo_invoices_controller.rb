@@ -58,8 +58,10 @@ class QboInvoicesController < ApplicationController
     show_error(e, :new)
   end
 
+  # ?unlock=1 opens a paid invoice for editing anyway (after the editor's confirmation)
   def edit
     @form = RedmineQboBilling::InvoiceWriter.load(params[:id])
+    unlock_form if unlock?
   rescue *QBO_ERRORS => e
     flash[:error] = qbo_message(e)
     redirect_back_or_default home_path
@@ -68,9 +70,10 @@ class QboInvoicesController < ApplicationController
   def update
     @form = RedmineQboBilling::EstimateForm.from_params(invoice_params, id: params[:id], document: 'invoice')
     @form.sales_person = params.dig(:estimate, :sales_person).to_s
+    unlock_form if unlock?
     return show_invalid(:edit) unless @form.valid?
 
-    saved = RedmineQboBilling::InvoiceWriter.save(@form, user: User.current)
+    saved = RedmineQboBilling::InvoiceWriter.save(@form, user: User.current, unlock: unlock?)
     finish_save(saved, l(:notice_invoice_saved_in_quickbooks, number: saved.doc_number))
   rescue RedmineQboBilling::InvoiceWriter::Conflict => e
     @conflict = true
@@ -111,6 +114,21 @@ class QboInvoicesController < ApplicationController
       custom_fields: {},
       lines: RedmineQboBilling::EstimateForm::Line::PARAMS
     )
+  end
+
+  def unlock?
+    params[:unlock].to_s == '1'
+  end
+
+  # Shows a paid invoice editable, with the amount paid on it (posted back with the form when saving), for
+  # users allowed to edit it (paid off or partly paid). InvoiceWriter.save checks again against QuickBooks.
+  def unlock_form
+    @form.amount_paid ||= RedmineQboBilling::EstimateForm.decimal(params.dig(:estimate, :amount_paid))
+    return unless @form.locked == :paid || @form.locked.nil?
+    return unless RedmineQboBilling.paid_invoice_editor?(@form.fully_paid?)
+
+    @form.locked = nil
+    @form.unlocked = true
   end
 
   def save_and_send?

@@ -9,8 +9,8 @@
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 module RedmineQboBilling
-  # What the Receive payment page posts: who paid, how, and how much. PaymentWriter turns it into a
-  # QuickBooks payment, applied to the customer's oldest open invoices first, or kept as a deposit.
+  # What the Receive payment and Edit payment pages post: who paid, how, and how much. PaymentWriter turns it
+  # into a QuickBooks payment, applied to the customer's oldest open invoices first, or kept as a deposit.
   class PaymentForm
     include ActiveModel::Model
     include ActiveModel::Validations
@@ -20,14 +20,22 @@ module RedmineQboBilling
     attr_accessor(*ATTRIBUTES)
     # Invoices ticked on the page: the payment goes on these (oldest first). None ticked: all open invoices.
     attr_accessor :invoice_ids
+    # A saved payment being edited: its QuickBooks id and sync token, and why it can't be edited here (or nil)
+    attr_accessor :id, :sync_token, :locked
 
     validate :validate_payment
 
-    def self.from_params(params)
+    def self.from_params(params, id: nil)
       params = params.to_h.stringify_keys
       new(ATTRIBUTES.to_h { |attr| [attr, params[attr.to_s].to_s.strip] }).tap do |form|
         form.invoice_ids = Array(params['invoice_ids']).map(&:to_s).reject(&:blank?).uniq
+        form.id = id.presence
+        form.sync_token = params['sync_token'].presence
       end
+    end
+
+    def persisted?
+      id.present?
     end
 
     def initialize(attributes = {})

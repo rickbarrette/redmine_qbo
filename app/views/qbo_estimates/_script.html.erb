@@ -36,8 +36,10 @@ $(function () {
   var money = new Intl.NumberFormat(<%= raw (current_language.to_s.presence || 'en').to_json %>, { style: 'currency', currency: 'USD' });
   var savedSubtotal = $form.data('savedSubtotal') === '' ? null : parseFloat($form.data('savedSubtotal'));
   var savedTax = $form.data('savedTax') === '' ? null : parseFloat($form.data('savedTax'));
-  // Discounts are kept from QuickBooks as they are; QuickBooks works out a percent discount again on save
-  var discount = $form.data('discount') === '' ? 0 : parseFloat($form.data('discount'));
+  // The discount QuickBooks took off when the document was last saved (the tax shown is for that discount)
+  var savedDiscount = $form.data('discount') === '' ? 0 : parseFloat($form.data('discount'));
+  var $discountValue = $('#qbo_estimate_discount_value');
+  var $discountType = $('#qbo_estimate_discount_type');
   var locked = $form.find('.qbo-estimate-sheet').prop('disabled');
   // Row keys must be digits: Rails' strong parameters only keep a hash of rows when every key is a number
   var nextKey = Date.now();
@@ -131,6 +133,13 @@ $(function () {
     return round(qty * rate, 2);
   }
 
+  // The discount in dollars: a percent of the subtotal or an amount, like QuickBooks works it out
+  function discountAmount(subtotal) {
+    var value = parseNumber(String($discountValue.val() || '').replace(/%/g, ''));
+    if (!$discountValue.length || value === null || isNaN(value) || value <= 0) return 0;
+    return $discountType.val() === 'percent' ? round(subtotal * value / 100, 2) : round(value, 2);
+  }
+
   function recalc() {
     var subtotal = 0, taxable = 0, section = 0;
     rows().each(function () {
@@ -154,8 +163,11 @@ $(function () {
 
     // QuickBooks works out the sales tax when the estimate is saved; show the saved tax until the lines change
     var $tax = $('#qbo-estimate-tax');
+    var discount = discountAmount(subtotal);
+    $('#qbo-estimate-discount').text(discount > 0 ? '-' + money.format(discount) : '');
     var total = round(subtotal - discount, 2);
-    if (savedTax !== null && savedSubtotal !== null && Math.abs(subtotal - savedSubtotal) < 0.005) {
+    if (savedTax !== null && savedSubtotal !== null && Math.abs(subtotal - savedSubtotal) < 0.005 &&
+        Math.abs(discount - savedDiscount) < 0.005) {
       $tax.text(money.format(savedTax)).removeClass('qbo-pending');
       total = round(total + savedTax, 2);
     } else {
@@ -743,6 +755,16 @@ $(function () {
     });
   }
 
+  $discountValue.on('input', function () { dirty = true; recalc(); });
+  $discountType.on('change', function () { dirty = true; recalc(); });
+  // Math typed in the discount box (e.g. 1500-1250) is worked out, to the cent
+  function tidyDiscount() {
+    var text = String($discountValue.val() || '').replace(/[$,\s%]/g, '');
+    var value = parseNumber(text);
+    if (value !== null && !isNaN(value) && isMath(text)) $discountValue.val(plain(round(value, 2), 2));
+  }
+  $discountValue.on('blur', function () { tidyDiscount(); recalc(); });
+
   // ---- saving ----
   $form.on('input change', '.qbo-estimate-top input, .qbo-estimate-details input, .qbo-estimate-notes textarea', function () { dirty = true; });
 
@@ -761,6 +783,7 @@ $(function () {
     }
     // Math still in a box is worked out before saving
     rows().each(function () { tidyNumbers($(this)); });
+    tidyDiscount();
     dirty = false;
   });
 

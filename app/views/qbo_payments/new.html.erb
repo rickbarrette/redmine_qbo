@@ -1,22 +1,44 @@
-<% html_title l(:button_receive_payment) %>
+<%# Receive payment, and Edit payment (edit.html.erb) for a saved one %>
+<% editing = @form.persisted? %>
+<% title = editing ? l(:label_edit_payment) : l(:button_receive_payment) %>
+<% html_title title %>
 <% customer = Customer.find_by(id: @form.customer_id) if @form.customer_id.present? %>
 
 <h2>
   <%= link_to l(:label_customers), customers_path %> &#187;
   <% if customer %><%= link_to customer.name, customer_path(customer) %> &#187;<% end %>
-  <%= l(:button_receive_payment) %>
+  <% if editing %>
+    <%= link_to l(:label_payments), qbo_payments_path(customer_id: @form.customer_id) %> &#187;
+  <% end %>
+  <%= title %>
 </h2>
 
 <%= error_messages_for @form %>
 
-<%= form_tag qbo_payments_path, id: 'qbo-payment-form',
+<% if @conflict %>
+  <p class="warning">
+    <%= l(:text_payment_reload) %>
+    <%= link_to l(:button_reload_payment), edit_qbo_payment_path(@form.id) %>
+  </p>
+<% end %>
+<% if @form.locked %>
+  <p class="warning"><%= @form.locked %></p>
+<% end %>
+
+<%= form_tag (editing ? qbo_payment_path(@form.id) : qbo_payments_path), method: (editing ? :patch : :post), id: 'qbo-payment-form',
              data: { open_invoices_url: open_invoices_qbo_payments_path, none_text: l(:label_no_open_invoices) } do %>
+  <%= hidden_field_tag 'payment[sync_token]', @form.sync_token, id: nil if editing %>
   <div class="box tabular">
     <p>
       <label for="qbo_payment_customer_name"><%= l(:label_customer) %><span class="required"> *</span></label>
-      <%= text_field_tag 'payment[customer_name]', @form.customer_name, id: 'qbo_payment_customer_name', class: 'customer-name',
-                         autocomplete: 'off', size: 40, placeholder: l(:label_choose_a_customer),
-                         data: { autocomplete_url: '/customers/autocomplete' } %>
+      <%# A saved payment keeps its customer %>
+      <% if editing %>
+        <%= text_field_tag 'payment[customer_name]', @form.customer_name, id: 'qbo_payment_customer_name', size: 40, readonly: true, tabindex: -1 %>
+      <% else %>
+        <%= text_field_tag 'payment[customer_name]', @form.customer_name, id: 'qbo_payment_customer_name', class: 'customer-name',
+                           autocomplete: 'off', size: 40, placeholder: l(:label_choose_a_customer),
+                           data: { autocomplete_url: '/customers/autocomplete' } %>
+      <% end %>
       <%= hidden_field_tag 'payment[customer_id]', @form.customer_id, id: 'customer_id' %>
     </p>
     <p>
@@ -94,8 +116,8 @@
   </fieldset>
 
   <p>
-    <%= submit_tag l(:button_save_payment) %>
-    <%= link_to l(:button_cancel), customer ? customer_path(customer) : home_path %>
+    <%= submit_tag l(:button_save_payment) unless @form.locked %>
+    <%= link_to l(:button_cancel), editing ? qbo_payment_path(@form.id) : (customer ? customer_path(customer) : home_path) %>
   </p>
 <% end %>
 

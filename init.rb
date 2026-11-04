@@ -48,8 +48,11 @@ Redmine::Plugin.register :redmine_qbo do
   permission :write_invoices, { qbo_invoices: [:new, :create, :edit, :update, :import_options],
                                 qbo_estimates: [:customer_info, :items], qbo_drafts: [:index, :destroy] }, global: true
   permission :send_invoices, { qbo_invoices: [:send_email] }, global: true
+  # Unlocking an invoice with a payment applied (on top of Write invoices); see RedmineQboBilling.paid_invoice_editor?
+  permission :edit_partially_paid_invoices, {}, global: true
+  permission :edit_paid_invoices, {}, global: true
   permission :view_payments, { qbo_payments: [:index, :show, :pdf] }, global: true
-  permission :receive_payments, { qbo_payments: [:index, :new, :create, :show, :pdf, :open_invoices],
+  permission :receive_payments, { qbo_payments: [:index, :new, :create, :show, :edit, :update, :pdf, :open_invoices],
                                   qbo_estimates: [:customer_info] }, global: true
   permission :view_business_reports, { qbo_reports: [:index] }, global: true
   # The product/service list, accounts and their syncs are admin-only (see ItemsController, AccountsController)

@@ -10,6 +10,9 @@
   settings_read = company.settings.present?
   # The same editor writes estimates and invoices
   invoice = form.invoice?
+  # The discount box, unless QuickBooks has discounts turned off or the document is read-only (shown anyway
+  # for a document that has one)
+  show_discount = form.discount? || (company.discounts_allowed? && !form.locked)
   # The draft being continued (QboDraft), if any; new documents can be saved as drafts
   draft = local_assigns[:draft]
   sender = invoice ? RedmineQboBilling.invoice_sender? : RedmineQboBilling.sender?
@@ -49,6 +52,11 @@
   <%= hidden_field_tag 'estimate[sales_person]', form.sales_person, id: nil if form.persisted? || form.invoice? %>
   <% if invoice %>
     <%= hidden_field_tag 'estimate[balance]', form.balance, id: nil %>
+    <%# A paid invoice opened for editing (Unlock) stays unlocked if the page is shown again %>
+    <% if form.unlocked %>
+      <%= hidden_field_tag 'unlock', '1', id: nil %>
+      <%= hidden_field_tag 'estimate[amount_paid]', form.amount_paid, id: nil %>
+    <% end %>
     <%# Estimates whose lines are on this invoice; the Import panel adds more %>
     <span id="qbo-linked-estimates">
       <% form.linked_estimate_ids.each do |estimate_id| %>
@@ -262,10 +270,18 @@
           <th><%= l(:label_taxable_subtotal) %></th>
           <td id="qbo-estimate-taxable-subtotal"></td>
         </tr>
-        <% if form.discount.to_f != 0 %>
-          <tr>
-            <th><%= l(:label_discount_from_quickbooks) %></th>
-            <td>-<%= number_to_currency(form.discount) %></td>
+        <% if show_discount %>
+          <%# A percent of the subtotal or a dollar amount; QuickBooks' discount line %>
+          <tr class="qbo-estimate-discount">
+            <th>
+              <label for="qbo_estimate_discount_value"><%= l(:label_discount_from_quickbooks) %></label>
+              <%= text_field_tag 'estimate[discount_value]', form.discount_value, id: 'qbo_estimate_discount_value',
+                                 size: 6, inputmode: 'decimal', autocomplete: 'off', placeholder: '0' %>
+              <%= select_tag 'estimate[discount_type]',
+                             options_for_select([[l(:label_discount_percent), 'percent'], [l(:label_discount_amount), 'amount']], form.discount_type),
+                             id: 'qbo_estimate_discount_type', 'aria-label': l(:label_discount_type) %>
+            </th>
+            <td id="qbo-estimate-discount"><%= "-#{number_to_currency(form.discount_amount)}" if form.discount? %></td>
           </tr>
         <% end %>
         <tr>

@@ -56,6 +56,9 @@
             <td class="amount"><%= number_to_currency(payment.total) %></td>
             <td class="amount"><%= unapplied > 0 ? number_to_currency(unapplied) : '' %></td>
             <td class="buttons">
+              <% if RedmineQboBilling.payment_receiver? %>
+                <%= link_to sprite_icon('edit', l(:button_edit)), edit_qbo_payment_path(payment.id), class: 'icon icon-edit' %>
+              <% end %>
               <%= link_to sprite_icon('application-pdf', l(:button_print_payment)), pdf_qbo_payment_path(payment.id),
                           class: 'icon icon-pdf', target: :_blank %>
             </td>

@@ -68,7 +68,17 @@
     </ul>
   </div>
 <% elsif form.locked == :paid %>
-  <p class="warning"><%= l(:error_invoice_paid) %></p>
+  <p class="warning">
+    <%= l(:error_invoice_paid) %>
+    <%# Opened for editing anyway after a confirmation (e.g. a discount after a deposit) %>
+    <% if RedmineQboBilling.paid_invoice_editor?(form.fully_paid?) %>
+      <%= link_to sprite_icon('unlock', l(:button_unlock_invoice)), edit_qbo_invoice_path(form.id, unlock: 1),
+                  class: 'icon icon-unlock', id: 'qbo-unlock-invoice',
+                  data: { confirm: l(:text_unlock_invoice_confirmation) } %>
+    <% end %>
+  </p>
+<% elsif form.unlocked && form.amount_paid.to_d > 0 %>
+  <p class="warning"><%= l(:text_invoice_unlocked, paid: number_to_currency(form.amount_paid)) %></p>
 <% elsif form.locked == :bundles %>
   <p class="warning"><%= l(invoice ? :error_invoice_has_bundles : :error_estimate_has_bundles) %></p>
 <% end %>

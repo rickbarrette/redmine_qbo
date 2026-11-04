@@ -9,8 +9,8 @@
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 # Receives customer payments in QuickBooks: payment type and amount, applied to open invoices oldest first, or
-# saved as a deposit. A saved payment can be printed (QuickBooks' payment PDF). A customer's payments are
-# listed on their payments page.
+# saved as a deposit. A saved payment can be edited and printed (QuickBooks' payment PDF). A customer's
+# payments are listed on their payments page.
 class QboPaymentsController < ApplicationController
 
   before_action :authorize_global, except: :sync
@@ -56,6 +56,31 @@ class QboPaymentsController < ApplicationController
     show_form
   end
 
+  def edit
+    @form = RedmineQboBilling::PaymentWriter.load_form(params[:id])
+    load_choices
+  rescue *QBO_ERRORS => e
+    flash[:error] = qbo_message(e)
+    redirect_back_or_default home_path
+  end
+
+  def update
+    @form = RedmineQboBilling::PaymentForm.from_params(payment_params, id: params[:id])
+    return show_form unless @form.valid?
+
+    payment = RedmineQboBilling::PaymentWriter.save(@form)
+    flash[:notice] = l(:notice_payment_updated, amount: view_context.number_to_currency(payment.total))
+    redirect_to qbo_payment_path(payment.id)
+  rescue RedmineQboBilling::PaymentWriter::Conflict => e
+    @conflict = true
+    @form.errors.add(:base, qbo_message(e))
+    show_form
+  rescue *QBO_ERRORS => e
+    logger.warn "[RedmineQboBilling] #{e.class}: #{qbo_message(e)}"
+    @form.errors.add(:base, qbo_message(e))
+    show_form
+  end
+
   def show
     @payment = RedmineQboBilling::PaymentWriter.load(params[:id])
     @customer = Customer.find_by(id: @payment.customer_ref&.value)
@@ -86,13 +111,15 @@ class QboPaymentsController < ApplicationController
   private
 
   def payment_params
-    params.require(:payment).permit(*RedmineQboBilling::PaymentForm::ATTRIBUTES, invoice_ids: [])
+    params.require(:payment).permit(*RedmineQboBilling::PaymentForm::ATTRIBUTES, :sync_token, invoice_ids: [])
   end
 
   def load_choices
     @payment_methods = RedmineQboBilling::PaymentWriter.payment_methods
     customer = Customer.find_by(id: @form.customer_id) if @form.customer_id.present?
-    @open_invoices = customer ? RedmineQboBilling::PaymentWriter.open_invoices(customer) : []
+    # Editing: the invoices this payment pays count as open (by what it paid on them)
+    payment = RedmineQboBilling::PaymentWriter.load(@form.id) if @form.persisted?
+    @open_invoices = customer ? RedmineQboBilling::PaymentWriter.open_invoices(customer, payment: payment) : []
   rescue *QBO_ERRORS => e
     @open_invoices = []
     flash.now[:error] = qbo_message(e)
@@ -100,7 +127,7 @@ class QboPaymentsController < ApplicationController
 
   def show_form
     load_choices
-    render :new, status: :unprocessable_entity
+    render(@form.persisted? ? :edit : :new, status: :unprocessable_entity)
   end
 
   def qbo_message(error)

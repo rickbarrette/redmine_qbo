@@ -19,7 +19,9 @@ module RedmineQboBilling
   # * billable QuickBooks time activities (the ones redmine_qbo makes from an issue's time entries). Each
   #   becomes a line linked to its time activity, so QuickBooks marks the time as billed.
   #
-  # An invoice with a payment applied to it is read-only, so a paid invoice can't be changed under the payment.
+  # An invoice with a payment applied to it is read-only, so a paid invoice isn't changed under the payment by
+  # accident. It can be unlocked on purpose (e.g. to give a discount after a deposit); the payment stays
+  # applied, and the total can't go below what's been paid.
   module InvoiceWriter
     Error = EstimateWriter::Error
     Conflict = EstimateWriter::Conflict
@@ -77,6 +79,8 @@ module RedmineQboBilling
         # The estimate's writer sells the job; with no one on the estimate, whoever writes the invoice
         form.sales_person = source.sales_person.presence || user.name
         form.private_note = source.private_note
+        form.discount_type = source.discount_type
+        form.discount_value = source.discount_value
         form.lines = copy_lines(source.lines)
         form.linked_estimate_ids = [source.id.to_s]
         form.converted_from = source.doc_number
@@ -92,7 +96,8 @@ module RedmineQboBilling
     # Creates or updates the invoice in QuickBooks, closes the estimates it was made from, and returns the
     # saved QuickBooks invoice. The sales person is the one on the estimate it was made from (the first linked
     # estimate that names one), or else the user who creates it; editing keeps the original one.
-    def save(form, user: User.current)
+    # unlock: a paid invoice may be changed (the user unlocked it), as long as it still covers the payments
+    def save(form, user: User.current, unlock: false)
       customer = Customer.find_by(id: form.customer_id)
       raise Error, I18n.t(:error_estimate_needs_customer) unless customer
 
@@ -102,7 +107,7 @@ module RedmineQboBilling
           raise Error, I18n.t(:notice_invoice_not_found) unless remote
           raise Conflict, I18n.t(:error_invoice_changed_in_quickbooks) if remote.sync_token.to_s != form.sync_token.to_s
           raise Error, I18n.t(:error_invoice_has_bundles) if writer.group_lines?(remote)
-          raise Error, I18n.t(:error_invoice_paid) if paid?(remote)
+          check_paid(form, remote, unlock, user)
           check_not_billed(form.linked_estimate_ids - linked_ids(remote, ESTIMATE))
 
           invoice = Quickbooks::Model::Invoice.new
@@ -154,7 +159,9 @@ module RedmineQboBilling
         total: remote.total,
         total_tax: remote.txn_tax_detail&.total_tax,
         discount: writer.discount_total(remote),
+        **writer.discount_fields(remote),
         balance: remote.balance,
+        amount_paid: amount_paid(remote),
         email_status: remote.email_status.to_s,
         locked: (:bundles if writer.group_lines?(remote)) || (:paid if paid?(remote))
       )
@@ -164,6 +171,46 @@ module RedmineQboBilling
     def paid?(remote)
       return false if remote.balance.nil? || remote.total.nil?
       BigDecimal(remote.balance.to_s) < BigDecimal(remote.total.to_s)
+    end
+
+    # What's been paid on the invoice: its total less its balance
+    def amount_paid(remote)
+      return BigDecimal('0') unless paid?(remote)
+      BigDecimal(remote.total.to_s) - BigDecimal(remote.balance.to_s)
+    end
+
+    # Nothing left owing on it
+    def fully_paid?(remote)
+      paid?(remote) && BigDecimal(remote.balance.to_s) <= 0
+    end
+
+    # A paid invoice is only changed when unlocked by a user allowed to (see
+    # RedmineQboBilling.paid_invoice_editor?), and never to less than what's been paid on it
+    def check_paid(form, remote, unlock, user)
+      return unless paid?(remote)
+      raise Error, I18n.t(:error_invoice_paid) unless unlock
+      raise Error, I18n.t(:error_invoice_paid_not_allowed) unless RedmineQboBilling.paid_invoice_editor?(fully_paid?(remote), user)
+
+      paid = amount_paid(remote)
+      total = estimated_total(form, remote)
+      return if total >= paid - BigDecimal('0.005')
+
+      raise Error, I18n.t(:error_invoice_below_paid, total: money(total), paid: money(paid))
+    end
+
+    # The invoice's new total, before QuickBooks works out the tax: the lines less the discount, plus the tax
+    # it had, scaled to the new amount (the same lines give exactly the old total)
+    def estimated_total(form, remote)
+      before_tax = form.subtotal - form.discount_amount
+      old_tax = BigDecimal(remote.txn_tax_detail&.total_tax.to_s.presence || '0')
+      old_before_tax = BigDecimal(remote.total.to_s) - old_tax
+      return before_tax if old_tax.zero? || old_before_tax <= 0
+
+      (before_tax + old_tax * before_tax / old_before_tax).round(2)
+    end
+
+    def money(amount)
+      ActiveSupport::NumberHelper.number_to_currency(amount)
     end
 
     def linked_ids(remote, type)
@@ -188,16 +235,19 @@ module RedmineQboBilling
       invoice.private_note = form.private_note.to_s
       invoice.custom_fields = writer.build_custom_fields(form, remote, user, sales_person: sales_person)
       invoice.line_items = writer.build_lines(form, remote)
+      writer.discount_before_tax(invoice, form)
       invoice.linked_transactions = header_links(form, remote)
       invoice
     end
 
-    # The invoice-level links: the estimates it was made from, and every time activity a line bills
-    # (QuickBooks wants time linked both on the line and on the invoice)
+    # The invoice-level links: the estimates it was made from, every time activity a line bills (QuickBooks
+    # wants time linked both on the line and on the invoice), and whatever else QuickBooks linked to it, e.g.
+    # the payments applied to it (left out, QuickBooks would unlink them)
     def header_links(form, remote)
       estimates = (linked_ids(remote, ESTIMATE) + form.linked_estimate_ids).uniq
       times = form.filled_lines.filter_map(&:time_activity_id).map(&:to_s).uniq
-      estimates.map { |id| link(id, ESTIMATE) } + times.map { |id| link(id, TIME_ACTIVITY) }
+      others = Array(remote&.linked_transactions).reject { |t| [ESTIMATE, TIME_ACTIVITY].include?(t.txn_type.to_s) }
+      estimates.map { |id| link(id, ESTIMATE) } + times.map { |id| link(id, TIME_ACTIVITY) } + others
     end
 
     def link(id, type)
