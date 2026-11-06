@@ -298,10 +298,12 @@
   </fieldset>
 
   <%# Action bar, like the bar along the bottom of QuickBooks' estimate screen %>
-  <div class="qbo-estimate-actions">
+  <div class="qbo-estimate-actions" data-saving-text="<%= l(:text_qbo_saving) %>">
     <%= link_to l(:button_cancel), cancel_path, class: 'qbo-button qbo-button-dark', id: 'qbo-estimate-cancel' %>
     <% unless form.locked %>
       <span class="qbo-estimate-actions-save">
+        <%# Shown while a save is on its way to QuickBooks (qbo_estimates/_script) %>
+        <span class="qbo-saving-status" role="status" aria-live="polite" hidden></span>
         <% unless form.persisted? %>
           <%# Kept in Redmine only, however incomplete (QboDraftHandling) %>
           <% if draft %>
@@ -309,12 +311,13 @@
                         data: { confirm: l(:text_are_you_sure) }, class: 'qbo-button qbo-button-dark', id: 'qbo-delete-draft' %>
           <% end %>
           <%= submit_tag l(:button_qbo_save_draft), name: 'save_draft', class: 'qbo-button qbo-button-dark',
-                         id: 'qbo-save-draft', formnovalidate: true %>
+                         id: 'qbo-save-draft', formnovalidate: true, data: { saving_text: l(:text_qbo_saving_draft) } %>
         <% end %>
         <%= submit_tag l(:button_save), name: 'save', class: 'qbo-button qbo-button-dark' %>
         <% if sender %>
           <%= submit_tag l(:button_save_and_send), name: 'save_and_send', class: 'qbo-button qbo-button-primary',
-                         id: 'qbo-estimate-save-and-send', data: { needs_email_text: l(:text_estimate_send_needs_email) } %>
+                         id: 'qbo-estimate-save-and-send',
+                         data: { needs_email_text: l(:text_estimate_send_needs_email), saving_text: l(:text_qbo_saving_and_sending) } %>
         <% end %>
       </span>
     <% end %>

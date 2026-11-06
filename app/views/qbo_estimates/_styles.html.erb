@@ -119,6 +119,17 @@
   .qbo-estimate .qbo-button-primary { background: var(--qbo-green); border-color: var(--qbo-green); color: #fff; }
   .qbo-estimate .qbo-button-primary:hover { background: var(--qbo-green-dark); border-color: var(--qbo-green-dark); color: #fff; }
 
+  /* While saving: the buttons are locked and a spinner says what's happening */
+  .qbo-estimate .qbo-saving .qbo-button[disabled],
+  .qbo-estimate .qbo-saving .qbo-button-disabled { opacity: .6; cursor: progress; pointer-events: none; }
+  .qbo-estimate .qbo-saving-status { display: inline-flex; align-items: center; gap: 8px; color: #fff; font-weight: 600; margin-right: 8px; }
+  .qbo-estimate .qbo-saving-status[hidden] { display: none; }
+  .qbo-estimate .qbo-saving-status::before { content: ""; width: 16px; height: 16px; border-radius: 50%; box-sizing: border-box;
+    border: 2px solid rgba(255,255,255,.35); border-top-color: #fff; animation: qbo-saving-spin .8s linear infinite; }
+  @keyframes qbo-saving-spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .qbo-estimate .qbo-saving-status::before { animation-duration: 2.4s; } }
+  .qbo-estimate .qbo-saving { cursor: progress; }
+
   /* Warnings with a list (linked issues, invoices): the text, then one item per line */
   div.warning.qbo-estimate-notice { text-align: left; }
   div.warning.qbo-estimate-notice ul { margin: 6px 0 0; padding-left: 22px; }

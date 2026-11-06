@@ -773,7 +773,11 @@ $(function () {
     if (event.key === 'Enter' && !$(this).closest('.ui-autocomplete').length) event.preventDefault();
   });
 
+  // Set once a save is on its way, so more clicks don't save (or send) it twice
+  var saving = false;
+
   $form.on('submit', function (event) {
+    if (saving) { event.preventDefault(); return; }
     var submitter = event.originalEvent && event.originalEvent.submitter;
     if (submitter && submitter.id === 'qbo-estimate-save-and-send' && !$email.val().trim()) {
       event.preventDefault();
@@ -785,6 +789,37 @@ $(function () {
     rows().each(function () { tidyNumbers($(this)); });
     tidyDiscount();
     dirty = false;
+
+    // After every submit handler has run (and the form's values are already taken, so disabling the buttons
+    // doesn't drop which one was clicked): unless one stopped the save, show it's saving and lock the buttons
+    setTimeout(function () {
+      var stopped = event.originalEvent ? event.originalEvent.defaultPrevented : event.isDefaultPrevented();
+      if (stopped) return;
+      saving = true;
+      showSaving(submitter);
+    }, 0);
+  });
+
+  function showSaving(submitter) {
+    var $bar = $form.find('.qbo-estimate-actions');
+    var $clicked = submitter ? $(submitter) : $bar.find('input[type=submit][name=save]');
+    var text = $clicked.data('savingText') || $bar.data('savingText');
+
+    $bar.addClass('qbo-saving');
+    $bar.find('input[type=submit]').prop('disabled', true);
+    $bar.find('a.qbo-button').addClass('qbo-button-disabled').attr('aria-disabled', 'true');
+    $bar.find('.qbo-saving-status').text(text).prop('hidden', false);
+  }
+
+  // Coming back with the browser's Back button can show the page as it was left, still "saving"
+  window.addEventListener('pageshow', function (event) {
+    if (!event.persisted || !saving) return;
+    saving = false;
+    var $bar = $form.find('.qbo-estimate-actions');
+    $bar.removeClass('qbo-saving');
+    $bar.find('input[type=submit]').prop('disabled', false);
+    $bar.find('a.qbo-button').removeClass('qbo-button-disabled').removeAttr('aria-disabled');
+    $bar.find('.qbo-saving-status').prop('hidden', true);
   });
 
   window.addEventListener('beforeunload', function (event) {
