@@ -14,26 +14,58 @@
   </span>
 </h2>
 
-<%# Target project: changing it reloads the page with that project's trackers and templates %>
-<% if @available_projects.size > 1 %>
-  <%= form_tag issues_preview_qbo_estimate_path(@estimate.id), method: :get, id: 'estimate-issues-project-form' do %>
-    <% carry.each do |key, value| %><%= hidden_field_tag key, value, id: nil %><% end %>
-    <p>
-      <label for="project_id"><strong><%= l(:field_project) %>:</strong></label>
+<%# Target project and parent task: changing either reloads the page (the project's trackers and templates;
+    the parent's project, vehicle and custom field values) %>
+<%= form_tag issues_preview_qbo_estimate_path(@estimate.id), method: :get, id: 'estimate-issues-project-form' do %>
+  <% carry.each do |key, value| %><%= hidden_field_tag key, value, id: nil %><% end %>
+  <p>
+    <label for="project_id"><strong><%= l(:field_project) %>:</strong></label>
+    <% if @available_projects.size > 1 %>
       <%= select_tag :project_id,
                      options_from_collection_for_select(@available_projects, :id, :name, @target_project.id),
                      onchange: 'this.form.submit();' %>
-      <noscript><%= submit_tag l(:button_apply), name: nil %></noscript>
+    <% else %>
+      <%= link_to_project @target_project %>
+      <%= hidden_field_tag :project_id, @target_project.id, id: nil %>
+    <% end %>
+  </p>
+  <% if @can_add_subtasks || @parent_issue_id.present? %>
+    <p class="estimate-issues-parent">
+      <label for="parent_issue_id"><strong><%= l(:field_parent_issue) %>:</strong></label>
+      <%= text_field_tag :parent_issue_id, @parent_issue&.id || @parent_issue_id, size: 10,
+                         placeholder: l(:label_estimate_parent_placeholder) %>
+      <% if @parent_issue %>
+        <%= link_to_issue(@parent_issue, truncate: 60) %>
+        <%= link_to sprite_icon('del', l(:button_clear)),
+                    issues_preview_qbo_estimate_path(@estimate.id, carry.merge(project_id: @target_project.id)),
+                    class: 'icon-only icon-del', title: l(:button_clear) %>
+        <br><em class="info"><%= l(:text_estimate_parent_info) %></em>
+      <% end %>
     </p>
   <% end %>
-<% else %>
-  <p><strong><%= l(:field_project) %>:</strong> <%= link_to_project @target_project %></p>
+  <noscript><p><%= submit_tag l(:button_apply), name: nil %></p></noscript>
 <% end %>
 
-<% if @builder.errors.any? %>
+<% if @can_add_subtasks || @parent_issue_id.present? %>
+  <%= javascript_tag do %>
+    (function () {
+      var field = document.getElementById('parent_issue_id');
+      if (!field) return;
+      var submitted = false;
+      function reload() { if (!submitted) { submitted = true; field.form.submit(); } }
+      observeAutocompleteField('parent_issue_id',
+        <%= raw auto_complete_issues_path(project_id: @target_project, scope: Setting.cross_project_subtasks, status: 'o').to_json %>,
+        { select: function (event, ui) { field.value = ui.item.value; reload(); } });
+      field.addEventListener('change', reload);
+    })();
+  <% end %>
+<% end %>
+
+<% errors = [@parent_issue_error, *@builder.errors].compact %>
+<% if errors.any? %>
   <div id="errorExplanation">
     <ul>
-      <% @builder.errors.each do |message| %>
+      <% errors.each do |message| %>
         <li><%= message %></li>
       <% end %>
     </ul>
@@ -63,6 +95,7 @@
                id: 'estimate-issues-form',
                data: { templates: template_data.to_json } do %>
     <%= hidden_field_tag :project_id, @target_project.id %>
+    <%= hidden_field_tag :parent_issue_id, @parent_issue&.id || @parent_issue_id, id: nil %>
     <% carry.each do |key, value| %><%= hidden_field_tag key, value, id: nil %><% end %>
 
     <table class="list estimate-issues-preview">
@@ -135,6 +168,21 @@
         <% end %>
       </tbody>
     </table>
+
+    <%# Dates for every issue: from the appointment the page was opened from, else the parent task; blank means none %>
+    <fieldset class="box tabular estimate-issue-dates">
+      <legend><%= l(:label_estimate_issue_dates) %></legend>
+      <p>
+        <label for="estimate_issue_start_date"><%= l(:field_start_date) %></label>
+        <%= date_field_tag 'issue_dates[start_date]', @defaults[:start_date], id: 'estimate_issue_start_date', size: 10 %>
+        <%= calendar_for('estimate_issue_start_date') %>
+      </p>
+      <p>
+        <label for="estimate_issue_due_date"><%= l(:field_due_date) %></label>
+        <%= date_field_tag 'issue_dates[due_date]', @defaults[:due_date], id: 'estimate_issue_due_date', size: 10 %>
+        <%= calendar_for('estimate_issue_due_date') %>
+      </p>
+    </fieldset>
 
     <%# Fields entered once and applied to every issue: plugins' own (e.g. redmine_qbo_vehicles' vehicle, posted as
         issue_plugin_fields[...]) and the custom fields for the chosen trackers %>
@@ -234,6 +282,8 @@
 
         var visibleCount = 0;
         fieldBox.querySelectorAll('.estimate-issue-field').forEach(function (field) {
+          // Plugins' fields (e.g. the vehicle) apply to every tracker
+          if (!field.hasAttribute('data-tracker-ids')) { visibleCount++; return; }
           var used = idList(field.dataset.trackerIds).some(function (id) { return trackerIds.indexOf(id) >= 0; });
           var required = idList(field.dataset.requiredTrackerIds).some(function (id) { return trackerIds.indexOf(id) >= 0; });
           field.style.display = used ? '' : 'none';

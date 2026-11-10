@@ -10,6 +10,12 @@
       <div class="value">
         <%= estimate_link %>
         <%= render partial: 'qbo_estimates/estimate_actions', locals: { estimate: issue.estimate } if issue.estimate && RedmineQboBilling.writer? %>
+        <%# Create the estimate's remaining labor lines as subtasks of this issue %>
+        <% if issue.estimate && User.current.allowed_to?(:create_estimate_issues, nil, global: true) && User.current.allowed_to?(:manage_subtasks, issue.project) %>
+          <%= link_to sprite_icon('add', l(:button_create_estimate_subtasks)),
+                      issues_preview_qbo_estimate_path(issue.estimate.id, parent_issue_id: issue.id),
+                      class: 'icon-only icon-add', title: l(:button_create_estimate_subtasks) %>
+        <% end %>
       </div>
     </div>
          

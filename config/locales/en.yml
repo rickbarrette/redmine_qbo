@@ -11,6 +11,11 @@
 # English strings go here for Rails i18n
 # Usage I18n.t(:label)
 en:
+  button_create_estimate_subtasks: "Create subtasks from estimate"
+  error_estimate_parent_not_found: "Parent task #%{id} wasn't found, or you can't see it."
+  error_estimate_parent_not_allowed: "You aren't allowed to add subtasks in %{project}."
+  label_estimate_parent_placeholder: "Optional"
+  text_estimate_parent_info: "The issues are created as subtasks. They get the parent's customer, and the vehicle and custom field values below start from the parent's; any left empty are filled from the parent."
   notice_qbo_oauth_state_mismatch: "QuickBooks connection was not completed: the request could not be verified. Please try connecting again."
   permission_bill_issues: "Bill issue time to QuickBooks"
   permission_share_issues_with_customers: "Share issues with customers"
@@ -313,6 +318,7 @@ en:
   label_default_project: "Default project"
   label_default_tracker: "Default tracker"
   label_estimate_issue_fields: "Issue fields"
+  label_estimate_issue_dates: "Dates"
   label_estimate_issue_settings: "Issues from estimates"
   label_estimate_item: "Item"
   label_estimate_line_already_created: "Already created"

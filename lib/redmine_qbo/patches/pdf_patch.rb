@@ -103,6 +103,9 @@ module RedmineQbo
         left << [l(:field_status), issue.status]
         left << [l(:field_priority), issue.priority]
         left << [l(:field_customer), issue.customer&.name]
+        left << [l(:field_estimate), issue.estimate.doc_number] if issue.estimate
+        invoice_numbers = issue.invoices.map(&:doc_number).compact_blank
+        left << [invoice_numbers.size > 1 ? l(:label_invoices) : l(:field_invoice), invoice_numbers.join(', ')] if invoice_numbers.any?
         left << [l(:field_assigned_to), issue.assigned_to] unless issue.disabled_core_fields.include?(:assigned_to_id)
 
         log "Calling :pdf_left hook"

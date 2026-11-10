@@ -101,7 +101,8 @@ class QboEstimatesController < ApplicationController
   def create_issues
     @rows = params[:lines].respond_to?(:to_unsafe_h) ? params[:lines].to_unsafe_h : {}
     @custom_field_values = submitted_custom_field_values
-    created = @builder.create_issues(project: @target_project, rows: @rows, custom_field_values: @custom_field_values)
+    # A parent was entered but can't be used: create nothing rather than top-level issues
+    created = @parent_issue_error ? [] : @builder.create_issues(project: @target_project, rows: @rows, custom_field_values: @custom_field_values)
 
     if created.any?
       Redmine::Hook.call_hook(:qbo_billing_issues_created, { estimate: @estimate, issues: created, params: params })
@@ -174,29 +175,95 @@ class QboEstimatesController < ApplicationController
     end
     return render_404 unless @estimate
 
-    # Values plugins' fields posted with the form (e.g. redmine_qbo_vehicles' vehicle) override their defaults
-    @defaults = issue_defaults.merge(submitted_plugin_fields)
-    @builder = RedmineQboBilling::EstimateIssueBuilder.new(@estimate, defaults: @defaults)
+    load_parent_issue
+
+    @defaults = build_defaults
     @return_path = @defaults[:return_path].presence || edit_qbo_estimate_path(@estimate.id)
     @return_label = @defaults[:return_label].presence || "#{l(:label_estimate)} ##{@estimate.doc_number}"
     @available_projects = Project.allowed_to(User.current, :add_issues).sorted.to_a
 
-    # A project chosen on the page wins, then the one from another plugin (e.g. the appointment's), then the
-    # default project from the settings, then the first project the user can add issues to
+    # A project chosen on the page wins, then the parent issue's, then the one from another plugin (e.g. the
+    # appointment's), then the default project from the settings, then the first project the user can add issues to
     chosen = @available_projects.detect { |p| p.id == params[:project_id].to_i } if params[:project_id].present?
+    from_parent = @parent_issue.project if @parent_issue && @available_projects.include?(@parent_issue.project)
     from_hook = @defaults[:project] if @available_projects.include?(@defaults[:project])
     default_project = @available_projects.detect { |p| p.id == RedmineQboBilling::EstimateIssueBuilder.default_project_id }
-    @target_project = chosen || from_hook || default_project || @available_projects.first
+    @target_project = chosen || from_parent || from_hook || default_project || @available_projects.first
     return deny_access unless @target_project
+
+    # Subtasks need the "Manage subtasks" permission in the project they're created in
+    @can_add_subtasks = User.current.allowed_to?(:manage_subtasks, @target_project)
+    if @parent_issue && !@can_add_subtasks
+      @parent_issue_error = l(:error_estimate_parent_not_allowed, project: @target_project.name)
+      @parent_issue = nil
+      @defaults = build_defaults
+    end
+    @builder = RedmineQboBilling::EstimateIssueBuilder.new(@estimate, defaults: @defaults, parent: @parent_issue)
 
     @trackers = Issue.allowed_target_trackers(@target_project, User.current).to_a
     @default_tracker = @trackers.detect { |t| t.id == RedmineQboBilling::EstimateIssueBuilder.default_tracker_id } || @trackers.first
     @templates = RedmineQboBilling::IssueTemplateSupport.templates_for(@target_project)
-    @field_set = RedmineQboBilling::IssueFieldSet.new(project: @target_project, trackers: @trackers)
+    # With a parent issue, the shared fields start out with the parent's values
+    @field_set = RedmineQboBilling::IssueFieldSet.new(project: @target_project, trackers: @trackers,
+                                                      values: parent_custom_field_values)
     @rows ||= {}
   rescue *QBO_ERRORS => e
     flash[:error] = qbo_message(e)
     redirect_back_or_default home_path
+  end
+
+  # The optional parent issue (parent_issue_id, "#123" or "123"): the new issues become its subtasks.
+  # Only an issue the user can see; an unknown one is reported and nothing is created.
+  def load_parent_issue
+    @parent_issue_id = params[:parent_issue_id].to_s.delete('#').strip
+    return if @parent_issue_id.blank?
+
+    @parent_issue = Issue.visible.find_by(id: @parent_issue_id.to_i) if @parent_issue_id.match?(/\A\d+\z/)
+    @parent_issue_error = l(:error_estimate_parent_not_found, id: @parent_issue_id) unless @parent_issue
+  end
+
+  # What the new issues start from:
+  # - dates: another plugin's (e.g. the appointment's), else the parent issue's
+  # - vehicle: the parent issue's, else another plugin's (e.g. the appointment's)
+  # Values posted with the form (the dates, plugins' fields such as redmine_qbo_vehicles' vehicle) win.
+  def build_defaults
+    parent_dates = {}
+    parent_vehicle = {}
+    if @parent_issue
+      parent_dates = { start_date: @parent_issue.start_date, due_date: @parent_issue.due_date }.compact
+      if @parent_issue.respond_to?(:vehicle_id) && @parent_issue.vehicle_id.present?
+        parent_vehicle = { vehicle_id: @parent_issue.vehicle_id.to_s }
+      end
+    end
+
+    parent_dates.merge(issue_defaults.compact).merge(parent_vehicle).merge(submitted_plugin_fields).merge(submitted_dates)
+  end
+
+  # The Start date / Due date entered on the page, only when the form was posted. A blank one means no date.
+  def submitted_dates
+    return {} unless request.post? && params[:issue_dates].respond_to?(:to_unsafe_h)
+
+    values = params[:issue_dates].to_unsafe_h
+    %w[start_date due_date].each_with_object({}) do |key, dates|
+      dates[key.to_sym] = parse_date(values[key]) if values.key?(key)
+    end
+  end
+
+  def parse_date(value)
+    Date.iso8601(value.to_s.strip) if value.present?
+  rescue ArgumentError
+    nil
+  end
+
+  # The parent issue's custom field values the user can see, to start the shared fields from: { id => value }
+  def parent_custom_field_values
+    return {} unless @parent_issue
+
+    @parent_issue.visible_custom_field_values.each_with_object({}) do |custom_value, values|
+      next if Array(custom_value.value).all?(&:blank?)
+
+      values[custom_value.custom_field_id.to_s] = custom_value.value
+    end
   end
 
   # The first non-empty hash a plugin returns for :qbo_billing_issue_defaults

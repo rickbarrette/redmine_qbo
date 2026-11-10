@@ -17,6 +17,9 @@ module RedmineQboBilling
   # - Lines already turned into issues are shown but can't be created again
   # - Creation is all-or-nothing: if any issue fails validation, none are saved
   # - All issues created from the same estimate are related to each other, across batches
+  # - With a parent issue, the issues are created as its subtasks and take its customer, plus its vehicle and
+  #   custom field values where the page left them empty (the same rules as the subtask_field_copier plugin,
+  #   which is used when installed)
   #
   # Other plugins fill in more through hooks:
   #   :qbo_billing_issue_defaults, { estimate:, params: } => a hash of start_date, due_date, assignee,
@@ -91,13 +94,15 @@ module RedmineQboBilling
       end
     end
 
-    attr_reader :estimate, :defaults, :errors
+    attr_reader :estimate, :defaults, :parent, :errors
 
     # estimate: redmine_qbo's local Estimate (its QuickBooks details give the lines)
     # defaults: start_date, due_date, assignee, description and plugins' own values (from :qbo_billing_issue_defaults)
-    def initialize(estimate, defaults: {})
+    # parent: an issue to create the issues under as subtasks (optional; the caller checks the user may see it)
+    def initialize(estimate, defaults: {}, parent: nil)
       @estimate = estimate
       @defaults = (defaults || {}).to_h.symbolize_keys
+      @parent = parent
       @errors = []
     end
 
@@ -190,10 +195,12 @@ module RedmineQboBilling
       key.to_s
     end
 
-    # Relates the new issues to each other and to every issue created earlier from the same estimate.
+    # Relates the new issues to each other and to every issue created earlier from the same estimate,
+    # except their parent and its ancestors (Redmine doesn't allow relating a subtask to its parent)
     def relate_issues(new_issues)
+      skip_ids = parent ? parent.self_and_ancestors.pluck(:id) : []
       earlier = QboEstimateLineIssue.where(estimate_id: estimate.id)
-                                    .where.not(issue_id: new_issues.map(&:id))
+                                    .where.not(issue_id: new_issues.map(&:id) + skip_ids)
                                     .includes(:issue)
                                     .filter_map(&:issue)
       self.class.relate_all(earlier + new_issues)
@@ -223,13 +230,43 @@ module RedmineQboBilling
       assignee = defaults[:assignee]
       issue.assigned_to = assignee if assignee && issue.assignable_users.include?(assignee)
 
-      issue.customer_id = estimate.customer_id if issue.respond_to?(:customer_id=)
+      # A subtask belongs to its parent's customer; otherwise the estimate's
+      if issue.respond_to?(:customer_id=)
+        issue.customer_id = parent&.customer_id.presence || estimate.customer_id
+      end
       issue.estimate_id = estimate.id if issue.respond_to?(:estimate_id=)
 
       # Plugins set their own fields (e.g. redmine_qbo_vehicles: the vehicle)
       Redmine::Hook.call_hook(:qbo_billing_build_issue, { issue: issue, estimate: estimate, defaults: defaults })
 
+      if parent
+        issue.parent_issue_id = parent.id
+        copy_from_parent(issue, author)
+      end
+
       issue
+    end
+
+    # Fills the subtask's empty fields from the parent: custom fields (those the author can see on the parent
+    # and edit on the subtask) and plugins' registered fields (customer, vehicle). Values entered on the page win.
+    def copy_from_parent(issue, author)
+      if defined?(::SubtaskFieldCopier)
+        ::SubtaskFieldCopier.copy_from_parent(issue, parent, author, {})
+        return
+      end
+
+      parent_values = parent.visible_custom_field_values(author).index_by(&:custom_field_id)
+      copied = issue.editable_custom_field_values(author).each_with_object({}) do |custom_value, values|
+        value = parent_values[custom_value.custom_field_id]&.value
+        next if Array(value).all?(&:blank?) || Array(custom_value.value).any?(&:present?)
+
+        values[custom_value.custom_field_id.to_s] = value
+      end
+      issue.custom_field_values = copied if copied.any?
+
+      if issue.respond_to?(:vehicle_id=) && issue.vehicle_id.blank? && parent.respond_to?(:vehicle_id)
+        issue.vehicle_id = parent.vehicle_id
+      end
     end
 
     def default_description
