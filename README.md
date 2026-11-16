@@ -235,6 +235,7 @@ Hook|:qbo_billing_field_options, { customer: } | Return `{ field_id => [{ value:
 View|:view_qbo_estimate_form_bottom, { form:, document: } | Add your plugin's script to the estimate/invoice editor. It can use `window.qboEditor` (`field(id)`, `fieldNamed(/name/)`, `setFieldOptions(id, options)`) and listen for `qbo:customer-changed` and `qbo:imported` on the form (redmine_qbo_vehicles fills the VIN and mileage)
 View|checkboxes with `data-new-issue-param="issue[field]"` on the customer page | Ticking one adds `issue[field]=value` to the New issue link, one per field (redmine_qbo's estimates, redmine_qbo_vehicles' vehicles)
 View Hook|:view_qbo_estimate_contextual, { estimate_id:, customer_id:, custom_fields:, doc_number: } | Adds links to an estimate page's action area (e.g. redmine_qbo_calendar's Add appointment); `custom_fields` is `{ field_id => value }`
+View Hook|:view_qbo_invoice_contextual, { invoice_id:, customer_id:, doc_number: } | Adds links to an invoice page's action area (e.g. redmine_qbo_labels' Print label)
 
 Other plugins create estimates with `RedmineQboBilling::EstimateWriter.create_estimate(customer:, lines:, private_note:, custom_fields:, user:)`; `custom_fields` is `{ field_id => value }`, and each line is a hash of `description`, `item_id`, `quantity`, `rate` and `taxable`.
 

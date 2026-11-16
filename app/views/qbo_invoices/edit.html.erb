@@ -1,6 +1,8 @@
 <% html_title "#{l(:label_invoice)} ##{@form.doc_number}" %>
 
 <div class="contextual">
+  <%# Plugins add invoice actions here (e.g. redmine_qbo_labels' Print label) %>
+  <%= call_hook :view_qbo_invoice_contextual, { invoice_id: @form.id, customer_id: @form.customer_id, doc_number: @form.doc_number } %>
   <% if RedmineQboBilling.payment_receiver? && @form.balance.to_d > 0 %>
     <%= link_to sprite_icon('add', l(:button_receive_payment)), new_qbo_payment_path(customer_id: @form.customer_id), class: 'icon icon-add' %>
   <% end %>
