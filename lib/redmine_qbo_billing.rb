@@ -83,6 +83,11 @@ module RedmineQboBilling
     user.allowed_to?(:receive_payments, nil, global: true)
   end
 
+  # True when the user may refund customers' credit (SOP-OPS-014)
+  def self.refunder?(user = User.current)
+    user.allowed_to?(:issue_refunds, nil, global: true)
+  end
+
   # True when the user may see customer payments (receiving them includes seeing them)
   def self.payment_viewer?(user = User.current)
     user.allowed_to?(:view_payments, nil, global: true) || payment_receiver?(user)

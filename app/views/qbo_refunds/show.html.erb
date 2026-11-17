@@ -1,0 +1,64 @@
+<%# A refund as it was made (SOP-OPS-014) %>
+<% html_title l(:label_refund) %>
+<% money = ->(amount) { RedmineQboBilling::RefundWriter.money(amount) } %>
+
+<h2>
+  <%= link_to l(:label_customers), customers_path %> &#187;
+  <% if @customer %><%= link_to @customer.name, customer_path(@customer) %> &#187;<% end %>
+  <%= l(:label_refund) %> <%= format_date(@refund.txn_date) %>
+</h2>
+
+<div class="contextual">
+  <%= link_to sprite_icon('application-pdf', 'PDF'), pdf_qbo_refund_path(@refund), class: 'icon icon-pdf', target: :_blank %>
+  <% if @refund.fee_invoice_id.present? %>
+    <%= link_to sprite_icon('application-pdf', l(:label_refund_fee_invoice_pdf)), invoice_path(@refund.fee_invoice_id), class: 'icon icon-pdf', target: :_blank %>
+  <% end %>
+</div>
+
+<% if @refund.done? %>
+  <p class="<%= @refund.balance_after.to_d.zero? ? 'notice flash' : 'warning' %>">
+    <%= @refund.balance_after.nil? ? l(:text_refund_balance_unknown) : l(:text_refund_balance, balance: money.(@refund.balance_after)) %>
+  </p>
+<% else %>
+  <p class="conflict"><%= l(:text_refund_incomplete) %></p>
+<% end %>
+<% if @refund.message.present? %>
+  <div class="warning"><%= simple_format(h(@refund.message)) %></div>
+<% end %>
+
+<div class="box tabular">
+  <p><label><%= l(:label_refund_estimate) %></label> <%= @refund.estimate_id.present? ? link_to("E#{@refund.estimate_number}", RedmineQboBilling.writer? ? edit_qbo_estimate_path(@refund.estimate_id) : estimate_path(@refund.estimate_id)) : l(:label_refund_no_estimate) %></p>
+  <p><label><%= l(:label_refund_reason) %></label> <%= @refund.reason %></p>
+  <p><label><%= l(:label_refund_credit) %></label> <%= money.(@refund.credit_amount) %></p>
+  <p><label><%= l(:label_refund_parts) %></label> <%= money.(@refund.parts_amount) %></p>
+  <p>
+    <label><%= l(:label_refund_fee_rate, rate: RedmineQboBilling::RefundWriter.plain(@refund.fee_rate)) %></label>
+    <%= money.(@refund.fee_amount) %>
+    <% if @refund.fee_invoice_id.present? %>
+      · <%= link_to l(:label_refund_fee_invoice, number: @refund.fee_invoice_number), RedmineQboBilling.invoice_writer? ? edit_qbo_invoice_path(@refund.fee_invoice_id) : invoice_path(@refund.fee_invoice_id) %>
+    <% end %>
+  </p>
+  <p>
+    <label><%= l(:label_refund_amount) %></label>
+    <%= money.(@refund.refund_amount) %> · <%= @refund.method_name %><%= " ##{@refund.check_number}" if @refund.check? %>
+    <% if @refund.purchase_url %>
+      · <%= link_to l(@refund.check? ? :label_refund_open_check : :label_refund_open_expense), @refund.purchase_url, target: '_blank', rel: 'noopener' %>
+    <% end %>
+  </p>
+  <% if @refund.estimate_number.present? %>
+    <p><label><%= l(:label_refund_close_estimate) %></label> <%= checked_image @refund.estimate_closed? %></p>
+  <% end %>
+  <% if @refund.canceled_issue_ids.any? %>
+    <p><label><%= l(:label_refund_cancel_issues) %></label>
+      <%= safe_join(Issue.where(id: @refund.canceled_issue_ids).map { |issue| link_to_issue(issue, project: false) }, ', ') %></p>
+  <% end %>
+  <p>
+    <label><%= l(:label_refund_email_customer) %></label> <%= @refund.emailed_to.presence || '—' %>
+    <% if @refund.done? %>
+      · <%= link_to sprite_icon('email', l(@refund.emailed_to.present? ? :button_refund_email_again : :button_refund_email)),
+                    email_qbo_refund_path(@refund), method: :post, class: 'icon icon-email',
+                    data: { confirm: l(:text_refund_email_confirm) } %>
+    <% end %>
+  </p>
+  <p><label><%= l(:field_author) %></label> <%= @refund.user ? link_to_user(@refund.user) : '' %> <%= format_time(@refund.created_at) %></p>
+</div>

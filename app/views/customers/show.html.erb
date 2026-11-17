@@ -23,6 +23,9 @@
   <% if RedmineQboBilling.payment_receiver? %>
     <%= link_to sprite_icon('add', l(:button_receive_payment)), new_qbo_payment_path(customer_id: @customer.id), class: 'icon icon-add' %>
   <% end %>
+  <% if RedmineQboBilling.refunder? %>
+    <%= link_to sprite_icon('arrow-narrow-left', l(:label_refund)), new_qbo_refund_path(customer_id: @customer.id), class: 'icon icon-arrow-narrow-left' %>
+  <% end %>
   <% if User.current.allowed_to?(:edit_customers, nil, global: true) %>
     <%= link_to sprite_icon('edit', l(:button_edit)), edit_customer_path(@customer),
                 class: 'icon icon-edit', accesskey: accesskey(:edit) %>
@@ -63,6 +66,27 @@
         <% if customer_drafts.any? %>
           <h4><%= l(:label_qbo_drafts) %>:</h4>
           <%= render partial: 'qbo_drafts/list', locals: { drafts: customer_drafts, show_customer: false } %>
+        <% end %>
+
+        <%# Refunds made from Redmine (SOP-OPS-014) %>
+        <% if RedmineQboBilling.refunder? %>
+          <% customer_refunds = QboRefund.where(customer_id: @customer.id).recent.limit(10).to_a %>
+          <% if customer_refunds.any? %>
+            <h4><%= l(:label_refunds) %>:</h4>
+            <table class="list">
+              <tbody>
+                <% customer_refunds.each do |refund| %>
+                  <tr>
+                    <td><%= link_to format_date(refund.txn_date), qbo_refund_path(refund) %></td>
+                    <td><%= refund.estimate_id.present? ? link_to("E#{refund.estimate_number}", RedmineQboBilling.writer? ? edit_qbo_estimate_path(refund.estimate_id) : estimate_path(refund.estimate_id)) : '' %></td>
+                    <td><%= refund.method_name %></td>
+                    <td style="text-align: right"><%= RedmineQboBilling::RefundWriter.money(refund.refund_amount) %></td>
+                    <td><%= refund.done? ? '' : l(:label_refund_incomplete) %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          <% end %>
         <% end %>
 
       </div>

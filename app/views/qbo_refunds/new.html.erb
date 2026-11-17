@@ -1,0 +1,122 @@
+<%# Refund for a canceled order or returned parts (SOP-OPS-014) %>
+<% html_title l(:label_refund) %>
+<% money = ->(amount) { RedmineQboBilling::RefundWriter.money(amount) } %>
+<% preview = @preview %>
+
+<h2>
+  <%= link_to l(:label_customers), customers_path %> &#187;
+  <%= link_to @customer.name, customer_path(@customer) %> &#187;
+  <%= l(:label_refund) %>
+</h2>
+
+<%= error_messages_for @form %>
+
+<p class="warning"><%= l(:text_refund_final_sale) %></p>
+
+<% if preview && preview.credits.empty? %>
+  <p class="nodata"><%= l(:text_refund_no_credit) %></p>
+<% end %>
+
+<%# Picking the canceled order's estimate reloads the page with its parts filled in %>
+<%= form_tag new_qbo_refund_path, method: :get, id: 'qbo-refund-estimate' do %>
+  <%= hidden_field_tag 'customer_id', @customer.id, id: nil %>
+  <div class="box tabular">
+    <p>
+      <label for="qbo_refund_estimate"><%= l(:label_refund_estimate) %></label>
+      <%= select_tag 'estimate_id', options_for_select(@estimates, @form.estimate_id), include_blank: l(:label_refund_no_estimate),
+                     id: 'qbo_refund_estimate', onchange: 'this.form.submit()' %>
+      <noscript><%= submit_tag l(:button_apply), name: nil %></noscript>
+      <em class="info"><%= l(:text_refund_estimate) %></em>
+    </p>
+  </div>
+<% end %>
+
+<%= form_tag qbo_refunds_path, method: :post, id: 'qbo-refund-form' do %>
+  <%= hidden_field_tag 'refund[customer_id]', @customer.id, id: nil %>
+  <%= hidden_field_tag 'refund[estimate_id]', @form.estimate_id, id: nil %>
+  <div class="box tabular">
+    <p>
+      <label for="qbo_refund_parts"><%= l(:label_refund_parts) %></label>
+      $<%= text_field_tag 'refund[parts_amount]', @form.parts_amount, id: 'qbo_refund_parts', size: 12, inputmode: 'decimal',
+                          autocomplete: 'off', data: { rate: preview&.fee_rate.to_s } %>
+      <em class="info"><%= l(:text_refund_parts, rate: RedmineQboBilling::RefundWriter.plain(preview&.fee_rate || RedmineQboBilling::RefundWriter.fee_rate)) %></em>
+    </p>
+    <p>
+      <label><%= l(:label_refund_method) %><span class="required"> *</span></label>
+      <label class="inline"><%= radio_button_tag 'refund[method]', 'check', @form.method == 'check', id: 'qbo_refund_method_check' %> <%= l(:label_refund_method_check) %></label>
+      <label class="inline"><%= radio_button_tag 'refund[method]', 'card', @form.method == 'card', id: 'qbo_refund_method_card' %> <%= l(:label_refund_method_card) %></label>
+      <em class="info"><%= l(:text_refund_method) %></em>
+    </p>
+    <p id="qbo-refund-check-number">
+      <label for="qbo_refund_check_number"><%= l(:label_refund_check_number) %><span class="required"> *</span></label>
+      <%= text_field_tag 'refund[check_number]', @form.check_number, id: 'qbo_refund_check_number', size: 12, maxlength: 21 %>
+    </p>
+    <p>
+      <label for="qbo_refund_date"><%= l(:label_refund_date) %><span class="required"> *</span></label>
+      <%= date_field_tag 'refund[txn_date]', @form.txn_date, id: 'qbo_refund_date' %>
+    </p>
+    <p>
+      <label for="qbo_refund_reason"><%= l(:label_refund_reason) %><span class="required"> *</span></label>
+      <%= text_area_tag 'refund[reason]', @form.reason, id: 'qbo_refund_reason', rows: 3, cols: 60, maxlength: 2000 %>
+      <em class="info"><%= l(:text_refund_reason) %></em>
+    </p>
+    <p>
+      <label><%= l(:label_refund_also) %></label>
+      <% [[:close_estimate, :label_refund_close_estimate], [:cancel_issues, :label_refund_cancel_issues], [:email_customer, :label_refund_email_customer]].each do |flag, label| %>
+        <% needs_estimate = flag != :email_customer %>
+        <label class="block">
+          <%= hidden_field_tag "refund[#{flag}]", '0', id: nil %>
+          <%= check_box_tag "refund[#{flag}]", '1', @form.send(:"#{flag}?") && (!needs_estimate || @form.estimate_id.present?),
+                            id: "qbo_refund_#{flag}", disabled: needs_estimate && @form.estimate_id.blank? %>
+          <%= l(label) %>
+        </label>
+      <% end %>
+      <% if @customer.email.blank? %><em class="info"><%= l(:text_refund_no_email) %></em><% end %>
+    </p>
+  </div>
+
+  <% if preview %>
+    <fieldset class="box" id="qbo-refund-preview">
+      <legend><%= l(:label_refund_summary) %></legend>
+      <table class="list">
+        <thead><tr><th><%= l(:label_refund_credit_from) %></th><th><%= l(:label_payment_reference) %></th><th><%= l(:label_memo) %></th><th><%= l(:label_amount) %></th></tr></thead>
+        <tbody>
+          <% preview.credits.each do |credit| %>
+            <tr>
+              <td><%= link_to format_date(credit.date), qbo_payment_path(credit.payment_id) %></td>
+              <td><%= credit.reference %></td>
+              <td><%= credit.memo %></td>
+              <td style="text-align: right"><%= money.(credit.amount) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+        <tfoot>
+          <tr><td colspan="3"><%= l(:label_refund_credit) %></td><td style="text-align: right" id="qbo-refund-credit" data-credit="<%= preview.credit_total.to_s('F') %>"><%= money.(preview.credit_total) %></td></tr>
+          <tr><td colspan="3"><%= l(:label_refund_fee_rate, rate: RedmineQboBilling::RefundWriter.plain(preview.fee_rate)) %></td><td style="text-align: right" id="qbo-refund-fee">-<%= money.(preview.fee) %></td></tr>
+          <tr><td colspan="3"><strong><%= l(:label_refund_amount) %></strong></td><td style="text-align: right"><strong id="qbo-refund-amount"><%= money.(preview.refund) %></strong></td></tr>
+        </tfoot>
+      </table>
+      <p><em class="info"><%= l(:text_refund_summary) %></em></p>
+    </fieldset>
+  <% end %>
+
+  <p><%= submit_tag l(:button_refund), data: { confirm: l(:text_refund_confirm) }, disabled: preview.nil? || preview.credits.empty? %></p>
+<% end %>
+
+<%= javascript_tag do %>
+  $(function() {
+    var money = function(n) { return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); };
+    function update() {
+      var parts = parseFloat(($('#qbo_refund_parts').val() || '0').replace(/[$,\s]/g, '')) || 0;
+      var rate = parseFloat($('#qbo_refund_parts').data('rate')) || 0;
+      var credit = parseFloat($('#qbo-refund-credit').data('credit')) || 0;
+      var fee = Math.round(parts * rate) / 100;
+      $('#qbo-refund-fee').text('-' + money(fee));
+      $('#qbo-refund-amount').text(money(Math.max(credit - fee, 0)));
+    }
+    function method() { $('#qbo-refund-check-number').toggle($('#qbo_refund_method_check').is(':checked')); }
+    $('#qbo_refund_parts').on('input', update);
+    $('input[name="refund[method]"]').on('change', method);
+    update(); method();
+  });
+<% end %>

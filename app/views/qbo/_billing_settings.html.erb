@@ -66,3 +66,40 @@
     <em class="info"><%= l(:text_default_tracker_info) %></em>
   </p>
 </fieldset>
+
+<%# Refunds (SOP-OPS-014): the restocking fee, and where the refund check or card refund is recorded %>
+<% refunds = RedmineQboBilling::RefundWriter %>
+<% accounts = Account.where(active: true).order(:name).pluck(:name, :id) %>
+<fieldset class="box tabular">
+  <legend><%= l(:label_refund_settings) %></legend>
+  <p>
+    <label for="settings_restocking_fee_rate"><%= l(:label_restocking_fee_rate) %></label>
+    <%= number_field_tag 'settings[restocking_fee_rate]', refunds.plain(refunds.fee_rate), id: 'settings_restocking_fee_rate',
+                         min: 0, max: 100, step: 0.01, style: 'width: 6em' %>%
+    <em class="info"><%= l(:text_restocking_fee_rate) %></em>
+  </p>
+  <p>
+    <label for="settings_restocking_item_id"><%= l(:label_restocking_item) %></label>
+    <%= select_tag 'settings[restocking_item_id]', options_from_collection_for_select(Item.sellable.order(:name), :id, :name, @settings['restocking_item_id']),
+                   include_blank: true, id: 'settings_restocking_item_id' %>
+    <em class="info"><%= l(:text_restocking_item) %></em>
+  </p>
+  <p>
+    <label for="settings_refund_check_account_id"><%= l(:label_refund_check_account) %></label>
+    <%= select_tag 'settings[refund_check_account_id]', options_for_select(accounts, @settings['refund_check_account_id'].to_s),
+                   include_blank: l(:label_refund_first_bank_account), id: 'settings_refund_check_account_id' %>
+    <em class="info"><%= l(:text_refund_check_account) %></em>
+  </p>
+  <p>
+    <label for="settings_refund_card_account_id"><%= l(:label_refund_card_account) %></label>
+    <%= select_tag 'settings[refund_card_account_id]', options_for_select(accounts, @settings['refund_card_account_id'].to_s),
+                   include_blank: l(:label_refund_first_bank_account), id: 'settings_refund_card_account_id' %>
+    <em class="info"><%= l(:text_refund_card_account) %></em>
+  </p>
+  <p>
+    <label for="settings_refund_canceled_status_id"><%= l(:label_refund_canceled_status) %></label>
+    <%= select_tag 'settings[refund_canceled_status_id]', options_from_collection_for_select(IssueStatus.sorted, :id, :name, @settings['refund_canceled_status_id'].to_s),
+                   include_blank: refunds.canceled_status ? "#{refunds.canceled_status.name} (#{l(:label_default)})" : true, id: 'settings_refund_canceled_status_id' %>
+    <em class="info"><%= l(:text_refund_canceled_status) %></em>
+  </p>
+</fieldset>

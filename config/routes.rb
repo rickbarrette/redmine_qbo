@@ -71,6 +71,14 @@ end
 # Estimate and invoice drafts, kept in Redmine until they're saved to QuickBooks (continued on the editors)
 resources :qbo_drafts, only: [:index, :destroy]
 
+# Customer refunds (SOP-OPS-014): /qbo_refunds/new?customer_id=
+resources :qbo_refunds, only: [:new, :create, :show] do
+  member do
+    get :pdf
+    post :email
+  end
+end
+
 # Receive payment pages, and a customer's payments (/qbo_payments?customer_id=)
 resources :qbo_payments, only: [:index, :new, :create, :show, :edit, :update] do
   member do
