@@ -385,6 +385,13 @@ en:
   label_report_estimates_written: "Estimates written"
   label_report_invoices_written: "Invoices written"
   label_report_invoices_paid: "Invoices paid in full"
+  label_report_taxes: "Sales tax"
+  label_report_tax_invoiced: "Tax invoiced"
+  label_report_tax_collected: "Tax collected"
+  label_report_taxed_invoices:
+    one: "1 invoice"
+    other: "%{count} invoices"
+  text_report_taxes: "Tax invoiced is the sales tax on invoices dated in the period (accrual); tax collected is the sales tax on invoices paid in full in the period (cash), counted on the day each was paid in full. Sales receipts and refunds aren't included: file from QuickBooks' Sales Tax Liability report."
   text_report_without_tax: "Estimates and invoices are without sales tax; invoices paid in full count on the day they were paid in full. Payments are as received, so collected vs. invoiced compares them with the invoices' totals with tax."
   label_report_payments_received: "Payments received"
   label_report_estimate_hours: "Estimated (estimates)"

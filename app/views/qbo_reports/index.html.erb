@@ -42,6 +42,10 @@
                                      [:invoices, l(:label_report_invoices_written), '#e8a33d'],
                                      [:paid, l(:label_report_invoices_paid), '#c0504d'],
                                      [:payments, l(:label_report_payments_received), '#5aa05a']]) %>
+<% taxes = @report.taxes %>
+<% max_tax = taxes.values.map { |t| t[:total] }.max.to_f %>
+<% tax_series = chart_series.call([[:tax_invoiced, l(:label_report_tax_invoiced), '#e8a33d'],
+                                   [:tax_collected, l(:label_report_tax_collected), '#c0504d']]) %>
 <% hours_series = chart_series.call([[:estimate_hours, l(:label_report_estimate_hours), '#628db6'],
                                      [:issue_hours, l(:label_report_issue_hours), '#9b7fc0'],
                                      [:invoice_hours, l(:label_report_invoice_hours), '#e8a33d'],
@@ -182,6 +186,54 @@
   </div>
 </div>
 
+<h3><%= l(:label_report_taxes) %></h3>
+<div class="splitcontent">
+  <div class="splitcontentleft">
+    <div class="qbo-report-chart">
+      <canvas id="qbo-chart-taxes" data-kind="money" data-series="<%= tax_series.to_json %>"></canvas>
+    </div>
+    <table class="list qbo-report">
+      <tbody>
+        <% [[:tax_invoiced, l(:label_report_tax_invoiced)], [:tax_collected, l(:label_report_tax_collected)]].each do |key, label| %>
+          <tr>
+            <td class="name"><%= label %> <span class="count">(<%= l(:label_report_taxed_invoices, count: taxes[key][:count]) %>)</span></td>
+            <td class="bar"><div class="qbo-bar qbo-bar-<%= key %>" style="width: <%= bar.call(taxes[key][:total], max_tax) %>%"></div></td>
+            <td class="value"><%= number_to_currency(taxes[key][:total]) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <p><em class="info"><%= l(:text_report_taxes) %></em></p>
+  </div>
+  <div class="splitcontentright">
+    <table class="list qbo-report-months qbo-report-tax-months">
+      <thead>
+        <tr>
+          <th class="month"><%= l(:label_month) %></th>
+          <th><%= l(:label_report_tax_invoiced) %></th>
+          <th><%= l(:label_report_tax_collected) %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @report.months.each do |row| %>
+          <tr>
+            <td class="month"><%= ::I18n.t('date.abbr_month_names')[row[:month].month] %> <%= row[:month].year %></td>
+            <td><%= number_to_currency(row[:tax_invoiced]) %></td>
+            <td><%= number_to_currency(row[:tax_collected]) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+      <tfoot>
+        <tr class="total">
+          <td class="month"><strong><%= l(:label_total) %></strong></td>
+          <td><strong><%= number_to_currency(taxes[:tax_invoiced][:total]) %></strong></td>
+          <td><strong><%= number_to_currency(taxes[:tax_collected][:total]) %></strong></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
 <h3><%= l(:label_report_by_month) %></h3>
 <div class="autoscroll">
   <table class="list qbo-report-months">
@@ -242,7 +294,8 @@
   .qbo-bar { height: 14px; border-radius: 2px; min-width: 1px; background: #628db6; }
   .qbo-bar-invoices, .qbo-bar-invoice_hours { background: #e8a33d; }
   .qbo-bar-payments, .qbo-bar-spent_hours { background: #5aa05a; }
-  .qbo-bar-paid { background: #c0504d; }
+  .qbo-bar-paid, .qbo-bar-tax_collected { background: #c0504d; }
+  .qbo-bar-tax_invoiced { background: #e8a33d; }
   .qbo-bar-issue_hours { background: #9b7fc0; }
   .qbo-report-ratios { margin: 8px 4px; line-height: 1.7; }
   .qbo-report-cpi { margin: 10px 4px 4px; }

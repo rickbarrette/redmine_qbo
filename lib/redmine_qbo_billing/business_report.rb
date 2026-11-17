@@ -14,6 +14,7 @@ module RedmineQboBilling
   # Redmine's issues and spent time:
   #   money: estimates written, invoices written, invoices paid in full, payments received (totals and counts);
   #          estimates and invoices without sales tax (it isn't the shop's revenue), payments as received
+  #   taxes: sales tax on invoices written (by their date) and on invoices paid in full (by that day)
   #   hours: man-hours on estimates, issues' estimated time, man-hours invoiced, time spent
   # with a month-by-month breakdown. Estimates, invoices and payments count by their QuickBooks date, issues by
   # the day they were created (only issues without subtasks, so parents' totals aren't counted twice), and
@@ -27,6 +28,7 @@ module RedmineQboBilling
     WEEKLY_UP_TO = 93
     MONEY = %i[estimates invoices paid payments].freeze
     HOURS = %i[estimate_hours issue_hours invoice_hours spent_hours].freeze
+    TAXES = %i[tax_invoiced tax_collected].freeze
 
     attr_reader :from, :to, :period, :project_ids
 
@@ -161,6 +163,12 @@ module RedmineQboBilling
       payments: [:payments, ->(r) { to_money(r[1]) }]
     }.freeze
 
+    # Sales tax on invoices written (by their date) and on invoices paid in full (by that day)
+    TAX_ROWS = {
+      tax_invoiced: [:invoices, ->(r) { to_money(r[4]) }],
+      tax_collected: [:paid, ->(r) { to_money(r[2]) }]
+    }.freeze
+
     def self.to_money(value)
       BigDecimal(value.to_s.presence || '0')
     rescue ArgumentError
@@ -176,6 +184,14 @@ module RedmineQboBilling
       end.tap do |figures|
         figures[:invoices][:balance] = money_sum(data[:invoices], 3)
         figures[:invoices][:with_tax] = money_sum(data[:invoices], 1)
+      end
+    end
+
+    # { tax_invoiced: { total:, count: }, tax_collected: { total:, count: } }: count is the invoices that had tax
+    def taxes
+      @taxes ||= TAX_ROWS.to_h do |key, (source, value)|
+        amounts = Array(data[source]).map { |r| value.call(r) }
+        [key, { total: amounts.sum(BigDecimal('0')), count: amounts.count(&:positive?) }]
       end
     end
 
@@ -229,7 +245,7 @@ module RedmineQboBilling
         last = [to, @today].min
         last = from if last < from
         while month <= last
-          rows << { month: month }.merge((MONEY + HOURS).index_with { |_| 0 })
+          rows << { month: month }.merge((MONEY + HOURS + TAXES).index_with { |_| 0 })
           month = month.next_month
         end
         index = rows.index_by { |r| [r[:month].year, r[:month].month] }
@@ -239,7 +255,7 @@ module RedmineQboBilling
             r[key] += kind == :money ? to_d(row[col]) : row[col].to_f
           end
         end
-        MONEY_ROWS.each do |key, (source, value)|
+        MONEY_ROWS.merge(TAX_ROWS).each do |key, (source, value)|
           Array(data[source]).each do |row|
             r = index[[row[0].year, row[0].month]] or next
             r[key] += value.call(row)
@@ -264,11 +280,11 @@ module RedmineQboBilling
 
     # { money key or hours key => [sum per bucket] } for the data, in buckets ([first day, last day] pairs)
     def sums_by_bucket(rows, bucket_list)
-      sums = (MONEY + HOURS).index_with { |_| Array.new(bucket_list.size, 0.0) }
+      sums = (MONEY + HOURS + TAXES).index_with { |_| Array.new(bucket_list.size, 0.0) }
       find = lambda do |date|
         bucket_list.index { |a, b| date >= a && date <= b }
       end
-      MONEY_ROWS.each do |key, (source, value)|
+      MONEY_ROWS.merge(TAX_ROWS).each do |key, (source, value)|
         Array(rows[source]).each do |row|
           i = find.call(row[0]) or next
           sums[key][i] += value.call(row).to_f

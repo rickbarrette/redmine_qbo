@@ -53,4 +53,16 @@ class BusinessReportTest < ActiveSupport::TestCase
     assert_match(/\APaid \S+/, RedmineQboBilling::InvoiceStatus.label(:paid, paid_on: Date.new(2026, 11, 3)))
     assert_equal 'Open', RedmineQboBilling::InvoiceStatus.label(:open, paid_on: Date.new(2026, 11, 3))
   end
+
+  def test_taxes
+    r = report(invoices: [[NOV + 3, '1070', 5, '0', '70'], [NOV + 4, '200', 1, '200', '0'], [NOV + 6, '535', 2, '0', '35']],
+               paid: [[NOV + 9, '1070', '70'], [Date.new(2026, 11, 10), '500', nil]])
+    assert_equal({ total: BigDecimal('105'), count: 2 }, r.taxes[:tax_invoiced])
+    assert_equal({ total: BigDecimal('70'), count: 1 }, r.taxes[:tax_collected])
+    november = r.months.find { |m| m[:month] == NOV }
+    assert_equal BigDecimal('105'), november[:tax_invoiced]
+    assert_equal BigDecimal('70'), november[:tax_collected]
+    assert_equal 105.0, r.chart[:current][:tax_invoiced].compact.sum
+    assert_equal 70.0, r.chart[:current][:tax_collected].compact.sum
+  end
 end
