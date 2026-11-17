@@ -18,7 +18,7 @@
         <b><%= link_to "##{invoice.doc_number}", invoice_path(invoice), target: :_blank %></b> <%= invoice.txn_date %>
         <%# Paid / partially paid / overdue / open / voided, from the cached balance and due date %>
         <% if (status = invoice.status) %>
-          <span class="qbo-estimate-status qbo-invoice-status-<%= status %>"><%= RedmineQboBilling::InvoiceStatus.label(status) %></span>
+          <span class="qbo-estimate-status qbo-invoice-status-<%= status %>"><%= RedmineQboBilling::InvoiceStatus.label(status, paid_on: invoice.paid_on) %></span>
         <% end %>
         <%= render partial: 'qbo_invoices/invoice_actions', locals: { invoice: invoice } if RedmineQboBilling.invoice_writer? %>
       </div>

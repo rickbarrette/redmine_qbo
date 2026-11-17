@@ -34,8 +34,12 @@ module RedmineQboBilling
       balance < total ? :partial : :open
     end
 
-    def label(status)
-      status ? I18n.t("label_invoice_status_#{status}") : ''
+    # "Paid", or with the day it was paid in full, "Paid 11/03/2026"
+    def label(status, paid_on: nil)
+      return '' unless status
+      return I18n.t(:label_invoice_status_paid_on, date: I18n.l(paid_on)) if status == :paid && paid_on
+
+      I18n.t("label_invoice_status_#{status}")
     end
 
     def to_d(value)

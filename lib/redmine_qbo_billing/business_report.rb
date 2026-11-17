@@ -12,7 +12,8 @@
 module RedmineQboBilling
   # Business figures for a date range, from the estimates, invoices and payments cached from QuickBooks and from
   # Redmine's issues and spent time:
-  #   money: estimates written, invoices written, payments received (totals and counts)
+  #   money: estimates written, invoices written, invoices paid in full, payments received (totals and counts);
+  #          estimates and invoices without sales tax (it isn't the shop's revenue), payments as received
   #   hours: man-hours on estimates, issues' estimated time, man-hours invoiced, time spent
   # with a month-by-month breakdown. Estimates, invoices and payments count by their QuickBooks date, issues by
   # the day they were created (only issues without subtasks, so parents' totals aren't counted twice), and
@@ -24,7 +25,7 @@ module RedmineQboBilling
     # Chart points: a day each for up to two weeks, a week each up to about three months, else a month each
     DAILY_UP_TO = 14
     WEEKLY_UP_TO = 93
-    MONEY = %i[estimates invoices payments].freeze
+    MONEY = %i[estimates invoices paid payments].freeze
     HOURS = %i[estimate_hours issue_hours invoice_hours spent_hours].freeze
 
     attr_reader :from, :to, :period, :project_ids
@@ -54,8 +55,9 @@ module RedmineQboBilling
       nil
     end
 
-    # data (for tests): { estimates: [[date, total, hours]], invoices: [[date, total, hours, balance]],
-    # payments: [[date, total]], issues: [[date, estimated_hours]], time_entries: [[date, hours]] }
+    # data (for tests): { estimates: [[date, total, hours, tax]], invoices: [[date, total, hours, balance, tax]],
+    # paid: [[paid_on, total, tax]], payments: [[date, total]], issues: [[date, estimated_hours]],
+    # time_entries: [[date, hours]] }. Tax may be left off (none).
     # week_start: the first day of a week (:monday, :saturday or :sunday); see week_start_from_setting.
     # previous_data (for tests): last year's data, like data.
     # project_ids: the projects whose issues and spent time count; blank for every project.
@@ -150,13 +152,31 @@ module RedmineQboBilling
       @data ||= load_data
     end
 
-    # { estimates: { total:, count: }, invoices: { total:, count:, balance: }, payments: { total:, count: } }
+    # Where each money figure's rows are and how much each row counts: estimates, invoices and invoices paid in
+    # full without their sales tax, payments as received
+    MONEY_ROWS = {
+      estimates: [:estimates, ->(r) { to_money(r[1]) - to_money(r[3]) }],
+      invoices: [:invoices, ->(r) { to_money(r[1]) - to_money(r[4]) }],
+      paid: [:paid, ->(r) { to_money(r[1]) - to_money(r[2]) }],
+      payments: [:payments, ->(r) { to_money(r[1]) }]
+    }.freeze
+
+    def self.to_money(value)
+      BigDecimal(value.to_s.presence || '0')
+    rescue ArgumentError
+      BigDecimal('0')
+    end
+
+    # { estimates: { total:, count: }, invoices: { total:, count:, balance:, with_tax: }, paid: { total:, count: },
+    #   payments: { total:, count: } }. Invoices' balance (still owed) and with_tax are what the customers pay.
     def money
-      @money ||= {
-        estimates: { total: money_sum(data[:estimates], 1), count: data[:estimates].size },
-        invoices: { total: money_sum(data[:invoices], 1), count: data[:invoices].size, balance: money_sum(data[:invoices], 3) },
-        payments: { total: money_sum(data[:payments], 1), count: data[:payments].size }
-      }
+      @money ||= MONEY_ROWS.to_h do |key, (source, value)|
+        rows = Array(data[source])
+        [key, { total: rows.sum(BigDecimal('0')) { |r| value.call(r) }, count: rows.size }]
+      end.tap do |figures|
+        figures[:invoices][:balance] = money_sum(data[:invoices], 3)
+        figures[:invoices][:with_tax] = money_sum(data[:invoices], 1)
+      end
     end
 
     # { estimate_hours:, issue_hours:, invoice_hours:, spent_hours: }
@@ -193,7 +213,8 @@ module RedmineQboBilling
     def ratios
       {
         invoiced_of_estimated: percent(money[:invoices][:total], money[:estimates][:total]),
-        collected_of_invoiced: percent(money[:payments][:total], money[:invoices][:total]),
+        # Payments include sales tax, so they're compared with the invoices' totals with tax
+        collected_of_invoiced: percent(money[:payments][:total], money[:invoices][:with_tax]),
         invoiced_of_spent: percent(hours[:invoice_hours], hours[:spent_hours]),
         spent_of_estimated: percent(hours[:spent_hours], hours[:issue_hours])
       }
@@ -218,9 +239,12 @@ module RedmineQboBilling
             r[key] += kind == :money ? to_d(row[col]) : row[col].to_f
           end
         end
-        add.call(data[:estimates], :estimates, 1, :money)
-        add.call(data[:invoices], :invoices, 1, :money)
-        add.call(data[:payments], :payments, 1, :money)
+        MONEY_ROWS.each do |key, (source, value)|
+          Array(data[source]).each do |row|
+            r = index[[row[0].year, row[0].month]] or next
+            r[key] += value.call(row)
+          end
+        end
         add.call(data[:estimates], :estimate_hours, 2, :hours)
         add.call(data[:issues], :issue_hours, 1, :hours)
         add.call(data[:invoices], :invoice_hours, 2, :hours)
@@ -229,9 +253,11 @@ module RedmineQboBilling
       end
     end
 
-    # Estimates and invoices in the range that synced before totals and hours were cached (a full sync fills them)
+    # Estimates and invoices in the range that synced before totals, hours and sales tax were cached (a full sync
+    # fills them)
     def unsynced_count
-      data[:estimates].count { |r| r[1].nil? || r[2].nil? } + data[:invoices].count { |r| r[1].nil? || r[2].nil? }
+      data[:estimates].count { |r| r[1].nil? || r[2].nil? || (r.size > 3 && r[3].nil?) } +
+        data[:invoices].count { |r| r[1].nil? || r[2].nil? || (r.size > 4 && r[4].nil?) }
     end
 
     private
@@ -242,14 +268,18 @@ module RedmineQboBilling
       find = lambda do |date|
         bucket_list.index { |a, b| date >= a && date <= b }
       end
-      columns = {
-        estimates: [:estimates, 1], invoices: [:invoices, 1], payments: [:payments, 1],
-        estimate_hours: [:estimates, 2], issue_hours: [:issues, 1], invoice_hours: [:invoices, 2], spent_hours: [:time_entries, 1]
-      }
+      MONEY_ROWS.each do |key, (source, value)|
+        Array(rows[source]).each do |row|
+          i = find.call(row[0]) or next
+          sums[key][i] += value.call(row).to_f
+        end
+      end
+      columns = { estimate_hours: [:estimates, 2], issue_hours: [:issues, 1], invoice_hours: [:invoices, 2],
+                  spent_hours: [:time_entries, 1] }
       columns.each do |key, (source, col)|
         Array(rows[source]).each do |row|
           i = find.call(row[0]) or next
-          sums[key][i] += MONEY.include?(key) ? to_d(row[col]).to_f : row[col].to_f
+          sums[key][i] += row[col].to_f
         end
       end
       sums.transform_values { |values| values.map { |v| v.round(2) } }
@@ -266,8 +296,9 @@ module RedmineQboBilling
         time_entries = time_entries.where(project_id: project_ids)
       end
       {
-        estimates: Estimate.where(txn_date: dates).pluck(:txn_date, :total_amount, :hours),
-        invoices: Invoice.where(txn_date: dates).pluck(:txn_date, :total_amount, :hours, :balance),
+        estimates: Estimate.where(txn_date: dates).pluck(:txn_date, :total_amount, :hours, :tax_amount),
+        invoices: Invoice.where(txn_date: dates).pluck(:txn_date, :total_amount, :hours, :balance, :tax_amount),
+        paid: Invoice.where(paid_on: dates).where('total_amount > 0').pluck(:paid_on, :total_amount, :tax_amount),
         payments: Payment.where(txn_date: dates).pluck(:txn_date, :total_amount),
         issues: issues.pluck(:created_on, :estimated_hours).map { |t, h| [t.in_time_zone.to_date, h] },
         time_entries: time_entries.pluck(:spent_on, :hours)

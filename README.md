@@ -97,7 +97,7 @@ Customer records are automatically updated in the local database when changes oc
 
 ### Estimates, Invoices and Payments
 
-Estimates and invoices keep their number, date, customer, total and **man-hours** (the quantities of the labor products/services, including lines inside bundles). Payments keep their customer, date, amount and unapplied amount. These cached figures feed the business report.
+Estimates and invoices keep their number, date, customer, total, sales tax and **man-hours** (the quantities of the labor products/services, including lines inside bundles). Payments keep their customer, date, amount and unapplied amount. These cached figures feed the business report.
 
 ---
 
@@ -128,7 +128,7 @@ Estimates and invoices keep their number, date, customer, total and **man-hours*
 * Time lines are linked to their time activities, so QuickBooks marks the time as billed. Estimates the invoice was made from, or imported into it, are linked and closed when it's saved.
 * **Custom fields from the work orders**: the issues behind an invoice are the ones its time lines and lineitems estimates name. Plugins can fill custom fields from them when they're imported, and block a save (e.g. redmine_qbo_vehicles fills the VIN and mileage and allows one vehicle per invoice). On its own, redmine_qbo leaves the boxes as typed.
 * **Sales person**: an invoice credits the sales person on the estimate it was made from (the first linked estimate that names one); if none does, the user who writes the invoice.
-* Invoices show their status, worked out from the balance and due date like QuickBooks' invoice list: **Paid**, **Partially paid**, **Overdue**, **Open** or **Voided** (a zero total), on the customer page's invoice list and the invoice page.
+* Invoices show their status, worked out from the balance and due date like QuickBooks' invoice list: **Paid**, **Partially paid**, **Overdue**, **Open** or **Voided** (a zero total), on the customer page's invoice list and the invoice page. A paid invoice shows the day it was paid in full (e.g. **Paid 11/03/2026**): the later of its date and the last payment or credit memo applied to it.
 * Invoices with a payment applied open read-only. The due date is left to QuickBooks (from the customer's terms) unless one is picked. The "default message shown on invoices" fills in the message.
 
 ### Payments
@@ -158,7 +158,7 @@ Refunds for canceled orders and returned parts, following SOP-OPS-014, so they d
 
 **Business report** in the top menu compares, for a period (this or last week, month, quarter or year, or custom dates; weeks start on the day set in Redmine's *Start calendars on* setting, Monday when it follows the language):
 
-* **Sales**: estimates written, invoices written and payments received (totals and counts), invoiced vs. estimated, collected vs. invoiced, and what's still owed on those invoices.
+* **Sales**: estimates written, invoices written, invoices paid in full (on the day each was paid in full) and payments received (totals and counts), invoiced vs. estimated, collected vs. invoiced, and what's still owed on those invoices. Estimates and invoices are without sales tax (QuickBooks' tax on each is cached with it); payments are as received, so collected vs. invoiced compares them with the invoices' totals with tax.
 * **Hours**: estimated hours on estimates, issues' estimated time, invoiced hours on invoices and time spent, with spent vs. estimated, and the **cost performance index** (CPI = invoiced hours ÷ spent hours): green at 1.00 or more, yellow below 1, red below 0.80. Each month shows its CPI too.
 * **Charts**: above each set of bars, a line chart of the same figures in the same colors (Chart.js 4.5.1, MIT licensed, bundled with the plugin in assets/javascripts so it doesn't clash with other plugins' copies such as redmine_indicator's Chart.js 2), with a point per day for a week, per week for up to about three months, and per month beyond. Hovering a point shows its figures. **Compare with last year** adds last year's lines, dashed and faded, without reloading: days and weeks go back 52 weeks so weekdays line up, months go back to the same month. Clicking a figure in the legend hides it (and its last-year line); clicking *last year* stops comparing. Today's line stops at today.
 * **By month**: every figure month by month, with totals.

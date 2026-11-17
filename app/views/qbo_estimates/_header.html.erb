@@ -20,7 +20,8 @@
                                                          due_date: RedmineQboBilling::EstimateForm.date(form.due_date),
                                                          today: User.current.today) %>
       <% if status %>
-        <span class="qbo-estimate-status qbo-invoice-status-<%= status %>"><%= RedmineQboBilling::InvoiceStatus.label(status) %></span>
+        <% paid_on = Invoice.where(id: form.id).pick(:paid_on) if status == :paid && form.id.present? %>
+        <span class="qbo-estimate-status qbo-invoice-status-<%= status %>"><%= RedmineQboBilling::InvoiceStatus.label(status, paid_on: paid_on) %></span>
       <% end %>
     <% elsif !invoice && form.txn_status.present? %>
       <span class="qbo-estimate-status qbo-estimate-status-<%= form.txn_status.downcase %>"><%= form.txn_status %></span>

@@ -30,6 +30,8 @@ class EstimateSyncService < SyncServiceBase
   map_attribute :txn_status
   # Man-hours: quantities of the labor products/services (plugin settings)
   map_attribute(:hours) { |remote| RedmineQboBilling::ManHours.hours(remote) }
+  # Sales tax, so the business report can compare estimates and invoices without it
+  map_attribute(:tax_amount) { |remote| RedmineQboBilling::InvoicePaidOn.tax(remote) }
   map_belongs_to :customer
 
 end

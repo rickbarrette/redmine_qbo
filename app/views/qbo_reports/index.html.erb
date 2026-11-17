@@ -2,7 +2,7 @@
 <% money = @report.money %>
 <% hours = @report.hours %>
 <% ratios = @report.ratios %>
-<% max_money = [money[:estimates][:total], money[:invoices][:total], money[:payments][:total]].max.to_f %>
+<% max_money = [money[:estimates][:total], money[:invoices][:total], money[:paid][:total], money[:payments][:total]].max.to_f %>
 <% max_hours = hours.values.max.to_f %>
 <% bar = ->(value, max) { max > 0 ? (value.to_f / max * 100).round(1) : 0 } %>
 <% fmt_hours = ->(h) { format('%.1f', h.to_f) } %>
@@ -40,6 +40,7 @@
    end %>
 <% sales_series = chart_series.call([[:estimates, l(:label_report_estimates_written), '#628db6'],
                                      [:invoices, l(:label_report_invoices_written), '#e8a33d'],
+                                     [:paid, l(:label_report_invoices_paid), '#c0504d'],
                                      [:payments, l(:label_report_payments_received), '#5aa05a']]) %>
 <% hours_series = chart_series.call([[:estimate_hours, l(:label_report_estimate_hours), '#628db6'],
                                      [:issue_hours, l(:label_report_issue_hours), '#9b7fc0'],
@@ -132,7 +133,7 @@
     <table class="list qbo-report">
       <tbody>
         <% [[:estimates, l(:label_report_estimates_written)], [:invoices, l(:label_report_invoices_written)],
-            [:payments, l(:label_report_payments_received)]].each do |key, label| %>
+            [:paid, l(:label_report_invoices_paid)], [:payments, l(:label_report_payments_received)]].each do |key, label| %>
           <tr>
             <td class="name"><%= label %> <span class="count">(<%= money[key][:count] %>)</span></td>
             <td class="bar"><div class="qbo-bar qbo-bar-<%= key %>" style="width: <%= bar.call(money[key][:total], max_money) %>%"></div></td>
@@ -146,6 +147,7 @@
       <%= l(:label_report_collected_of_invoiced) %>: <strong><%= pct.call(ratios[:collected_of_invoiced]) %></strong><br />
       <%= l(:label_report_open_balance) %>: <strong><%= number_to_currency(money[:invoices][:balance]) %></strong>
     </p>
+    <p><em class="info"><%= l(:text_report_without_tax) %></em></p>
   </div>
 
   <div class="splitcontentright">
@@ -188,6 +190,7 @@
         <th class="month"><%= l(:label_month) %></th>
         <th><%= l(:label_report_estimates_written) %></th>
         <th><%= l(:label_report_invoices_written) %></th>
+        <th><%= l(:label_report_invoices_paid) %></th>
         <th><%= l(:label_report_payments_received) %></th>
         <th class="hours-start"><%= l(:label_report_estimate_hours) %></th>
         <th><%= l(:label_report_issue_hours) %></th>
@@ -202,6 +205,7 @@
           <td class="month"><%= ::I18n.t('date.abbr_month_names')[row[:month].month] %> <%= row[:month].year %></td>
           <td><%= number_to_currency(row[:estimates]) %></td>
           <td><%= number_to_currency(row[:invoices]) %></td>
+          <td><%= number_to_currency(row[:paid]) %></td>
           <td><%= number_to_currency(row[:payments]) %></td>
           <td class="hours-start"><%= fmt_hours.call(row[:estimate_hours]) %></td>
           <td><%= fmt_hours.call(row[:issue_hours]) %></td>
@@ -216,6 +220,7 @@
         <td class="month"><strong><%= l(:label_total) %></strong></td>
         <td><strong><%= number_to_currency(money[:estimates][:total]) %></strong></td>
         <td><strong><%= number_to_currency(money[:invoices][:total]) %></strong></td>
+        <td><strong><%= number_to_currency(money[:paid][:total]) %></strong></td>
         <td><strong><%= number_to_currency(money[:payments][:total]) %></strong></td>
         <td class="hours-start"><strong><%= fmt_hours.call(hours[:estimate_hours]) %></strong></td>
         <td><strong><%= fmt_hours.call(hours[:issue_hours]) %></strong></td>
@@ -237,6 +242,7 @@
   .qbo-bar { height: 14px; border-radius: 2px; min-width: 1px; background: #628db6; }
   .qbo-bar-invoices, .qbo-bar-invoice_hours { background: #e8a33d; }
   .qbo-bar-payments, .qbo-bar-spent_hours { background: #5aa05a; }
+  .qbo-bar-paid { background: #c0504d; }
   .qbo-bar-issue_hours { background: #9b7fc0; }
   .qbo-report-ratios { margin: 8px 4px; line-height: 1.7; }
   .qbo-report-cpi { margin: 10px 4px 4px; }
