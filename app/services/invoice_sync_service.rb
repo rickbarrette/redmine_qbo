@@ -27,6 +27,9 @@ class InvoiceSyncService < SyncServiceBase
   # Man-hours: quantities of the labor products/services (plugin settings)
   map_attribute(:hours) { |remote| RedmineQboBilling::ManHours.hours(remote) }
   map_attribute :qbo_updated_at, "meta_data.last_updated_time"
+  # Sales tax, and the day it was paid in full (nil while open), for reports such as monthly paid sales
+  map_attribute(:tax_amount) { |remote| RedmineQboBilling::InvoicePaidOn.tax(remote) }
+  map_attribute(:paid_on) { |remote| RedmineQboBilling::InvoicePaidOn.paid_on(remote) }
   map_belongs_to :customer
 
 end

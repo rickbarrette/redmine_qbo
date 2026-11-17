@@ -10,12 +10,13 @@
 
 class QboSyncDispatcher
 
+  # Payments before invoices: an invoice's paid-in-full day is worked out from the local payments' dates
   SYNC_JOBS = [
     Customer,
     Estimate,
+    Payment,
     Invoice,
-    Employee,
-    Payment
+    Employee
   ].freeze
 
   # Dispatches all synchronization jobs to perform a full sync of QuickBooks entities with the local database. 
