@@ -21,7 +21,8 @@ class CustomerToken < ApplicationRecord
 
   TOKEN_EXPIRATION = 1.month
 
-  # Get or create a token for the given issue
+  # Get or create a token for the given issue. Making a new one also clears out the share links that have expired
+  # or whose issue was deleted, so they don't pile up.
   def self.get_token(issue)
     return unless issue
     return unless User.current.allowed_to?(:view_issues, issue.project)
@@ -29,7 +30,15 @@ class CustomerToken < ApplicationRecord
     token = active.find_by(issue_id: issue.id)
     return token if token
 
+    purge_expired
     create!(issue: issue)
+  end
+
+  # Deletes the share links that have expired or whose issue no longer exists; returns how many
+  def self.purge_expired
+    where('expires_at <= ?', Time.current)
+      .or(where.not(issue_id: Issue.select(:id)))
+      .delete_all
   end
 
   private

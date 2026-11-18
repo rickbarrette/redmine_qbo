@@ -21,4 +21,9 @@ namespace :redmine_qbo do
 
     puts "Checked #{estimates.size} estimate(s), created #{total} relation(s)."
   end
+
+  desc "Delete customer share links that have expired or whose issue was deleted (also done whenever a link is made)"
+  task purge_customer_tokens: :environment do
+    puts "Deleted #{CustomerToken.purge_expired} customer share link(s)."
+  end
 end

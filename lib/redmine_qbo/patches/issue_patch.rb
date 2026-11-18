@@ -15,7 +15,6 @@ module RedmineQbo
 
       prepended do
         belongs_to :customer
-        belongs_to :customer_token
         belongs_to :estimate
         has_and_belongs_to_many :invoices
 
