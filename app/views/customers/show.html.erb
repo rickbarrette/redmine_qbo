@@ -52,7 +52,7 @@
         <div class="splitcontent">
           <div class="splitcontentleft">
             <h4><%=t(:estimates)%>:</h4>
-            <%= render partial: 'estimates/list', locals: {estimates: @customer.estimates} %>
+            <%= render partial: 'estimates/list', locals: {estimates: @customer.estimates, new_issue_checkboxes: true} %>
           </div>
 
           <div class="splitcontentleft">

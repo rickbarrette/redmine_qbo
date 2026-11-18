@@ -65,4 +65,18 @@ class BusinessReportTest < ActiveSupport::TestCase
     assert_equal 105.0, r.chart[:current][:tax_invoiced].compact.sum
     assert_equal 70.0, r.chart[:current][:tax_collected].compact.sum
   end
+
+  def test_short_paid_badge
+    status = RedmineQboBilling::InvoiceStatus
+    nov18 = Date.new(2026, 11, 18)
+    assert_equal 'Paid', status.short_label(:paid, paid_on: nov18, invoice_date: nov18)
+    assert_equal 'Paid +1d', status.short_label(:paid, paid_on: nov18 + 1, invoice_date: nov18)
+    assert_equal 'Paid +34d', status.short_label(:paid, paid_on: nov18 + 34, invoice_date: nov18)
+    assert_equal 'Paid', status.short_label(:paid, paid_on: nil, invoice_date: nov18)
+    # A deposit taken before the invoice: paid in full on its date
+    assert_equal 'Paid', status.short_label(:paid, paid_on: nov18, invoice_date: nov18 + 2)
+    assert_equal 'Open', status.short_label(:open, paid_on: nov18 + 3, invoice_date: nov18)
+    assert_match(/\APaid in full \S+/, status.title(:paid, paid_on: nov18))
+    assert_nil status.title(:open, paid_on: nov18)
+  end
 end

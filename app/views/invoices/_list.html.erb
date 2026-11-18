@@ -13,14 +13,19 @@
 
     <div class="qbo-invoice-list">
     <% invoices.sort.reverse.each do |invoice| %>
+      <%# One cell each (qbo_estimates/_status_styles lines them up in columns, so the icons line up) %>
       <div class="row">
-        <%= check_box_tag "invoice_ids[]", invoice.id, false,  onchange: "updateLink()", data: { url: invoice_path(invoice), text: "Invoice ##{invoice.to_s}" }, class: "invoice-checkbox appointment" if invoices.count > 1 %>
-        <b><%= link_to "##{invoice.doc_number}", invoice_path(invoice), target: :_blank %></b> <%= invoice.txn_date %>
-        <%# Paid / partially paid / overdue / open / voided, from the cached balance and due date %>
-        <% if (status = invoice.status) %>
-          <span class="qbo-estimate-status qbo-invoice-status-<%= status %>"><%= RedmineQboBilling::InvoiceStatus.label(status, paid_on: invoice.paid_on) %></span>
-        <% end %>
-        <%= render partial: 'qbo_invoices/invoice_actions', locals: { invoice: invoice } if RedmineQboBilling.invoice_writer? %>
+        <span class="qbo-list-check"><%= check_box_tag "invoice_ids[]", invoice.id, false, class: "invoice-checkbox" if invoices.count > 1 %></span>
+        <b class="qbo-list-number"><%= link_to "##{invoice.doc_number}", invoice_path(invoice), target: :_blank %></b>
+        <span class="qbo-list-date"><%= invoice.txn_date %></span>
+        <%# Paid / partially paid / overdue / open / voided, from the cached balance and due date; short so the list
+            stays narrow: "Paid", or "Paid +3d" when paid in full days after its date (the date on hover) %>
+        <span class="qbo-list-status">
+          <% if (status = invoice.status) %>
+            <span class="qbo-estimate-status qbo-invoice-status-<%= status %>" title="<%= RedmineQboBilling::InvoiceStatus.title(status, paid_on: invoice.paid_on) %>"><%= RedmineQboBilling::InvoiceStatus.short_label(status, paid_on: invoice.paid_on, invoice_date: invoice.txn_date) %></span>
+          <% end %>
+        </span>
+        <span class="qbo-list-actions"><%= render partial: 'qbo_invoices/invoice_actions', locals: { invoice: invoice } if RedmineQboBilling.invoice_writer? %></span>
       </div>
     <% end %>
     </div>

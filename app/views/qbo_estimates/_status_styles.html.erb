@@ -14,4 +14,11 @@
   .qbo-invoice-status-open { background: #e8eefa; color: #0d47a1; }
   .qbo-invoice-status-voided { background: #eceef1; color: #6b6c72; text-decoration: line-through; }
   .qbo-invoice-list .qbo-estimate-status { font-size: .8em; padding: 1px 7px; margin-left: 4px; }
+  /* The estimate and invoice lists: checkbox, number, date, status and actions in columns, so the edit/view icons
+     line up; a list wider than its column scrolls instead of wrapping */
+  .qbo-estimate-list, .qbo-invoice-list { display: grid; grid-template-columns: repeat(5, max-content); column-gap: .35em;
+    row-gap: 2px; align-items: center; overflow-x: auto; }
+  .qbo-estimate-list .row, .qbo-invoice-list .row { display: contents; }
+  .qbo-estimate-list .row > *, .qbo-invoice-list .row > * { white-space: nowrap; }
+  .qbo-list-status .qbo-estimate-status { margin-left: 0; }
 </style>

@@ -42,6 +42,26 @@ module RedmineQboBilling
       I18n.t("label_invoice_status_#{status}")
     end
 
+    # The invoice list's short badge: "Paid", or "Paid +3d" when it was paid in full 3 days after its date
+    def short_label(status, paid_on: nil, invoice_date: nil)
+      days = days_to_pay(invoice_date, paid_on) if status == :paid
+      return I18n.t(:label_invoice_status_paid_days, days: days) if days&.positive?
+
+      label(status)
+    end
+
+    # The badge's tooltip: "Paid in full 11/19/2025" (nil unless it's paid with a known day)
+    def title(status, paid_on: nil)
+      I18n.t(:text_invoice_paid_in_full, date: I18n.l(paid_on)) if status == :paid && paid_on
+    end
+
+    # Days from the invoice's date to the day it was paid in full
+    def days_to_pay(invoice_date, paid_on)
+      return nil unless invoice_date && paid_on
+
+      (paid_on.to_date - invoice_date.to_date).to_i
+    end
+
     def to_d(value)
       BigDecimal(value.to_s.presence || '0')
     rescue ArgumentError

@@ -3,14 +3,19 @@
   <%= render partial: 'qbo_estimates/status_styles' %>
   <div class="qbo-estimate-list">
   <% estimates.sort.reverse.each do |estimate| %>
+    <%# One cell each (qbo_estimates/_status_styles lines them up in columns, so the icons line up) %>
     <div class="row">
-      <%= check_box_tag "estimate_ids[]", estimate.id, false, onchange: "updateLink()", data: { text: "Estimate ##{estimate.doc_number}", new_issue_param: 'issue[estimate_id]' }, class: "estimate-checkbox appointment" %>
-      <b><%= link_to "##{estimate.doc_number}", estimate_path(estimate), target: :_blank %></b> <%= estimate.txn_date %>
+      <%# Ticking an estimate adds it to the customer page's New issue and Add appointment links (customers/_new_issue_link_script) %>
+      <span class="qbo-list-check"><%= check_box_tag "estimate_ids[]", estimate.id, false, data: { new_issue_param: 'issue[estimate_id]', appointment_param: 'estimate_id' }, class: "estimate-checkbox" if local_assigns[:new_issue_checkboxes] %></span>
+      <b class="qbo-list-number"><%= link_to "##{estimate.doc_number}", estimate_path(estimate), target: :_blank %></b>
+      <span class="qbo-list-date"><%= estimate.txn_date %></span>
       <%# QuickBooks status, cached by the estimate sync (kept current by the webhook) %>
-      <% if estimate.txn_status.present? %>
-        <span class="qbo-estimate-status qbo-estimate-status-<%= estimate.txn_status.downcase %>"><%= estimate.txn_status %></span>
-      <% end %>
-      <%= render partial: 'qbo_estimates/estimate_actions', locals: { estimate: estimate } if RedmineQboBilling.writer? %>
+      <span class="qbo-list-status">
+        <% if estimate.txn_status.present? %>
+          <span class="qbo-estimate-status qbo-estimate-status-<%= estimate.txn_status.downcase %>"><%= estimate.txn_status %></span>
+        <% end %>
+      </span>
+      <span class="qbo-list-actions"><%= render partial: 'qbo_estimates/estimate_actions', locals: { estimate: estimate } if RedmineQboBilling.writer? %></span>
     </div>
   <% end %>
   </div>

@@ -290,6 +290,8 @@ en:
   label_invoice_no: "Invoice no."
   label_invoice_status_paid: "Paid"
   label_invoice_status_paid_on: "Paid %{date}"
+  label_invoice_status_paid_days: "Paid +%{days}d"
+  text_invoice_paid_in_full: "Paid in full %{date}"
   label_invoice_status_partial: "Partially paid"
   label_invoice_status_overdue: "Overdue"
   label_invoice_status_open: "Open"
