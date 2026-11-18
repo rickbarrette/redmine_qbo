@@ -11,17 +11,45 @@
 module RedmineQbo
   module Patches
     module AttachmentsControllerPatch
+      # Redmine's own access checks, which deny the anonymous viewer of a share link. Each one defers
+      # to Redmine unless the session holds a customer share token for the issue the file belongs to.
+      module CustomerTokenAccess
+        private
+
+        def read_authorize
+          valid_customer_token? || super
+        end
+
+        def find_container
+          return super unless customer_token_for_download_all?
+
+          @container = Issue.find(params[:object_id])
+          @project = @container.project
+        rescue ActiveRecord::RecordNotFound
+          render_404
+        end
+
+        def find_downloadable_attachments
+          return super unless customer_token_for_download_all?
+
+          @attachments = @container.attachments.select(&:readable?)
+          bulk_download_max_size = Setting.bulk_download_max_size.to_i.kilobytes
+          if @attachments.sum(&:filesize) > bulk_download_max_size
+            flash[:error] = l(:error_bulk_download_size_too_big, max_size: number_to_human_size(bulk_download_max_size.to_i))
+            redirect_back_or_default(container_url, referer: true)
+          end
+        end
+      end
+
       def self.apply
+        AttachmentsController.prepend(CustomerTokenAccess)
+
         AttachmentsController.class_eval do
-          # 1. PREPEND: Must run before ANY of Redmine's ApplicationController filters
+          # Must run before any of Redmine's ApplicationController filters
           prepend_before_action :load_customer_token
 
-          # 2. Skip global login redirects if the user holds a valid token for this file
+          # Skip the login redirect if the session holds a valid token for this file
           skip_before_action :check_if_login_required, if: :valid_customer_token?
-          skip_before_action :check_project_privacy, raise: false, if: :valid_customer_token?
-
-          # Note: We do NOT need to skip :read_authorize anymore. 
-          # Because we patched Attachment#visible?, read_authorize will pass naturally!
 
           private
 
@@ -31,30 +59,29 @@ module RedmineQbo
             @customer_token = session[:token].present? ? CustomerToken.active.find_by(token: session[:token]) : nil
           end
 
+          def customer_token_for_download_all?
+            @customer_token.present? && params[:action] == 'download_all' &&
+              params[:object_type] == 'issues' && params[:object_id].to_i == @customer_token.issue_id
+          end
+
           def valid_customer_token?
             token = @customer_token
             return false unless token
+            return customer_token_for_download_all? if params[:action] == 'download_all'
+            return false unless %w[show download thumbnail].include?(params[:action])
 
-            # Handle "Download All" zip requests (object_type=issues, object_id=ID)
-            if params[:action] == 'download_all'
-              return params[:object_type] == 'issues' && params[:object_id].to_i == token.issue_id
-            end
-
-            # Handle normal single attachment requests (show, download, thumbnail)
             attachment = Attachment.find_by(id: params[:id])
             return false unless attachment
 
-            # Allow if attachment belongs directly to the Issue
-            if attachment.container_type == 'Issue' && attachment.container_id == token.issue_id
-              return true
+            case attachment.container_type
+            when 'Issue'
+              attachment.container_id == token.issue_id
+            when 'Journal'
+              journal = attachment.container
+              journal&.journalized_type == 'Issue' && journal.journalized_id == token.issue_id && !journal.private_notes?
+            else
+              false
             end
-            
-            # Allow if attachment belongs to a Journal (comment) on the Issue
-            if attachment.container_type == 'Journal' && attachment.container.journalized_type == 'Issue' && attachment.container.journalized_id == token.issue_id
-              return true
-            end
-            
-            false
           end
         end
       end
