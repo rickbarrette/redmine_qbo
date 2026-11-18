@@ -186,54 +186,6 @@
   </div>
 </div>
 
-<h3><%= l(:label_report_taxes) %></h3>
-<div class="splitcontent">
-  <div class="splitcontentleft">
-    <div class="qbo-report-chart">
-      <canvas id="qbo-chart-taxes" data-kind="money" data-series="<%= tax_series.to_json %>"></canvas>
-    </div>
-    <table class="list qbo-report">
-      <tbody>
-        <% [[:tax_invoiced, l(:label_report_tax_invoiced)], [:tax_collected, l(:label_report_tax_collected)]].each do |key, label| %>
-          <tr>
-            <td class="name"><%= label %> <span class="count">(<%= l(:label_report_taxed_invoices, count: taxes[key][:count]) %>)</span></td>
-            <td class="bar"><div class="qbo-bar qbo-bar-<%= key %>" style="width: <%= bar.call(taxes[key][:total], max_tax) %>%"></div></td>
-            <td class="value"><%= number_to_currency(taxes[key][:total]) %></td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-    <p><em class="info"><%= l(:text_report_taxes) %></em></p>
-  </div>
-  <div class="splitcontentright">
-    <table class="list qbo-report-months qbo-report-tax-months">
-      <thead>
-        <tr>
-          <th class="month"><%= l(:label_month) %></th>
-          <th><%= l(:label_report_tax_invoiced) %></th>
-          <th><%= l(:label_report_tax_collected) %></th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @report.months.each do |row| %>
-          <tr>
-            <td class="month"><%= ::I18n.t('date.abbr_month_names')[row[:month].month] %> <%= row[:month].year %></td>
-            <td><%= number_to_currency(row[:tax_invoiced]) %></td>
-            <td><%= number_to_currency(row[:tax_collected]) %></td>
-          </tr>
-        <% end %>
-      </tbody>
-      <tfoot>
-        <tr class="total">
-          <td class="month"><strong><%= l(:label_total) %></strong></td>
-          <td><strong><%= number_to_currency(taxes[:tax_invoiced][:total]) %></strong></td>
-          <td><strong><%= number_to_currency(taxes[:tax_collected][:total]) %></strong></td>
-        </tr>
-      </tfoot>
-    </table>
-  </div>
-</div>
-
 <h3><%= l(:label_report_by_month) %></h3>
 <div class="autoscroll">
   <table class="list qbo-report-months">
@@ -283,6 +235,54 @@
     </tfoot>
   </table>
 </div>
+<h3><%= l(:label_report_taxes) %></h3>
+<div class="splitcontent">
+  <div class="splitcontentleft">
+    <div class="qbo-report-chart">
+      <canvas id="qbo-chart-taxes" data-kind="money" data-series="<%= tax_series.to_json %>"></canvas>
+    </div>
+    <table class="list qbo-report">
+      <tbody>
+        <% [[:tax_invoiced, l(:label_report_tax_invoiced)], [:tax_collected, l(:label_report_tax_collected)]].each do |key, label| %>
+          <tr>
+            <td class="name"><%= label %> <span class="count">(<%= l(:label_report_taxed_invoices, count: taxes[key][:count]) %>)</span></td>
+            <td class="bar"><div class="qbo-bar qbo-bar-<%= key %>" style="width: <%= bar.call(taxes[key][:total], max_tax) %>%"></div></td>
+            <td class="value"><%= number_to_currency(taxes[key][:total]) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <p><em class="info"><%= l(:text_report_taxes) %></em></p>
+  </div>
+  <div class="splitcontentright">
+    <table class="list qbo-report-months qbo-report-tax-months">
+      <thead>
+        <tr>
+          <th class="month"><%= l(:label_month) %></th>
+          <th><%= l(:label_report_tax_invoiced) %></th>
+          <th><%= l(:label_report_tax_collected) %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @report.months.each do |row| %>
+          <tr>
+            <td class="month"><%= ::I18n.t('date.abbr_month_names')[row[:month].month] %> <%= row[:month].year %></td>
+            <td><%= number_to_currency(row[:tax_invoiced]) %></td>
+            <td><%= number_to_currency(row[:tax_collected]) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+      <tfoot>
+        <tr class="total">
+          <td class="month"><strong><%= l(:label_total) %></strong></td>
+          <td><strong><%= number_to_currency(taxes[:tax_invoiced][:total]) %></strong></td>
+          <td><strong><%= number_to_currency(taxes[:tax_collected][:total]) %></strong></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
 <p class="info"><%= l(:text_report_notes) %></p>
 
 <style>
