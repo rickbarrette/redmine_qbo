@@ -31,14 +31,6 @@ class QboDraft < ApplicationRecord
     where(document: documents)
   }
 
-  def self.writable_document?(document, user = User.current)
-    case document.to_s
-    when 'estimate' then RedmineQboBilling.writer?(user)
-    when 'invoice' then RedmineQboBilling.invoice_writer?(user)
-    else false
-    end
-  end
-
   # The editor's fields as posted (estimate[...])
   def fields
     parsed = JSON.parse(data.presence || '{}')

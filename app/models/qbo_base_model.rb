@@ -79,12 +79,6 @@ class QboBaseModel < ActiveRecord::Base
     QboSyncJob.perform_later(entity: model_name.name, id: id)
   end
 
-  # Flag used to update local without pushing to QBO.
-  # This is used to prevent loops with the webhook
-  def skip_qbo_push?
-     !!skip_qbo_push
-  end
-
   def self.qbo_sync(push: true)
     self.qbo_push_enabled = push
   end

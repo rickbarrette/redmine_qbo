@@ -33,11 +33,7 @@ post 'bill/:id', to: 'qbo#bill', as: :bill
 get 'customers/view/:token', to: 'customers#view', as: :view
 get 'customers/share/:id', to: 'customers#share', as: :share
 
-#java script routes
-get 'filter_estimates_by_customer' => 'customers#filter_estimates_by_customer'
-get 'filter_invoices_by_customer' => 'customers#filter_invoices_by_customer'
-
-resources :customers do
+resources :customers, except: [:destroy] do
   collection do
     get :autocomplete
     get :sync
@@ -99,7 +95,7 @@ resources :items do
 end
 
 # QuickBooks income accounts
-resources :accounts do
+resources :accounts, only: [:index] do
   collection do
     patch :set_default
     get :sync

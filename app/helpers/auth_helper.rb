@@ -31,28 +31,6 @@ module AuthHelper
     require_login
   end
 
-  # Kept for plugins that still call it (e.g. redmine_qbo_vehicles): requires a logged-in user.
-  # The old version effectively never ran; share-link customers use require_login_or_customer_token.
-  def require_user
-    return true if User.current.logged?
-
-    require_login
-  end
-
-  def allowed_to?(action)
-    return false if User.current.nil?
-    project = Project.find_by(id: params[:project_id])
-    return false if project.nil?
-    User.current.allowed_to?(action, project)
-  end
-
-  def check_permission(permission)
-    if !allowed_to?(permission)
-      flash[:error] = t :notice_forbidden
-      render_403
-    end
-  end
-
   def global_check_permission(permission)
     if !globaly_allowed_to?(permission)
       flash[:error] = t :notice_forbidden

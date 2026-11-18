@@ -33,36 +33,6 @@ class CustomersController < ApplicationController
   before_action :require_admin, only: :sync
   skip_before_action :verify_authenticity_token, :check_if_login_required, only: [:view]
 
-  def address_to_s(address)
-    return if address.nil?
-
-    lines = [
-      address.line1,
-      address.line2,
-      address.line3,
-      address.line4,
-      address.line5
-    ].compact_blank
-
-    city_line = [
-      address.city,
-      address.country_sub_division_code,
-      address.postal_code
-    ].compact_blank.join(" ")
-
-    lines << city_line unless city_line.blank?
-
-    lines.join("\n")
-  end
-
-  def add_customer
-    global_check_permission(:add_customers)
-  end
-
-  def allowed_params
-    params.require(:customer).permit(:name, :email, :primary_phone, :mobile_phone, :phone_number, :notes)
-  end
-
   # Used for autocomplete forms. Fuzzy matching (nicknames, typos, word order, phone digits) helps
   # staff spot an existing customer before creating a duplicate. See CustomerSearchService.
   def autocomplete
@@ -109,14 +79,6 @@ class CustomersController < ApplicationController
     render_404
   end
 
-  def filter_estimates_by_customer
-    @filtered_estimates = Estimate.all.where(customer_id: params[:selected_customer])
-  end
-
-  def filter_invoices_by_customer
-    @filtered_invoices = Invoice.all.where(customer_id: params[:selected_customer])
-  end
-
   # Most matches a search lists (best first)
   SEARCH_LIMIT = 200
 
@@ -144,29 +106,6 @@ class CustomersController < ApplicationController
     @customer_pages = Paginator.new @customer_count, per_page_option, params['page']
     @customers = scope.limit(@customer_pages.per_page).offset(@customer_pages.offset).to_a
     @issue_counts = Issue.where(customer_id: @customers.map(&:id)).group(:customer_id).count
-  end
-
-  def load_issue_data
-    @journals = @issue.journals.preload(:details).preload(user: :email_address).reorder(:created_on, :id).to_a
-
-    @journals.each_with_index { |j, i| j.indice = i + 1 }
-    @journals.reject!(&:private_notes?) unless User.current.allowed_to?(:view_private_notes, @issue.project)
-    Journal.preload_journals_details_custom_fields(@journals)
-    @journals.select! { |journal| journal.notes? || journal.visible_details.any? }
-    @journals.reverse! if User.current.wants_comments_in_reverse_order?
-
-    @changesets = @issue.changesets.visible.preload(:repository, :user).to_a
-    @changesets.reverse! if User.current.wants_comments_in_reverse_order?
-
-    @relations = @issue.relations.select { |r| r.other_issue(@issue)&.visible? }
-    @allowed_statuses = @issue.new_statuses_allowed_to(User.current)
-    @priorities = IssuePriority.active
-    @time_entry = TimeEntry.new(issue: @issue, project: @issue.project)
-    @relation   = IssueRelation.new
-  end
-
-  def log(msg)
-    Rails.logger.info "[CustomersController] #{msg}"
   end
 
   def new
@@ -251,6 +190,39 @@ class CustomersController < ApplicationController
     load_issue_data
   rescue ActiveRecord::RecordNotFound
     render_403
+  end
+
+  private
+
+  def add_customer
+    global_check_permission(:add_customers)
+  end
+
+  def allowed_params
+    params.require(:customer).permit(:name, :email, :primary_phone, :mobile_phone, :phone_number, :notes)
+  end
+
+  def load_issue_data
+    @journals = @issue.journals.preload(:details).preload(user: :email_address).reorder(:created_on, :id).to_a
+
+    @journals.each_with_index { |j, i| j.indice = i + 1 }
+    @journals.reject!(&:private_notes?) unless User.current.allowed_to?(:view_private_notes, @issue.project)
+    Journal.preload_journals_details_custom_fields(@journals)
+    @journals.select! { |journal| journal.notes? || journal.visible_details.any? }
+    @journals.reverse! if User.current.wants_comments_in_reverse_order?
+
+    @changesets = @issue.changesets.visible.preload(:repository, :user).to_a
+    @changesets.reverse! if User.current.wants_comments_in_reverse_order?
+
+    @relations = @issue.relations.select { |r| r.other_issue(@issue)&.visible? }
+    @allowed_statuses = @issue.new_statuses_allowed_to(User.current)
+    @priorities = IssuePriority.active
+    @time_entry = TimeEntry.new(issue: @issue, project: @issue.project)
+    @relation   = IssueRelation.new
+  end
+
+  def log(msg)
+    Rails.logger.info "[CustomersController] #{msg}"
   end
 
   def view_customer

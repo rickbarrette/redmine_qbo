@@ -1,8 +1,3 @@
-/* Keep Redmine default look, just enhance metadata */
-.ui-autocomplete .autocomplete-meta {
-  color: #888;
-  font-size: 0.9em;
-}
 /* Contextual links on their own line under the page title (customer and vehicle pages), where a long title and
    many links would otherwise crowd each other */
 #content .contextual.qbo-under-title {

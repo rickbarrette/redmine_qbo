@@ -28,9 +28,8 @@ Redmine::Plugin.register :redmine_qbo do
   TimeEntry.safe_attributes :billed
   
   # Global Permissions
-  # autocomplete and the filter_* actions feed the customer, estimate and invoice pickers on issue forms
-  permission :view_customers, { customers: [:index, :show, :autocomplete,
-                                            :filter_estimates_by_customer, :filter_invoices_by_customer] }, global: true
+  # autocomplete feeds the customer pickers (issue forms, estimates, invoices, payments)
+  permission :view_customers, { customers: [:index, :show, :autocomplete] }, global: true
   permission :add_customers, { customers: [:new, :create] }, global: true
   permission :edit_customers, { customers: [:edit, :update] }, global: true
   permission :share_issues_with_customers, { customers: [:share] }, global: true

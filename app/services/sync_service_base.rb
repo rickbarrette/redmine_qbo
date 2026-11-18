@@ -80,15 +80,6 @@ class SyncServiceBase
     false
   end
 
-  def extract_value(remote, remote_attr)
-    case remote_attr
-    when Proc
-      remote_attr.call(remote)
-    else
-      remote.public_send(remote_attr)
-    end
-  end
-
   # Attribute Mapping DSL
   #
   # This DSL defines how attributes from a QuickBooks Online (QBO) entity
@@ -156,7 +147,6 @@ class SyncServiceBase
         map_attribute(attr)
       end
     end
-
 
     def map_attribute(local_attr, remote_attr = nil, &block)
       attribute_map[local_attr] =
