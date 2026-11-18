@@ -15,7 +15,7 @@ module QboRefundTestHelper
 
   # Stands in for QuickBooks: the customer's payments, and what the refund made
   class FakeGateway
-    attr_reader :payments, :invoices, :purchases, :applied, :rejected
+    attr_reader :payments, :invoices, :purchases, :applied, :rejected, :receipts
     attr_accessor :auto_apply, :fail_on, :estimate_record, :balance
 
     def initialize(payments: [], estimate: nil)
@@ -25,6 +25,7 @@ module QboRefundTestHelper
       @purchases = []
       @applied = []
       @rejected = []
+      @receipts = []
       @auto_apply = false
       @balance = BigDecimal('0')
     end
@@ -76,6 +77,28 @@ module QboRefundTestHelper
       purchase.id = (800 + purchases.size).to_s
       purchases << purchase
       purchase
+    end
+
+    # QuickBooks' refund receipt: tax at 7% on the taxable lines, after the discount's share
+    def create_refund_receipt(receipt)
+      raise Quickbooks::IntuitRequestException, 'QuickBooks is down' if fail_on == :receipt
+
+      sales = receipt.line_items.select { |l| l.detail_type.to_s == 'SalesItemLineDetail' }
+      discount = receipt.line_items.select { |l| l.detail_type.to_s == 'DiscountLineDetail' }.sum(BigDecimal('0')) { |l| l.amount.to_d }
+      lines = sales.sum(BigDecimal('0')) { |l| l.amount.to_d.positive? ? l.amount.to_d : 0 }
+      taxable = sales.select { |l| l.sales_item_line_detail.tax_code_ref&.value == 'TAX' }.sum(BigDecimal('0')) { |l| l.amount.to_d }
+      tax = (taxable * (lines.positive? ? 1 - discount / lines : 1) * BigDecimal('0.07')).round(2)
+      receipt.id = (900 + receipts.size).to_s
+      receipt.doc_number = (3000 + receipts.size).to_s
+      receipt.txn_tax_detail = Quickbooks::Model::TransactionTaxDetail.new
+      receipt.txn_tax_detail.total_tax = tax
+      receipt.total = sales.sum(BigDecimal('0')) { |l| l.amount.to_d } - discount + tax
+      receipts << receipt
+      receipt
+    end
+
+    def payment_method_id(kind)
+      { check: '2', card: '3' }[kind]
     end
 
     def account_id(type)
@@ -158,6 +181,56 @@ module QboRefundTestHelper
 
   def fee_item
     Struct.new(:id, :name).new('55', 'Restocking Fee')
+  end
+
+  def sales_line(id, item_id, name, quantity, rate, taxable: true, description: '')
+    line = Quickbooks::Model::InvoiceLineItem.new
+    line.id = id.to_s
+    line.description = description
+    line.amount = (BigDecimal(quantity.to_s) * BigDecimal(rate.to_s)).round(2)
+    line.sales_item! do |d|
+      d.item_ref = Quickbooks::Model::BaseReference.new(item_id.to_s, name: name)
+      d.quantity = BigDecimal(quantity.to_s)
+      d.unit_price = BigDecimal(rate.to_s)
+      d.tax_code_ref = Quickbooks::Model::BaseReference.new(taxable ? 'TAX' : 'NON')
+    end
+    line
+  end
+
+  # Invoice #1234, paid in full: 2 h labor at $120 (not taxed), 4 brake pads at $30 and a $80 rotor (taxed at
+  # 7%: $14.00), $454.00 in all
+  def paid_invoice(id: 950, balance: 0, customer_id: CUSTOMER_ID, discount: nil)
+    invoice = Quickbooks::Model::Invoice.new
+    invoice.id = id.to_s
+    invoice.doc_number = '1234'
+    invoice.txn_date = Date.new(2026, 11, 2)
+    invoice.customer_ref = Quickbooks::Model::BaseReference.new(customer_id.to_s)
+    invoice.line_items = [sales_line(1, 1, 'Labor', 2, 120, taxable: false, description: 'Brake job'),
+                          sales_line(2, 3, 'Brake Pads', 4, 30, description: 'Ceramic pads'),
+                          sales_line(3, 4, 'Rotor', 1, 80, description: 'Front rotor')]
+    tax = BigDecimal('14')
+    if discount
+      line = Quickbooks::Model::InvoiceLineItem.new
+      line.amount = BigDecimal(discount.to_s)
+      line.discount_item! { |d| d.percent_based = false }
+      invoice.line_items = invoice.line_items + [line]
+      tax = (BigDecimal('200') * (1 - BigDecimal(discount.to_s) / 440) * BigDecimal('0.07')).round(2)
+    end
+    invoice.txn_tax_detail = Quickbooks::Model::TransactionTaxDetail.new
+    invoice.txn_tax_detail.total_tax = tax
+    invoice.total = BigDecimal('440') - BigDecimal((discount || 0).to_s) + tax
+    invoice.balance = BigDecimal(balance.to_s)
+    invoice
+  end
+
+  def invoice_refund_form(attributes = {})
+    form = RedmineQboBilling::InvoiceRefundForm.from_params(
+      { customer_id: CUSTOMER_ID.to_s, invoice_id: '950', txn_date: '2026-11-18', method: 'check',
+        check_number: '5002', reason: 'Parts returned unused', charge_fee: '1', note_issues: '1',
+        email_customer: '1', lines: { '2' => { refund: '1', quantity: '4' }, '3' => { refund: '1', quantity: '1' } } }
+        .merge(attributes)
+    )
+    form
   end
 
   def refund_form(attributes = {})

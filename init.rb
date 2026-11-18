@@ -53,8 +53,9 @@ Redmine::Plugin.register :redmine_qbo do
   permission :view_payments, { qbo_payments: [:index, :show, :pdf] }, global: true
   permission :receive_payments, { qbo_payments: [:index, :new, :create, :show, :edit, :update, :pdf, :open_invoices],
                                   qbo_estimates: [:customer_info] }, global: true
-  # Refunds for canceled orders and returned parts (SOP-OPS-014): restocking fee, refund check or card refund
-  permission :issue_refunds, { qbo_refunds: [:new, :create, :show, :pdf, :email] }, global: true
+  # Refunds for canceled orders, returned parts and paid invoices (SOP-OPS-014): restocking fee, refund check
+  # or card refund
+  permission :issue_refunds, { qbo_refunds: [:new, :create, :new_invoice, :create_invoice, :show, :pdf, :email] }, global: true
   permission :view_business_reports, { qbo_reports: [:index] }, global: true
   # The product/service list, accounts and their syncs are admin-only (see ItemsController, AccountsController)
   

@@ -1,8 +1,18 @@
 <% money = ->(amount) { RedmineQboBilling::RefundWriter.money(amount) } -%>
 <%= t(:text_refund_email_greeting, name: @customer&.name.to_s) %>
 
-<%= t(:text_refund_email_intro, shop: @shop_name, order: @refund.estimate_number.present? ? "E#{@refund.estimate_number}" : t(:label_refund_your_order)) %>
+<%= t(:text_refund_email_intro, shop: @shop_name, order: @refund.document_label || t(:label_refund_your_order)) %>
 
+<% if @refund.invoice? -%>
+<% @refund.refunded_lines.each do |line| -%>
+  <%= line.description %>: <%= money.(line.amount) %>
+<% end -%>
+<%= t(:label_refund_lines_amount) %>: <%= money.(@refund.lines_amount) %>
+<% if @refund.discount_amount.to_d.positive? -%>
+<%= t(:label_refund_discount) %>: -<%= money.(@refund.discount_amount) %>
+<% end -%>
+<%= t(:label_refund_tax) %>: <%= money.(@refund.tax_amount) %>
+<% end -%>
 <% if @refund.fee_amount.to_d.positive? -%>
 <%= t(:label_refund_parts) %>: <%= money.(@refund.parts_amount) %>
 <%= t(:label_refund_fee_rate, rate: RedmineQboBilling::RefundWriter.plain(@refund.fee_rate)) %>: <%= money.(@refund.fee_amount) %>
@@ -10,6 +20,10 @@
 <%= t(:label_refund_amount) %>: <%= money.(@refund.refund_amount) %>
 <%= @refund.check? ? t(:text_refund_email_check, number: @refund.check_number) : t(:text_refund_email_card) %>
 
+<% if !@refund.invoice? -%>
 <%= t(:text_refund_email_terms) %>
+<% elsif @refund.fee_amount.to_d.positive? -%>
+<%= t(:text_refund_email_terms_invoice) %>
+<% end -%>
 
 <%= @shop_name %>

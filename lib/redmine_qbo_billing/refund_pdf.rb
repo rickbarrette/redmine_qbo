@@ -55,7 +55,8 @@ module RedmineQboBilling
     def details(pdf)
       rows = [[l(:label_customer), @refund.customer&.name.to_s],
               [l(:label_refund_date), format_date(@refund.txn_date)],
-              [l(:label_refund_estimate), @refund.estimate_number.present? ? "E#{@refund.estimate_number}" : l(:label_refund_no_estimate)],
+              @refund.invoice? ? [l(:label_refund_invoice), @refund.document_label] :
+                [l(:label_refund_estimate), @refund.estimate_number.present? ? "E#{@refund.estimate_number}" : l(:label_refund_no_estimate)],
               [l(:label_refund_reason), @refund.reason.to_s]]
       rows.each { |label, value| row(pdf, label, value) }
     end
@@ -65,7 +66,11 @@ module RedmineQboBilling
       pdf.RDMCell(WIDTH, 6, l(:label_refund_summary), 'B', 1)
       pdf.SetFontStyle('', 10)
       fee = @refund.fee_amount.to_d
-      money_row(pdf, l(:label_refund_credit), @refund.credit_amount)
+      if @refund.invoice?
+        invoice_lines(pdf)
+      else
+        money_row(pdf, l(:label_refund_credit), @refund.credit_amount)
+      end
       if fee.positive?
         label = l(:label_refund_pdf_fee, rate: RefundWriter.plain(@refund.fee_rate), parts: RefundWriter.money(@refund.parts_amount))
         label += " · #{l(:label_refund_fee_invoice, number: @refund.fee_invoice_number)}" if @refund.fee_invoice_number.present?
@@ -79,11 +84,24 @@ module RedmineQboBilling
       end
     end
 
+    # A paid invoice's refund: each line refunded, the discount's share and the sales tax
+    def invoice_lines(pdf)
+      @refund.refunded_lines.each do |line|
+        quantity = line.quantity.present? ? " (#{RefundWriter.plain(BigDecimal(line.quantity.to_s))})" : ''
+        money_row(pdf, "#{line.description.truncate(90)}#{quantity}", line.amount)
+      end
+      money_row(pdf, l(:label_refund_discount), -@refund.discount_amount.to_d) if @refund.discount_amount.to_d.positive?
+      money_row(pdf, l(:label_refund_tax), @refund.tax_amount)
+    end
+
     def notes(pdf)
       pdf.SetFontStyle('', 9)
       issues = Issue.where(id: @refund.canceled_issue_ids).to_a
       row(pdf, l(:label_refund_pdf_work_orders), issues.map { |i| "#{i.tracker} ##{i.id}: #{i.subject}" }.join("\n")) if issues.any?
       row(pdf, l(:label_refund_pdf_estimate), l(:text_refund_pdf_estimate_rejected, number: @refund.estimate_number)) if @refund.estimate_closed?
+      if @refund.invoice? && @refund.receipt_number.present?
+        row(pdf, l(:label_refund_receipt), l(:text_refund_receipt_number, number: @refund.receipt_number))
+      end
       row(pdf, l(:label_refund_recorded_by), "#{@refund.user&.name} · #{format_time(@refund.created_at)}")
       row(pdf, l(:label_refund_incomplete), @refund.message.to_s) unless @refund.done?
     end

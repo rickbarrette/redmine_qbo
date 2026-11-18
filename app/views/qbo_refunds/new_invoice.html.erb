@@ -1,0 +1,195 @@
+<%# Refund of completed work on a paid invoice: a QuickBooks Refund Receipt (InvoiceRefundWriter) %>
+<% html_title "#{l(:label_refund)} #{l(:label_refund_invoice_number, number: @invoice.doc_number)}" %>
+<% writer = RedmineQboBilling::RefundWriter %>
+<% money = ->(amount) { writer.money(amount) } %>
+<% plan = @plan %>
+<% number = @invoice.doc_number.to_s %>
+
+<h2>
+  <%= link_to l(:label_customers), customers_path %> &#187;
+  <%= link_to @customer.name, customer_path(@customer) %> &#187;
+  <%= link_to l(:label_refund_invoice_number, number: number), edit_qbo_invoice_path(@invoice.id) %> &#187;
+  <%= l(:label_refund) %>
+</h2>
+
+<%= error_messages_for @form %>
+
+<p class="warning"><%= l(:text_refund_final_sale) %></p>
+
+<% if @refunds.any? %>
+  <div class="flash warning">
+    <%= l(:text_refund_invoice_earlier) %>
+    <%= safe_join(@refunds.map { |r| link_to("#{format_date(r.txn_date)} · #{money.(r.refund_amount)}", qbo_refund_path(r)) }, ', ') %>
+  </div>
+<% end %>
+
+<%= form_tag create_invoice_qbo_refunds_path, method: :post, id: 'qbo-refund-form' do %>
+  <%= hidden_field_tag 'refund[customer_id]', @customer.id, id: nil %>
+  <%= hidden_field_tag 'refund[invoice_id]', @invoice.id, id: nil %>
+
+  <fieldset class="box" id="qbo-refund-lines">
+    <legend><%= l(:label_refund_invoice_lines, number: number, date: format_date(@invoice.txn_date)) %></legend>
+    <table class="list" data-discount-rate="<%= plan.discount_rate.to_s('F') %>" data-tax-rate="<%= plan.tax_rate.to_s('F') %>"
+           data-fee-rate="<%= plan.fee_rate.to_s('F') %>">
+      <thead>
+        <tr>
+          <th></th>
+          <th style="text-align: left"><%= l(:label_refund_line) %></th>
+          <th></th>
+          <th style="text-align: right"><%= l(:label_refund_line_billed) %></th>
+          <th style="text-align: right"><%= l(:label_refund_line_refunded) %></th>
+          <th><%= l(:label_refund_line_quantity) %></th>
+          <th><%= l(:label_refund_line_amount) %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @lines.each do |line| %>
+          <% choice = @form.line(line.key) %>
+          <% field = "refund[lines][#{line.key}]" %>
+          <% dom = "qbo_refund_line_#{line.key.parameterize(separator: '_')}" %>
+          <tr class="qbo-refund-line<%= ' disabled' unless line.refundable? %>" data-rate="<%= line.rate&.to_s('F') %>"
+              data-parts="<%= line.parts ? 1 : 0 %>" data-taxable="<%= line.taxable ? 1 : 0 %>">
+            <td>
+              <% if line.refundable? %>
+                <%= hidden_field_tag "#{field}[refund]", '0', id: nil %>
+                <%= check_box_tag "#{field}[refund]", '1', choice&.refund?, id: dom, class: 'qbo-refund-pick' %>
+              <% end %>
+            </td>
+            <td style="text-align: left">
+              <label for="<%= dom %>">
+                <% if line.item_name.present? %><strong><%= line.item_name %></strong><br><% end %>
+                <%= line.description %>
+              </label>
+            </td>
+            <td><span class="badge <%= line.parts ? 'badge-status-open' : 'badge-status-closed' %>"><%= l(line.parts ? :label_refund_parts : :label_refund_labor) %></span>
+              <% if line.taxable %><span class="badge"><%= l(:label_refund_taxable) %></span><% end %></td>
+            <td style="text-align: right">
+              <% if line.quantity && line.rate %><%= writer.plain(line.quantity) %> × <%= money.(line.rate) %><br><% end %>
+              <%= money.(line.amount) %>
+            </td>
+            <td style="text-align: right"><%= line.refunded_amount.positive? ? money.(line.refunded_amount) : '' %></td>
+            <% if line.refundable? %>
+              <td style="white-space: nowrap">
+                <% if line.quantity && line.rate %>
+                  <%= text_field_tag "#{field}[quantity]", choice&.quantity, size: 5, inputmode: 'decimal', autocomplete: 'off',
+                                     class: 'qbo-refund-quantity', 'aria-label': l(:label_refund_line_quantity) %>
+                  <em class="info">/ <%= writer.plain(line.remaining_quantity) %></em>
+                <% end %>
+              </td>
+              <td style="white-space: nowrap">
+                $<%= text_field_tag "#{field}[amount]", choice&.amount, size: 9, inputmode: 'decimal', autocomplete: 'off',
+                                    class: 'qbo-refund-line-amount', 'aria-label': l(:label_refund_line_amount),
+                                    data: { max: line.remaining_amount.to_s('F') } %>
+              </td>
+            <% else %>
+              <td colspan="2"><em class="info"><%= l(:text_refund_line_done) %></em></td>
+            <% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <p><em class="info"><%= l(:text_refund_invoice_lines) %></em></p>
+  </fieldset>
+
+  <div class="box tabular">
+    <p>
+      <label for="qbo_refund_charge_fee"><%= l(:label_refund_charge_fee) %></label>
+      <%= hidden_field_tag 'refund[charge_fee]', '0', id: nil %>
+      <%= check_box_tag 'refund[charge_fee]', '1', @form.charge_fee?, id: 'qbo_refund_charge_fee' %>
+      <%= l(:label_refund_fee_rate, rate: writer.plain(plan.fee_rate)) %>
+      <em class="info"><%= l(:text_refund_charge_fee) %></em>
+    </p>
+    <p>
+      <label><%= l(:label_refund_method) %><span class="required"> *</span></label>
+      <label class="inline"><%= radio_button_tag 'refund[method]', 'check', @form.method == 'check', id: 'qbo_refund_method_check' %> <%= l(:label_refund_method_check) %></label>
+      <label class="inline"><%= radio_button_tag 'refund[method]', 'card', @form.method == 'card', id: 'qbo_refund_method_card' %> <%= l(:label_refund_method_card) %></label>
+      <em class="info"><%= l(:text_refund_method) %></em>
+    </p>
+    <p id="qbo-refund-check-number">
+      <label for="qbo_refund_check_number"><%= l(:label_refund_check_number) %><span class="required"> *</span></label>
+      <%= text_field_tag 'refund[check_number]', @form.check_number, id: 'qbo_refund_check_number', size: 12, maxlength: 21 %>
+    </p>
+    <p>
+      <label for="qbo_refund_date"><%= l(:label_refund_date) %><span class="required"> *</span></label>
+      <%= date_field_tag 'refund[txn_date]', @form.txn_date, id: 'qbo_refund_date' %>
+    </p>
+    <p>
+      <label for="qbo_refund_reason"><%= l(:label_refund_reason) %><span class="required"> *</span></label>
+      <%= text_area_tag 'refund[reason]', @form.reason, id: 'qbo_refund_reason', rows: 3, cols: 60, maxlength: 2000 %>
+      <em class="info"><%= l(:text_refund_invoice_reason) %></em>
+    </p>
+    <p>
+      <label><%= l(:label_refund_also) %></label>
+      <% [[:note_issues, :label_refund_note_issues], [:email_customer, :label_refund_email_customer]].each do |flag, label| %>
+        <label class="block">
+          <%= hidden_field_tag "refund[#{flag}]", '0', id: nil %>
+          <%= check_box_tag "refund[#{flag}]", '1', @form.send(:"#{flag}?"), id: "qbo_refund_#{flag}" %>
+          <%= l(label) %>
+        </label>
+      <% end %>
+      <% if @customer.email.blank? %><em class="info"><%= l(:text_refund_no_email) %></em><% end %>
+    </p>
+  </div>
+
+  <fieldset class="box" id="qbo-refund-preview">
+    <legend><%= l(:label_refund_summary) %></legend>
+    <table class="list">
+      <tbody>
+        <tr><td><%= l(:label_refund_lines_amount) %></td><td style="text-align: right" id="qbo-refund-lines-amount"><%= money.(plan.lines_amount) %></td></tr>
+        <tr id="qbo-refund-discount-row"<%= ' style="display: none"'.html_safe unless plan.discount_rate.positive? %>>
+          <td><%= l(:label_refund_discount) %></td><td style="text-align: right" id="qbo-refund-discount">-<%= money.(plan.discount) %></td>
+        </tr>
+        <tr><td><%= l(:label_refund_tax_estimate) %></td><td style="text-align: right" id="qbo-refund-tax"><%= money.(plan.tax) %></td></tr>
+        <tr><td><%= l(:label_refund_fee_on_parts) %> (<span id="qbo-refund-parts"><%= money.(plan.parts_amount) %></span>)</td>
+            <td style="text-align: right" id="qbo-refund-fee">-<%= money.(plan.fee) %></td></tr>
+      </tbody>
+      <tfoot>
+        <tr><td><strong><%= l(:label_refund_amount) %></strong></td><td style="text-align: right"><strong id="qbo-refund-amount"><%= money.(plan.refund) %></strong></td></tr>
+      </tfoot>
+    </table>
+    <p><em class="info"><%= l(:text_refund_invoice_summary) %></em></p>
+  </fieldset>
+
+  <p><%= submit_tag l(:button_refund), data: { confirm: l(:text_refund_invoice_confirm) }, disabled: @lines.none?(&:refundable?) %></p>
+<% end %>
+
+<%= javascript_tag do %>
+  $(function() {
+    var table = $('#qbo-refund-lines table');
+    var money = function(n) { return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); };
+    var num = function(v) { return parseFloat(String(v || '').replace(/[$,\s]/g, '')) || 0; };
+    var round = function(n) { return Math.round(n * 100) / 100; };
+    function update() {
+      var lines = 0, parts = 0, taxable = 0;
+      $('tr.qbo-refund-line').each(function() {
+        var row = $(this);
+        if (!row.find('.qbo-refund-pick').is(':checked')) return;
+        var amount = num(row.find('.qbo-refund-line-amount').val());
+        lines += amount;
+        if (row.data('parts') == 1) parts += amount;
+        if (row.data('taxable') == 1) taxable += amount;
+      });
+      var discountRate = num(table.data('discount-rate')), taxRate = num(table.data('tax-rate'));
+      var discount = round(lines * discountRate);
+      var tax = round(taxable * (1 - discountRate) * taxRate);
+      var fee = $('#qbo_refund_charge_fee').is(':checked') ? Math.round(parts * num(table.data('fee-rate'))) / 100 : 0;
+      $('#qbo-refund-lines-amount').text(money(lines));
+      $('#qbo-refund-discount').text('-' + money(discount));
+      $('#qbo-refund-tax').text(money(tax));
+      $('#qbo-refund-parts').text(money(parts));
+      $('#qbo-refund-fee').text('-' + money(fee));
+      $('#qbo-refund-amount').text(money(Math.max(lines - discount + tax - fee, 0)));
+    }
+    // A quantity refunds that many at the line's rate (the amount can still be changed after)
+    $('.qbo-refund-quantity').on('input', function() {
+      var row = $(this).closest('tr'), rate = num(row.data('rate'));
+      if (rate) row.find('.qbo-refund-line-amount').val(round(num($(this).val()) * rate).toFixed(2));
+      row.find('.qbo-refund-pick').prop('checked', num($(this).val()) > 0);
+      update();
+    });
+    $('.qbo-refund-line-amount, #qbo_refund_charge_fee, .qbo-refund-pick').on('input change', update);
+    function method() { $('#qbo-refund-check-number').toggle($('#qbo_refund_method_check').is(':checked')); }
+    $('input[name="refund[method]"]').on('change', method);
+    update(); method();
+  });
+<% end %>

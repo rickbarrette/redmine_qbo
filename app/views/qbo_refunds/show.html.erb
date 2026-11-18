@@ -15,7 +15,9 @@
   <% end %>
 </div>
 
-<% if @refund.done? %>
+<% if @refund.done? && @refund.invoice? %>
+  <p class="notice flash"><%= l(:text_refund_receipt_made, number: @refund.receipt_number.presence || @refund.purchase_id) %></p>
+<% elsif @refund.done? %>
   <p class="<%= @refund.balance_after.to_d.zero? ? 'notice flash' : 'warning' %>">
     <%= @refund.balance_after.nil? ? l(:text_refund_balance_unknown) : l(:text_refund_balance, balance: money.(@refund.balance_after)) %>
   </p>
@@ -27,13 +29,39 @@
 <% end %>
 
 <div class="box tabular">
-  <p><label><%= l(:label_refund_estimate) %></label> <%= @refund.estimate_id.present? ? link_to("E#{@refund.estimate_number}", RedmineQboBilling.writer? ? edit_qbo_estimate_path(@refund.estimate_id) : estimate_path(@refund.estimate_id)) : l(:label_refund_no_estimate) %></p>
-  <p><label><%= l(:label_refund_reason) %></label> <%= @refund.reason %></p>
-  <p><label><%= l(:label_refund_credit) %></label> <%= money.(@refund.credit_amount) %></p>
+  <% if @refund.invoice? %>
+    <p><label><%= l(:label_refund_invoice) %></label>
+      <%= link_to @refund.document_label, RedmineQboBilling.invoice_writer? ? edit_qbo_invoice_path(@refund.invoice_id) : invoice_path(@refund.invoice_id) %>
+      · <%= l(:label_refund_paid_on_invoice) %> <%= money.(@refund.credit_amount) %></p>
+    <p><label><%= l(:label_refund_reason) %></label> <%= @refund.reason %></p>
+    <p><label><%= l(:label_refund_lines_amount) %></label> <%= money.(@refund.lines_amount) %></p>
+    <% if @refund.refunded_lines.any? %>
+      <table class="list" style="max-width: 50em">
+        <tbody>
+          <% @refund.refunded_lines.each do |line| %>
+            <tr>
+              <td style="text-align: left"><%= line.description %></td>
+              <td><%= l(line.parts ? :label_refund_parts : :label_refund_labor) %></td>
+              <td style="text-align: right"><%= RedmineQboBilling::RefundWriter.plain(BigDecimal(line.quantity.to_s)) if line.quantity.present? %></td>
+              <td style="text-align: right"><%= money.(line.amount) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+    <% if @refund.discount_amount.to_d.positive? %>
+      <p><label><%= l(:label_refund_discount) %></label> -<%= money.(@refund.discount_amount) %></p>
+    <% end %>
+    <p><label><%= l(:label_refund_tax) %></label> <%= money.(@refund.tax_amount) %></p>
+  <% else %>
+    <p><label><%= l(:label_refund_estimate) %></label> <%= @refund.estimate_id.present? ? link_to("E#{@refund.estimate_number}", RedmineQboBilling.writer? ? edit_qbo_estimate_path(@refund.estimate_id) : estimate_path(@refund.estimate_id)) : l(:label_refund_no_estimate) %></p>
+    <p><label><%= l(:label_refund_reason) %></label> <%= @refund.reason %></p>
+    <p><label><%= l(:label_refund_credit) %></label> <%= money.(@refund.credit_amount) %></p>
+  <% end %>
   <p><label><%= l(:label_refund_parts) %></label> <%= money.(@refund.parts_amount) %></p>
   <p>
     <label><%= l(:label_refund_fee_rate, rate: RedmineQboBilling::RefundWriter.plain(@refund.fee_rate)) %></label>
-    <%= money.(@refund.fee_amount) %>
+    <%= @refund.fee_amount.to_d.positive? ? money.(@refund.fee_amount) : l(:label_refund_no_fee) %>
     <% if @refund.fee_invoice_id.present? %>
       · <%= link_to l(:label_refund_fee_invoice, number: @refund.fee_invoice_number), RedmineQboBilling.invoice_writer? ? edit_qbo_invoice_path(@refund.fee_invoice_id) : invoice_path(@refund.fee_invoice_id) %>
     <% end %>
@@ -42,11 +70,16 @@
     <label><%= l(:label_refund_amount) %></label>
     <%= money.(@refund.refund_amount) %> · <%= @refund.method_name %><%= " ##{@refund.check_number}" if @refund.check? %>
     <% if @refund.purchase_url %>
-      · <%= link_to l(@refund.check? ? :label_refund_open_check : :label_refund_open_expense), @refund.purchase_url, target: '_blank', rel: 'noopener' %>
+      · <%= link_to l(@refund.invoice? ? :label_refund_open_receipt : (@refund.check? ? :label_refund_open_check : :label_refund_open_expense)),
+                    @refund.purchase_url, target: '_blank', rel: 'noopener' %>
     <% end %>
   </p>
   <% if @refund.estimate_number.present? %>
     <p><label><%= l(:label_refund_close_estimate) %></label> <%= checked_image @refund.estimate_closed? %></p>
+  <% end %>
+  <% if @refund.noted_issue_ids.any? %>
+    <p><label><%= l(:label_refund_note_issues) %></label>
+      <%= safe_join(Issue.where(id: @refund.noted_issue_ids).map { |issue| link_to_issue(issue, project: false) }, ', ') %></p>
   <% end %>
   <% if @refund.canceled_issue_ids.any? %>
     <p><label><%= l(:label_refund_cancel_issues) %></label>

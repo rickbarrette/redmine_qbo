@@ -13,6 +13,21 @@
 
 <p class="warning"><%= l(:text_refund_final_sale) %></p>
 
+<%# Completed work on a paid invoice is refunded from the invoice (a refund receipt), not from credit %>
+<% if @invoices.present? %>
+  <%= form_tag new_invoice_qbo_refunds_path, method: :get, id: 'qbo-refund-invoice' do %>
+    <div class="box tabular">
+      <p>
+        <label for="qbo_refund_invoice"><%= l(:label_refund_paid_invoice) %></label>
+        <%= select_tag 'invoice_id', options_for_select(@invoices), include_blank: true, id: 'qbo_refund_invoice',
+                       onchange: 'if (this.value) this.form.submit()' %>
+        <noscript><%= submit_tag l(:button_apply), name: nil %></noscript>
+        <em class="info"><%= l(:text_refund_paid_invoice) %></em>
+      </p>
+    </div>
+  <% end %>
+<% end %>
+
 <% if preview && preview.credits.empty? %>
   <p class="nodata"><%= l(:text_refund_no_credit) %></p>
 <% end %>

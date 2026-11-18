@@ -78,7 +78,13 @@
                 <% customer_refunds.each do |refund| %>
                   <tr>
                     <td><%= link_to format_date(refund.txn_date), qbo_refund_path(refund) %></td>
-                    <td><%= refund.estimate_id.present? ? link_to("E#{refund.estimate_number}", RedmineQboBilling.writer? ? edit_qbo_estimate_path(refund.estimate_id) : estimate_path(refund.estimate_id)) : '' %></td>
+                    <td>
+                      <% if refund.invoice? %>
+                        <%= link_to refund.document_label, RedmineQboBilling.invoice_writer? ? edit_qbo_invoice_path(refund.invoice_id) : invoice_path(refund.invoice_id) %>
+                      <% elsif refund.estimate_id.present? %>
+                        <%= link_to("E#{refund.estimate_number}", RedmineQboBilling.writer? ? edit_qbo_estimate_path(refund.estimate_id) : estimate_path(refund.estimate_id)) %>
+                      <% end %>
+                    </td>
                     <td><%= refund.method_name %></td>
                     <td style="text-align: right"><%= RedmineQboBilling::RefundWriter.money(refund.refund_amount) %></td>
                     <td><%= refund.done? ? '' : l(:label_refund_incomplete) %></td>

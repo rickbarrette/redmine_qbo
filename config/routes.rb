@@ -73,6 +73,10 @@ resources :qbo_refunds, only: [:new, :create, :show] do
     get :pdf
     post :email
   end
+  collection do
+    get :new_invoice
+    post :create_invoice
+  end
 end
 
 # Receive payment pages, and a customer's payments (/qbo_payments?customer_id=)

@@ -8,7 +8,8 @@
 #
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-# Customer refunds (SOP-OPS-014): the Refund page for a customer with credit, and a refund once it's made
+# Customer refunds (SOP-OPS-014): the Refund page for a customer with credit (a canceled order's deposit), the
+# Refund invoice page for completed work on a paid invoice, and a refund once it's made
 class QboRefundsController < ApplicationController
   before_action :authorize_global
 
@@ -41,6 +42,40 @@ class QboRefundsController < ApplicationController
   rescue RedmineQboBilling::RefundWriter::Error, *QBO_ERRORS => e
     @form.errors.add(:base, qbo_message(e))
     show_form
+  end
+
+  # Refund of a paid invoice: its lines to pick from, the optional restocking fee, how the money goes back
+  def new_invoice
+    @form = RedmineQboBilling::InvoiceRefundForm.new(invoice_id: params[:invoice_id].to_s, txn_date: User.current.today.iso8601,
+                                                     method: 'check', charge_fee: '1', note_issues: '1', email_customer: '1')
+    return unless load_invoice_page
+
+    @form.customer_id = @customer.id.to_s
+    # Every line with something left to refund is ticked, at what's left of it
+    @lines.select(&:refundable?).each do |line|
+      @form.lines[line.key] = RedmineQboBilling::InvoiceRefundForm::LineChoice.new(
+        refund: '1', quantity: (quantity = RedmineQboBilling::InvoiceRefundWriter.default_quantity(line)) && RedmineQboBilling::RefundWriter.plain(quantity),
+        amount: format('%.2f', line.remaining_amount)
+      )
+    end
+    load_invoice_plan
+  end
+
+  def create_invoice
+    @form = RedmineQboBilling::InvoiceRefundForm.from_params(params.require(:refund).permit(*RedmineQboBilling::InvoiceRefundForm.permitted))
+    return unless load_invoice_page
+    return show_invoice_form unless @form.valid?
+
+    refund = RedmineQboBilling::InvoiceRefundWriter.refund!(@form)
+    if refund.done?
+      flash[:notice] = l(:notice_refund_done, amount: RedmineQboBilling::RefundWriter.money(refund.refund_amount))
+    else
+      flash[:error] = refund.message
+    end
+    redirect_to qbo_refund_path(refund)
+  rescue RedmineQboBilling::RefundWriter::Error, *QBO_ERRORS => e
+    @form.errors.add(:base, qbo_message(e))
+    show_invoice_form
   end
 
   def show
@@ -88,6 +123,7 @@ class QboRefundsController < ApplicationController
 
   def load_page
     @estimates = RedmineQboBilling::RefundWriter.estimate_choices(@customer)
+    @invoices = RedmineQboBilling::InvoiceRefundWriter.invoice_choices(@customer)
     @preview = RedmineQboBilling::RefundWriter.preview(@customer, parts: @form.parts_value || BigDecimal('0'))
     @statuses = IssueStatus.sorted.to_a
   rescue *QBO_ERRORS => e
@@ -98,6 +134,40 @@ class QboRefundsController < ApplicationController
   def show_form
     load_page
     render :new, status: :unprocessable_entity
+  end
+
+  # The paid invoice from QuickBooks, its customer and its lines; renders the error and returns false when it
+  # can't be refunded
+  def load_invoice_page
+    gateway = RedmineQboBilling::RefundGateway.new
+    @invoice = gateway.invoice(@form.invoice_id) if @form.invoice_id.present?
+    @customer = Customer.find_by(id: @invoice&.customer_ref&.value)
+    if @invoice.nil? || @customer.nil?
+      render_404
+      return false
+    end
+    unless RedmineQboBilling::InvoiceRefundWriter.paid_in_full?(@invoice)
+      flash[:error] = l(:error_refund_invoice_not_paid)
+      redirect_to edit_qbo_invoice_path(@invoice.id)
+      return false
+    end
+
+    @lines = RedmineQboBilling::InvoiceRefundWriter.lines(@invoice)
+    @refunds = QboRefund.of_invoice(@invoice.id).recent.to_a
+    true
+  rescue *QBO_ERRORS => e
+    flash[:error] = qbo_message(e)
+    redirect_to(@form.customer_id.present? ? customer_path(@form.customer_id) : customers_path)
+    false
+  end
+
+  def load_invoice_plan
+    @plan, = RedmineQboBilling::InvoiceRefundWriter.plan(@invoice, @form, invoice_lines: @lines)
+  end
+
+  def show_invoice_form
+    load_invoice_plan
+    render :new_invoice, status: :unprocessable_entity
   end
 
   def qbo_message(error)

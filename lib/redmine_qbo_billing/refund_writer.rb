@@ -108,9 +108,9 @@ module RedmineQboBilling
                   refund: [total - amount, BigDecimal('0')].max)
     end
 
-    # "Restocking fee: 30% × $1,026.63 parts on E1068 = $308.00"
-    def fee_description(parts, rate, amount, estimate_number)
-      on = estimate_number.present? ? " on E#{estimate_number}" : ''
+    # "Restocking fee: 30% × $1,026.63 parts on E1068 = $308.00" (on: what the parts are on instead, e.g. "Invoice #1234")
+    def fee_description(parts, rate, amount, estimate_number, on: nil)
+      on = on.present? ? " on #{on}" : (estimate_number.present? ? " on E#{estimate_number}" : '')
       I18n.t(:text_refund_fee_line, rate: plain(rate), parts: money(parts), on: on, fee: money(amount))
     end
 

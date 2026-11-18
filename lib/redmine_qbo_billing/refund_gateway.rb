@@ -59,6 +59,19 @@ module RedmineQboBilling
       with_service('Purchase') { |service| service.create(purchase) }
     end
 
+    # A paid invoice's refund (InvoiceRefundWriter)
+    def create_refund_receipt(receipt)
+      with_service('RefundReceipt') { |service| service.create(receipt) }
+    end
+
+    PAYMENT_METHOD_NAMES = { check: /\b(check|cheque)\b/i, card: /card|visa|mastercard|amex|discover/i }.freeze
+
+    # QuickBooks' payment method for a refund by :check or :card (the first whose name fits), or nil
+    def payment_method_id(kind)
+      pattern = PAYMENT_METHOD_NAMES[kind]
+      PaymentWriter.payment_methods.detect { |name, _| name.match?(pattern) }&.last
+    end
+
     # The first active account of a QuickBooks account type ('Accounts Receivable', 'Bank')
     def account_id(type)
       account = with_service('Account') do |service|

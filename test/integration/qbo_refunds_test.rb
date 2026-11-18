@@ -98,4 +98,97 @@ class QboRefundsTest < Redmine::IntegrationTest
     get "/qbo_refunds/#{refund.id}"
     assert_select 'a[href=?]', "/qbo_refunds/#{refund.id}/pdf"
   end
+
+  # ---- Paid invoices ----
+
+  def invoice_setup
+    RedmineQboBilling::LaborItems.stubs(:ids).returns([])
+    @gateway.invoices << paid_invoice
+  end
+
+  def test_invoice_refund_page
+    invoice_setup
+    log_user('admin', 'admin')
+    get '/qbo_refunds/new_invoice?invoice_id=950'
+    assert_response :success
+    assert_select 'h2', text: /Invoice #1234/
+    assert_select 'input[type=checkbox][name=?][checked]', 'refund[lines][2][refund]'
+    assert_select 'input[name=?][value=?]', 'refund[lines][2][quantity]', '4'
+    assert_select 'input[name=?][value=?]', 'refund[lines][3][amount]', '80.00'
+    assert_select 'input[name=?][checked]', 'refund[charge_fee]'
+    # Everything ticked: $440.00 of lines, $14.00 tax, 30% of $200.00 parts
+    assert_select '#qbo-refund-lines-amount', text: '$440.00'
+    assert_select '#qbo-refund-tax', text: '$14.00'
+    assert_select '#qbo-refund-fee', text: '-$60.00'
+    assert_select '#qbo-refund-amount', text: '$394.00'
+  end
+
+  def test_unpaid_invoice_isnt_refunded
+    RedmineQboBilling::LaborItems.stubs(:ids).returns([])
+    @gateway.invoices << paid_invoice(balance: 50)
+    log_user('admin', 'admin')
+    get '/qbo_refunds/new_invoice?invoice_id=950'
+    assert_redirected_to '/qbo_invoices/950/edit'
+  end
+
+  def test_invoice_refund
+    invoice_setup
+    log_user('admin', 'admin')
+    post '/qbo_refunds/create_invoice', params: { refund: {
+      customer_id: CUSTOMER_ID, invoice_id: '950', method: 'card', txn_date: '2026-11-18', reason: 'Returned pads',
+      charge_fee: '0', note_issues: '1', email_customer: '0',
+      lines: { '1' => { refund: '0', quantity: '2', amount: '240.00' }, '2' => { refund: '1', quantity: '2', amount: '60.00' },
+               '3' => { refund: '0', quantity: '1', amount: '80.00' } }
+    } }
+    refund = QboRefund.last
+    assert_redirected_to "/qbo_refunds/#{refund.id}"
+    assert refund.done?, refund.message
+    assert_equal BigDecimal('64.20'), refund.refund_amount
+    follow_redirect!
+    assert_select 'p', text: /Refund receipt 3000 is recorded/
+    assert_select 'a[href*="app/refundreceipt?txnId=900"]'
+    assert_select 'a[href=?]', '/qbo_invoices/950/edit'
+
+    get '/qbo_refunds/new_invoice?invoice_id=950'
+    assert_select 'input[name=?][value=?]', 'refund[lines][2][quantity]', '2'
+    assert_select '.flash.warning a[href=?]', "/qbo_refunds/#{refund.id}"
+
+    get "/qbo_refunds/#{refund.id}/pdf"
+    assert_response :success
+
+    get "/customers/#{CUSTOMER_ID}"
+    assert_select 'a[href=?]', '/qbo_invoices/950/edit', text: 'Invoice #1234'
+  end
+
+  def test_invoice_refund_form_errors
+    invoice_setup
+    log_user('admin', 'admin')
+    post '/qbo_refunds/create_invoice', params: { refund: {
+      customer_id: CUSTOMER_ID, invoice_id: '950', method: 'check', check_number: '', txn_date: '2026-11-18', reason: '',
+      lines: { '2' => { refund: '1', quantity: '9' } }
+    } }
+    assert_response :unprocessable_entity
+    assert_select '#errorExplanation', text: /check number/
+    assert_select '#errorExplanation', text: /reason/
+
+    post '/qbo_refunds/create_invoice', params: { refund: {
+      customer_id: CUSTOMER_ID, invoice_id: '950', method: 'check', check_number: '1', txn_date: '2026-11-18', reason: 'x',
+      lines: { '2' => { refund: '1', quantity: '9' } }
+    } }
+    assert_response :unprocessable_entity
+    assert_select '#errorExplanation', text: /no more than 4/
+    assert_equal 0, QboRefund.count
+    assert_empty @gateway.receipts
+  end
+
+  def test_credit_refund_page_offers_paid_invoices
+    Invoice.where(id: 950).delete_all
+    Invoice.new(id: 950, doc_number: '1234', txn_date: Date.new(2026, 11, 2), customer_id: CUSTOMER_ID,
+                total_amount: 454, balance: 0).save!(validate: false)
+    log_user('admin', 'admin')
+    get "/qbo_refunds/new?customer_id=#{CUSTOMER_ID}"
+    assert_select '#qbo_refund_invoice option[value="950"]', text: /#1234/
+  ensure
+    Invoice.where(id: 950).delete_all
+  end
 end

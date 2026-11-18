@@ -166,6 +166,16 @@ Refunds for canceled orders and returned parts, following SOP-OPS-014, so they d
 * Each refund has its own page, listed on the customer page: what was refunded and how, with the fee invoice (opened in Redmine), a **PDF** of the refund (QuickBooks has no PDF of a check or an expense), the fee invoice's PDF, and **Email the customer** to send the summary again. If a QuickBooks step fails, the refund stops there and its page says which step and what was already done, to finish in QuickBooks.
 * It refunds all of the customer's remaining credit held as unapplied payments. Credit held as credit memos isn't refunded here.
 
+#### Refunding a paid invoice
+
+Completed work that's billed and paid in full is refunded from its invoice, with a QuickBooks **Refund Receipt**, the way QuickBooks refunds a paid sale:
+
+* **Refund** on a paid-in-full invoice (or pick it under **Paid invoice** on the customer's Refund page). The invoice's lines are listed (bundles opened up into their lines), each marked parts or labor, with what earlier refunds already took of it. Tick the lines to refund and change the **quantity** (e.g. 2 of 4 parts returned) or the **amount** (a partial refund, e.g. some of the labor). A line can't be refunded, over one or more refunds, for more than it was billed.
+* **Restocking fee** is optional: when ticked, it's the rate in the settings of the *parts* refunded. Labor carries no fee, so a refund of labor alone has none. Leave it off when the parts aren't coming back.
+* The page shows the lines, the invoice discount's share (if it had one), the estimated sales tax refunded, the fee and the refund. Choose **Company check** (with its number) or **Card**.
+* **Refund** records the refund receipt in QuickBooks: the refunded lines with their products/services and tax codes (so the income and sales tax come back off the books; QuickBooks works out the tax), the discount's share, the fee as a negative line with the restocking fee product/service, paid out of the refund check or card refund account in the settings, with the payment method (a QuickBooks payment method named Check, or one with Card/Visa/Mastercard/Amex/Discover in its name) and the check number. The invoice stays as it is, paid.
+* As ticked on the page, it also notes the refund on the invoice's work orders (their status is left alone) and emails the customer a summary. The refund's page, PDF and email list the lines refunded, and show the refund receipt's exact total: refund exactly that.
+
 ### Business report
 
 **Business report** in the top menu compares, for a period (this or last week, month, quarter or year, or custom dates; weeks start on the day set in Redmine's *Start calendars on* setting, Monday when it follows the language):
@@ -219,14 +229,14 @@ Administration → Items lists the QuickBooks product/service list (synced from 
         * **View business reports**: the Business report
         * **Write invoices**: create and edit invoices, and import time and estimates into them
         * **Email invoices**: email invoices to customers
-        * **Issue refunds**: the Refund page, refunds and their PDFs
+        * **Issue refunds**: the Refund page (customer credit) and refunds of paid invoices, refunds and their PDFs
         * **Share issues with customers**: the Share link on issues (see Sharing an issue with the customer)
 
 2. Settings (Administration -> Plugins -> Configure)
     * **Estimates expire after (days)**: new estimates get an expiration date this many days after the estimate date (e.g. 30). Leave blank for none.
     * **Labor products/services** (e.g. Labor): one list used three ways. An estimate's lines with them can become issues (their quantities are also the estimate's labor hours, which an appointment's hours can't be less than); an invoice's lines with them are offered under Replace these lines when time is imported; and their quantities are the hours on estimates and invoices in the business report. While none are chosen, products/services named Labor are used.
     * **Issues from estimates**: the default project and the default tracker.
-    * **Refunds**: the restocking fee (SOP-OPS-014: 30%) and the product/service on its invoice (e.g. a "Restocking Fee" service, which sets the income account), the bank accounts refund checks and card refunds come out of (blank: the first bank account), and the status canceled work orders are set to (blank: a closed status named Canceled).
+    * **Refunds**: the restocking fee (SOP-OPS-014: 30%) and the product/service on its invoice or refund receipt line (e.g. a "Restocking Fee" service, which sets the income account), the bank accounts refund checks and card refunds come out of (blank: the first bank account), and the status canceled work orders are set to (blank: a closed status named Canceled).
     * Item and account counts, the default income account and their syncs are under Synchronization.
 
 3. Writing an estimate
