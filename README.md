@@ -75,9 +75,21 @@ The plugin provides basic Customer management:
 *   Search Customers by **name or phone number**: the best matches come first (click a column to sort them instead), and a single match opens that Customer
     
 *   View and edit Customer information
+
+*   On the customer page, ticking an estimate (or a redmine_qbo_vehicles vehicle) adds it to the **New issue** link and to redmine_qbo_calendar's **Add appointment** link, one of each at a time
     
 
 Customers are synchronized with QuickBooks.
+
+### Sharing an issue with the customer
+
+**Share** on an issue (permission **Share issues with customers**) opens a link the customer can open without logging in: the issue with its history, attachments, estimate and invoices. A link lasts a month; sharing the issue again while it's valid gives the same link.
+
+Expired links, and links whose issue was deleted, are deleted whenever a new link is made. To delete them now (or on a schedule):
+
+```
+bundle exec rake redmine_qbo:purge_customer_tokens RAILS_ENV=production
+```
 
 ---
 
@@ -208,6 +220,7 @@ Administration → Items lists the QuickBooks product/service list (synced from 
         * **Write invoices**: create and edit invoices, and import time and estimates into them
         * **Email invoices**: email invoices to customers
         * **Issue refunds**: the Refund page, refunds and their PDFs
+        * **Share issues with customers**: the Share link on issues (see Sharing an issue with the customer)
 
 2. Settings (Administration -> Plugins -> Configure)
     * **Estimates expire after (days)**: new estimates get an expiration date this many days after the estimate date (e.g. 30). Leave blank for none.
