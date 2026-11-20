@@ -285,6 +285,22 @@ Other plugins create estimates with `RedmineQboBilling::EstimateWriter.create_es
 
 ---
 
+# Screenshots
+
+All names and figures are made up.
+
+<table>
+<tr><td width="50%"><img src="Screenshots/issue.png" alt="An issue with its customer, estimate and invoice, and Bill Time / Share"><br><sub>An issue with its customer, estimate and invoice, and Bill Time / Share</sub></td><td width="50%"><img src="Screenshots/issue_form.png" alt="The customer and estimate on the issue form"><br><sub>The customer and estimate on the issue form</sub></td></tr>
+<tr><td width="50%"><img src="Screenshots/issue_list.png" alt="The Customer column in issue lists"><br><sub>The Customer column in issue lists</sub></td><td width="50%"><img src="Screenshots/customers.png" alt="Customers, searchable by name or phone"><br><sub>Customers, searchable by name or phone</sub></td></tr>
+<tr><td width="50%"><img src="Screenshots/customer.png" alt="A customer: QuickBooks details, estimates and invoices"><br><sub>A customer: QuickBooks details, estimates and invoices</sub></td><td width="50%"><img src="Screenshots/estimate_editor.png" alt="Writing an estimate"><br><sub>Writing an estimate</sub></td></tr>
+<tr><td width="50%"><img src="Screenshots/estimate_linked_unlock.png" alt="An estimate linked to an issue, with Unlock to edit"><br><sub>An estimate linked to an issue, with Unlock to edit</sub></td><td width="50%"><img src="Screenshots/issues_from_estimate.png" alt="Creating issues from an estimate"><br><sub>Creating issues from an estimate</sub></td></tr>
+<tr><td width="50%"><img src="Screenshots/invoice_editor.png" alt="Writing an invoice"><br><sub>Writing an invoice</sub></td><td width="50%"><img src="Screenshots/receive_payment.png" alt="Receiving a payment"><br><sub>Receiving a payment</sub></td></tr>
+<tr><td width="50%"><img src="Screenshots/payment.png" alt="A payment and the invoices it paid"><br><sub>A payment and the invoices it paid</sub></td><td width="50%"><img src="Screenshots/business_report.png" alt="The business report"><br><sub>The business report</sub></td></tr>
+<tr><td width="50%"><img src="Screenshots/plugin_config.png" alt="Plugin settings"><br><sub>Plugin settings</sub></td><td width="50%"><img src="Screenshots/user_edit.png" alt="Linking a user to a QuickBooks employee"><br><sub>Linking a user to a QuickBooks employee</sub></td></tr>
+</table>
+
+---
+
 # Prerequisites
 
 Before installing the plugin:
