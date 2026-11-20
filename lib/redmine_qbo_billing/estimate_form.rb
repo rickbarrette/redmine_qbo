@@ -112,7 +112,8 @@ module RedmineQboBilling
                   # (discount: the discount amount QuickBooks worked out when it was last saved)
                   :billing_address, :total, :total_tax, :discount, :email_status, :txn_status, :duplicated_from,
                   :balance, :converted_from,
-                  # Invoices: a paid invoice opened for editing anyway (Unlock), and the amount paid on it
+                  # Invoices: a paid invoice opened for editing anyway (Unlock), and the amount paid on it.
+                  # Estimates: an estimate linked to an issue opened for editing anyway (Unlock).
                   :unlocked, :amount_paid,
                   # Estimates: the invoices it's billed on ([[id, number], ...])
                   :invoiced_on,

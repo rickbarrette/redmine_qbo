@@ -42,6 +42,8 @@ Redmine::Plugin.register :redmine_qbo do
   # Drafts (QboDraft): each user sees the drafts of the documents they may write
   permission :write_estimates, { qbo_estimates: [:new, :create, :edit, :update, :customer_info, :items],
                                  qbo_drafts: [:index, :destroy] }, global: true
+  # Unlocking an estimate linked to an issue (on top of Write estimates); see RedmineQboBilling.linked_estimate_editor?
+  permission :edit_linked_estimates, {}, global: true
   permission :send_estimates, { qbo_estimates: [:send_email] }, global: true
   permission :create_estimate_issues, { qbo_estimates: [:issues_preview, :create_issues] }, global: true
   permission :write_invoices, { qbo_invoices: [:new, :create, :edit, :update, :import_options],

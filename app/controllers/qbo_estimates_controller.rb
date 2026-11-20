@@ -59,9 +59,11 @@ class QboEstimatesController < ApplicationController
     show_error(e, :new)
   end
 
+  # ?unlock=1 opens an estimate linked to an issue for editing anyway (after the editor's confirmation)
   def edit
     @form = RedmineQboBilling::EstimateWriter.load(params[:id])
     @linked_issues = RedmineQboBilling::EstimateWriter.linked_issues(@form.id).visible.to_a
+    unlock_form if unlock?
   rescue *QBO_ERRORS => e
     flash[:error] = qbo_message(e)
     redirect_back_or_default home_path
@@ -70,9 +72,10 @@ class QboEstimatesController < ApplicationController
   def update
     @form = RedmineQboBilling::EstimateForm.from_params(estimate_params, id: params[:id])
     @form.sales_person = params.dig(:estimate, :sales_person).to_s
+    unlock_form if unlock?
     return show_invalid(:edit) unless @form.valid?
 
-    saved = RedmineQboBilling::EstimateWriter.save(@form, user: User.current)
+    saved = RedmineQboBilling::EstimateWriter.save(@form, user: User.current, unlock: unlock?)
     finish_save(saved, l(:notice_estimate_saved_in_quickbooks, number: saved.doc_number))
   rescue RedmineQboBilling::EstimateWriter::Conflict => e
     @conflict = true
@@ -294,6 +297,21 @@ class QboEstimatesController < ApplicationController
       custom_fields: {},
       lines: RedmineQboBilling::EstimateForm::Line::PARAMS
     )
+  end
+
+  def unlock?
+    params[:unlock].to_s == '1'
+  end
+
+  # Shows an estimate linked to an issue editable, for users allowed to. EstimateWriter.save checks again.
+  def unlock_form
+    return unless RedmineQboBilling.linked_estimate_editor?
+
+    @linked_issues ||= RedmineQboBilling::EstimateWriter.linked_issues(@form.id).visible.to_a
+    return unless @form.locked == :linked || (@form.locked.nil? && @linked_issues.any?)
+
+    @form.locked = nil
+    @form.unlocked = true
   end
 
   def save_and_send?

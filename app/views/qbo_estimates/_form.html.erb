@@ -50,6 +50,8 @@
   <%= hidden_field_tag 'estimate[txn_status]', form.txn_status, id: nil %>
   <%# Shown again if the page is redisplayed; the saved value is worked out when saving %>
   <%= hidden_field_tag 'estimate[sales_person]', form.sales_person, id: nil if form.persisted? || form.invoice? %>
+  <%# An estimate linked to an issue opened for editing (Unlock) stays unlocked if the page is shown again %>
+  <%= hidden_field_tag 'unlock', '1', id: nil if !invoice && form.unlocked %>
   <% if invoice %>
     <%= hidden_field_tag 'estimate[balance]', form.balance, id: nil %>
     <%# A paid invoice opened for editing (Unlock) stays unlocked if the page is shown again %>

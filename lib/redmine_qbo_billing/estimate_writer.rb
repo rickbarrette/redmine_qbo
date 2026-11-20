@@ -105,6 +105,13 @@ module RedmineQboBilling
       Issue.where(estimate_id: estimate_id.to_s)
     end
 
+    # An estimate linked to an issue is only changed when unlocked by a user allowed to
+    def check_linked(form, unlock, user)
+      return unless linked_issues(form.id).exists?
+      raise Error, I18n.t(:error_estimate_linked_to_issues) unless unlock
+      raise Error, I18n.t(:error_estimate_linked_not_allowed) unless RedmineQboBilling.linked_estimate_editor?(user)
+    end
+
     # Loads the estimate from QuickBooks for editing
     def load(id)
       remote = QboEstimateService.with_service { |service| service.fetch_by_id(id) }
@@ -114,7 +121,9 @@ module RedmineQboBilling
 
     # Creates or updates the estimate in QuickBooks and returns the saved QuickBooks estimate.
     # The sales person is the user who creates the estimate; editing keeps the original one.
-    def save(form, user: User.current)
+    # unlock: an estimate linked to an issue may be changed (the user unlocked it, see
+    # RedmineQboBilling.linked_estimate_editor?)
+    def save(form, user: User.current, unlock: false)
       customer = Customer.find_by(id: form.customer_id)
       raise Error, I18n.t(:error_estimate_needs_customer) unless customer
 
@@ -125,7 +134,7 @@ module RedmineQboBilling
           raise Conflict, I18n.t(:error_estimate_changed_in_quickbooks) if remote.sync_token.to_s != form.sync_token.to_s
           raise Error, I18n.t(:error_estimate_billed) if billed?(remote)
           raise Error, I18n.t(:error_estimate_has_bundles) if group_lines?(remote)
-          raise Error, I18n.t(:error_estimate_linked_to_issues) if linked_issues(form.id).any?
+          check_linked(form, unlock, user)
 
           estimate = Quickbooks::Model::Estimate.new
           estimate.id = remote.id

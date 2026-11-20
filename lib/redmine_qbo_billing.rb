@@ -93,6 +93,12 @@ module RedmineQboBilling
     user.allowed_to?(:view_payments, nil, global: true) || payment_receiver?(user)
   end
 
+  # True when the user may unlock and change an estimate linked to an issue (e.g. a customer asks for changes to
+  # an estimate already on the diagnostic work order): "Edit estimates linked to issues" on top of "Write estimates"
+  def self.linked_estimate_editor?(user = User.current)
+    writer?(user) && user.allowed_to?(:edit_linked_estimates, nil, global: true)
+  end
+
   # True when the user may write invoices
   def self.invoice_writer?(user = User.current)
     user.allowed_to?(:write_invoices, nil, global: true)

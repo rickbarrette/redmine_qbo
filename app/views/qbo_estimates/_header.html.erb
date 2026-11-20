@@ -67,6 +67,21 @@
         <li><%= link_to_issue(issue, truncate: 60) %></li>
       <% end %>
     </ul>
+    <%# Opened for editing anyway after a confirmation (e.g. the customer asks for changes after the diagnosis) %>
+    <% if RedmineQboBilling.linked_estimate_editor? %>
+      <%= link_to sprite_icon('unlock', l(:button_unlock_estimate)), edit_qbo_estimate_path(form.id, unlock: 1),
+                  class: 'icon icon-unlock', id: 'qbo-unlock-estimate',
+                  data: { confirm: l(:text_unlock_estimate_confirmation) } %>
+    <% end %>
+  </div>
+<% elsif form.unlocked && !invoice %>
+  <div class="warning qbo-estimate-notice">
+    <%= l(:text_estimate_unlocked) %>
+    <ul>
+      <% Array(@linked_issues).each do |issue| %>
+        <li><%= link_to_issue(issue, truncate: 60) %></li>
+      <% end %>
+    </ul>
   </div>
 <% elsif form.locked == :paid %>
   <p class="warning">
