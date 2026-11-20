@@ -119,7 +119,7 @@ Estimates and invoices keep their number, date, customer, total, sales tax and *
 * **Edit** any estimate from the Edit link next to it on the customer page or the issue page.
 * **Keyboard entry**: in a line's product box, Tab picks the product the text points to (an exact name, the only match, or the only name starting with it, e.g. "lab" → Labor) and fills the line. Tabbing into the description, quantity or rate selects it, so typing replaces it. The quantity, rate and amount boxes take simple math (e.g. `33*1.3`, `(120+15)/2`; `+ - * /`, `x` for times, parentheses), worked out when you leave the box; math in the rate or amount is rounded to the nearest penny, and an amount sets the rate from the quantity. Typing `sub`, `subtotal` or `=` in a product box, then Tab or Enter, adds a subtotal there (an empty line becomes the subtotal; a line with a description keeps it and gets the subtotal after it) and moves on to the next line.
 * **Duplicate** an estimate to start a similar one: same customer, lines, subtotals, custom fields and messages, dated today, with the current user as sales person.
-* **Read-only once linked to an issue**: an estimate that an issue is linked to can be viewed, emailed and duplicated, but not changed, so the work doesn't drift from what was quoted. The list shows a View link for these instead of Edit.
+* **Read-only once linked to an issue**: an estimate that an issue is linked to can be viewed, emailed and duplicated, but not changed by accident, so the work doesn't drift from what was quoted. The list shows a View link for these instead of Edit. Users with **Edit estimates linked to issues** get **Unlock to edit** on the estimate's page (e.g. a customer asks for changes to the estimate on a diagnostic work order): after a confirmation it opens for editing, and the issues stay linked when it's saved.
 * **Read-only once billed**: an estimate that's Converted or Closed in QuickBooks, or linked to an invoice, can't be changed here either (including redmine_qbo_lineitems' estimates once they're invoiced). Its page lists the invoices it's on; it can still be viewed, emailed and duplicated, and it shows View instead of Edit in lists.
 * **Create issues** from an estimate's labor lines (moved here from redmine_qbo_calendar): each line with one of the **labor products/services** (e.g. Labor) becomes an issue with the line's description as subject and its quantity as estimated hours. Pick the project, trackers, templates and shared custom fields first. Lines already turned into issues can't be created twice, and issues from the same estimate are related to each other. Creating issues marks a pending estimate **Accepted** in QuickBooks (dated today), since the work is going ahead; estimates that are already accepted, closed, converted or rejected keep their status. Opened from an appointment, the issues get the appointment's dates, technician and vehicle.
 * **Email** the estimate with QuickBooks' own estimate email, with **Save and send** or the Email link.
@@ -222,6 +222,7 @@ Administration → Items lists the QuickBooks product/service list (synced from 
     1. Navigate to Administration -> Roles and permissions.
     2. Assign these global permissions as needed:
         * **Write estimates**: create and edit estimates
+        * **Edit estimates linked to issues**: unlock an estimate an issue is linked to and change it (on top of Write estimates)
         * **Email estimates**: email estimates to customers (Save and send, and the Email link)
         * **Create issues from estimates**: the Create issues page (was redmine_qbo_calendar's "Create issues from appointment estimates")
         * **View payments**: a customer's Payments list, the payment page and its PDF
@@ -229,8 +230,11 @@ Administration → Items lists the QuickBooks product/service list (synced from 
         * **View business reports**: the Business report
         * **Write invoices**: create and edit invoices, and import time and estimates into them
         * **Email invoices**: email invoices to customers
+        * **Edit partially paid invoices** / **Edit paid invoices**: unlock an invoice with a payment applied and change it, never below what's been paid (on top of Write invoices)
         * **Issue refunds**: the Refund page (customer credit) and refunds of paid invoices, refunds and their PDFs
         * **Share issues with customers**: the Share link on issues (see Sharing an issue with the customer)
+
+    Estimate and invoice PDFs follow these permissions: any estimate with **View customers** or **Write estimates**; any invoice with **View customers**, **Write invoices**, **View payments**, **Receive payments** or **Issue refunds**. Other users open only the estimates and invoices attached to issues they can see (the issue page links to them), and a shared link opens only that issue's.
 
 2. Settings (Administration -> Plugins -> Configure)
     * **Estimates expire after (days)**: new estimates get an expiration date this many days after the estimate date (e.g. 30). Leave blank for none.
@@ -396,6 +400,16 @@ To enable automatic billing:
 When the Issue is closed, the plugin automatically generates the corresponding **Time Activity entries in QuickBooks Online**.
 
 After the initial synchronization, the plugin receives updates through **Intuit webhooks**.
+
+---
+
+# Running the tests
+
+The tests run with Redmine's own test setup on MySQL (the customer search index needs it), with QuickBooks replaced by a fake (`test/qbo_fake_service.rb`), so they never call QuickBooks:
+
+```
+bundle exec rake redmine:plugins:test NAME=redmine_qbo RAILS_ENV=test
+```
 
 ---
 
