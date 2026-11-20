@@ -10,6 +10,7 @@
 
 require File.expand_path('../../../test/test_helper', __dir__)
 require File.expand_path('qbo_fake_service', __dir__)
+require File.expand_path('qbo_editor_test_helper', __dir__)
 
 module QboRefundTestHelper
   CUSTOMER_ID = 9101

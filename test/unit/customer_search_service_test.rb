@@ -72,6 +72,7 @@ class CustomerSearchServiceTest < ActiveSupport::TestCase
   end
 
   def test_call_returns_customers_best_first
+    CustomerSearchService.instance_variable_set(:@candidates, nil)
     Customer.where(id: [9101, 9102]).delete_all
     [[9101, 'William Smith'], [9102, 'Bill Smithers']].each do |id, name|
       Customer.new(id: id, name: name).tap { |c| c.skip_qbo_push = true }.save!
