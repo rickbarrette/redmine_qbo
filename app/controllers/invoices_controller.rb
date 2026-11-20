@@ -10,11 +10,13 @@
 class InvoicesController < ApplicationController
   include AuthHelper
 
-  # PDFs: logged-in users, or a customer with a share link (limited to their issue's invoices).
+  # PDFs: logged-in users with a billing permission (RedmineQboBilling.invoice_viewer?), other logged-in users for
+  # the invoices on issues they can see, and share-link customers for their issue's invoices.
   # Redmine's own login check is replaced by require_login_or_customer_token for this action.
   skip_before_action :check_if_login_required, only: :show
   before_action :require_login_or_customer_token, only: :show
   before_action :authorize_customer_invoices, only: :show
+  before_action :authorize_user_invoices, only: :show
 
   # Syncing is admin-only
   before_action :require_admin, only: :sync
@@ -49,6 +51,13 @@ class InvoicesController < ApplicationController
 
     allowed = customer_token.issue&.invoice_ids.to_a.map(&:to_s)
     render_403 if invoice_ids.empty? || (invoice_ids - allowed).any?
+  end
+
+  # Logged-in users: a billing permission, or invoices attached to issues they can see
+  def authorize_user_invoices
+    return true unless User.current.logged?
+
+    render_403 unless invoice_pdfs_allowed?(invoice_ids)
   end
 
   # Logs messages with a consistent prefix for easier debugging.

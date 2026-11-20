@@ -99,6 +99,19 @@ module RedmineQboBilling
     writer?(user) && user.allowed_to?(:edit_linked_estimates, nil, global: true)
   end
 
+  # True when the user may open any estimate's PDF: View customers or Write estimates. Others open only the
+  # estimates attached to issues they can see (see AuthHelper#estimate_pdf_allowed?).
+  def self.estimate_viewer?(user = User.current)
+    user.allowed_to?(:view_customers, nil, global: true) || writer?(user)
+  end
+
+  # True when the user may open any invoice's PDF: View customers, Write invoices, View or Receive payments, or
+  # Issue refunds (those pages link to invoices). Others open only the invoices attached to issues they can see.
+  def self.invoice_viewer?(user = User.current)
+    user.allowed_to?(:view_customers, nil, global: true) || invoice_writer?(user) || payment_viewer?(user) ||
+      refunder?(user)
+  end
+
   # True when the user may write invoices
   def self.invoice_writer?(user = User.current)
     user.allowed_to?(:write_invoices, nil, global: true)

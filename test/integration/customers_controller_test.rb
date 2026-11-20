@@ -100,8 +100,7 @@ class CustomersControllerTest < Redmine::IntegrationTest
     assert_equal 'new@example.com', @fake.created.last.email_address.address
   end
 
-  # The controller doesn't accept API keys (no accept_api_auth) and Redmine ignores the session on JSON
-  # requests, so customers can't be created as JSON: the format.json branches of #create aren't reachable
+  # Customers are created from the page only; JSON requests are refused
   def test_json_create_is_refused
     Role.find(1).add_permission!(:view_customers)
     Role.find(1).add_permission!(:add_customers)
@@ -109,8 +108,23 @@ class CustomersControllerTest < Redmine::IntegrationTest
       post '/customers.json', params: { customer: { name: 'Json Person' } },
                               headers: { 'X-Redmine-API-Key' => User.find(2).api_key }
     end
-    assert_includes [401, 403], response.status
+    assert_includes [401, 403, 406], response.status
     assert_not Customer.exists?(name: 'Json Person')
+  end
+
+  def test_invalid_customer_shows_the_form_again
+    grant(:view_customers, :add_customers)
+    post '/customers', params: { customer: { name: '' } }
+    assert_response :unprocessable_entity
+    assert_select '#errorExplanation'
+  end
+
+  def test_quickbooks_error_on_create_is_shown
+    grant(:view_customers, :add_customers)
+    @fake.define_singleton_method(:create) { |_doc| raise Quickbooks::IntuitRequestException, 'Duplicate Name Exists' }
+    post '/customers', params: { customer: { name: 'Jane Customer' } }
+    assert_redirected_to '/customers/new'
+    assert_match 'Duplicate Name Exists', flash[:error]
   end
 
   def test_update_needs_edit_customers

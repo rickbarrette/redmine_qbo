@@ -4,6 +4,7 @@
         <%= render partial: 'customers/sidebar' %>
     <% end %>
 
-    <%= render partial: 'estimates/sidebar' %>
+    <%# Finding an estimate by number needs View customers or Write estimates %>
+    <%= render partial: 'estimates/sidebar' if RedmineQboBilling.estimate_viewer? %>
 
 <% end %>

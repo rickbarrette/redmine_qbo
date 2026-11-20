@@ -31,6 +31,21 @@ module AuthHelper
     require_login
   end
 
+  # A logged-in user may open the estimate's PDF with a billing permission (RedmineQboBilling.estimate_viewer?),
+  # or when it's attached to an issue they can see (the issue page links to it)
+  def estimate_pdf_allowed?(estimate)
+    RedmineQboBilling.estimate_viewer? || Issue.visible.where(estimate_id: estimate.id).exists?
+  end
+
+  # The same for invoices: every one of them must be attached to an issue the user can see
+  def invoice_pdfs_allowed?(invoice_ids)
+    return true if RedmineQboBilling.invoice_viewer?
+
+    ids = Array(invoice_ids).map(&:to_s).uniq
+    visible = Invoice.joins(:issues).merge(Issue.visible).where(id: ids).distinct.pluck(:id).map(&:to_s)
+    ids.any? && (ids - visible).empty?
+  end
+
   def global_check_permission(permission)
     if !globaly_allowed_to?(permission)
       flash[:error] = t :notice_forbidden

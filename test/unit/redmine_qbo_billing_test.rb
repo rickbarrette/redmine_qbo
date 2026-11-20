@@ -35,6 +35,16 @@ class RedmineQboBillingTest < ActiveSupport::TestCase
     assert_not Billing.payment_viewer?(user)
   end
 
+  def test_document_viewers
+    assert RedmineQboBilling.estimate_viewer?(user(:view_customers))
+    assert RedmineQboBilling.estimate_viewer?(user(:write_estimates))
+    assert_not RedmineQboBilling.estimate_viewer?(user(:write_invoices))
+    %i[view_customers write_invoices view_payments receive_payments issue_refunds].each do |permission|
+      assert RedmineQboBilling.invoice_viewer?(user(permission)), permission
+    end
+    assert_not RedmineQboBilling.invoice_viewer?(user(:write_estimates))
+  end
+
   def test_paid_invoice_editor
     assert Billing.paid_invoice_editor?(true, user(:write_invoices, :edit_paid_invoices))
     assert_not Billing.paid_invoice_editor?(false, user(:write_invoices, :edit_paid_invoices))

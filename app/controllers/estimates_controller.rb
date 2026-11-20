@@ -10,7 +10,8 @@
 class EstimatesController < ApplicationController
   include AuthHelper
 
-  # PDFs: logged-in users, or a customer with a share link (limited to their issue's estimate).
+  # PDFs: logged-in users with View customers or Write estimates, other logged-in users for the estimates on
+  # issues they can see, and share-link customers for their issue's estimate.
   # Redmine's own login check is replaced by require_login_or_customer_token for these actions.
   skip_before_action :check_if_login_required, only: [:show, :doc]
   before_action :require_login_or_customer_token, only: [:show, :doc]
@@ -42,6 +43,7 @@ class EstimatesController < ApplicationController
 
     # Share-link customers may only open the estimate attached to their issue (checked before any sync)
     return load_customer_estimate if customer_token_only?
+    return load_issue_estimate unless RedmineQboBilling.estimate_viewer?
 
     @estimate = find_estimate || sync_and_find_estimate
 
@@ -61,6 +63,15 @@ class EstimatesController < ApplicationController
       end
 
     return render_403 unless requested
+
+    @estimate = estimate
+  end
+
+  # For logged-in users without a billing permission: only an estimate attached to an issue they can see,
+  # which is always cached locally (no sync from QuickBooks)
+  def load_issue_estimate
+    estimate = find_estimate
+    return render_403 unless estimate && estimate_pdf_allowed?(estimate)
 
     @estimate = estimate
   end

@@ -325,7 +325,8 @@ module RedmineQbo
         if issue.estimate
           e_pdf, _ref = PdfService.new(entity: Estimate).fetch_pdf(doc_ids: [issue.estimate.id])
           combined = CombinePDF.parse(pdf.output, allow_optional_content: true)
-          combined << CombinePDF.parse(e_pdf)
+          # The estimate may have optional content too (layers); merged the same way as the issue's PDF
+          combined << CombinePDF.parse(e_pdf, allow_optional_content: true)
           combined.to_pdf
         else
           pdf.output

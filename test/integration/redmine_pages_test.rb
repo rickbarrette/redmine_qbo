@@ -190,8 +190,8 @@ class RedminePagesTest < Redmine::IntegrationTest
   # ---- issue PDF ----
 
   def test_issue_pdf_includes_the_estimate
-    # A plain one-page PDF, like QuickBooks' (Redmine's own PDFs have optional content, which the merge refuses)
-    estimate_pdf = CombinePDF.new.tap { |p| p << CombinePDF.create_page }.to_pdf
+    # Made by Redmine's own PDF writer, which adds optional content: merged like the issue's PDF
+    estimate_pdf = Redmine::Export::PDF::ITCPDF.new('en').tap { |p| p.add_page; p.write(5, 'ESTIMATE') }.output
     PdfService.any_instance.expects(:fetch_pdf).with(doc_ids: [598]).returns([estimate_pdf, '1068'])
     login
     get '/issues/1.pdf'
