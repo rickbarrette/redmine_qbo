@@ -72,6 +72,26 @@ class CustomersControllerTest < Redmine::IntegrationTest
     assert_response :not_found
   end
 
+  def test_show_details_from_quickbooks
+    address = Quickbooks::Model::PhysicalAddress.new
+    address.line1 = '123 Main St'
+    address.city = 'Springfield'
+    address.country_sub_division_code = 'RI'
+    address.postal_code = '02900'
+    details = Quickbooks::Model::Customer.new(display_name: 'Jane Customer', balance: BigDecimal('125'))
+    details.billing_address = address
+    details.primary_phone = Quickbooks::Model::TelephoneNumber.new.tap { |t| t.free_form_number = '401-555-0101' }
+    @fake.customers['9101'] = details
+    grant(:view_customers)
+    get '/customers/9101'
+    rows = css_select('table tr').to_h { |tr| [tr.at('th')&.text.to_s.strip, tr.at('td')&.text.to_s.strip] }
+    assert_equal "123 Main St\nSpringfield, RI 02900", rows[I18n.t(:label_billing_address)]
+    assert_equal '(401) 555-0101', rows[I18n.t(:label_primary_phone)]
+    # No mobile number: blank, not "0"
+    assert_equal '', rows[I18n.t(:label_mobile_phone)]
+    assert_equal '$125.00', rows[I18n.t(:label_account_balance)]
+  end
+
   def test_autocomplete
     grant(:view_customers)
     get '/customers/autocomplete', params: { q: 'jane custmer' }

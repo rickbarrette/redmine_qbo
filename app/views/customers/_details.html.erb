@@ -1,3 +1,5 @@
+<%# Phone numbers as (401) 555-0101, left blank when the customer has none %>
+<% phone = ->(number) { digits = number.to_s.gsub(/\D/, ''); digits.present? ? number_to_phone(digits.to_i, area_code: true) : '' } %>
 <table>
   <tbody>
 
@@ -13,27 +15,27 @@
     
     <tr>
       <th><%= t(:label_primary_phone) %></th>
-      <td><%= number_to_phone(customer&.primary_phone&.gsub(/[^\d]/, '').to_i, area_code: true) %></td>
+      <td><%= phone.call(customer&.primary_phone) %></td>
     </tr>
     
     <tr>
       <th><%= t(:label_mobile_phone) %></th>
-      <td><%= number_to_phone(customer&.mobile_phone&.gsub(/[^\d]/, '').to_i, area_code: true) %></td>
+      <td><%= phone.call(customer&.mobile_phone) %></td>
     </tr>
     
     <tr>
       <th><%= t(:label_billing_address) %></th>
-      <td><pre><%= @billing_address %></pre></td>
+      <td><pre><%= RedmineQboBilling::EstimateWriter.format_address(customer.billing_address) %></pre></td>
     </tr>
     
     <tr>
       <th><%= t(:label_shipping_address) %></th>
-      <td><pre><%= @shipping_address %></pre></td>
+      <td><pre><%= RedmineQboBilling::EstimateWriter.format_address(customer.shipping_address) %></pre></td>
     </tr>
     
     <tr>
       <th><%= t(:label_account_balance) %></th>
-      <td>$<%= customer.balance %></td>
+      <td><%= number_to_currency(customer.balance || 0) %></td>
     </tr>
     
     <% if customer.notes.present? %>
