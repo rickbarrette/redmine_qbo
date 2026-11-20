@@ -131,6 +131,16 @@ class QboAdminPagesTest < Redmine::IntegrationTest
     end
   end
 
+  def test_plugin_settings_page
+    RedmineQboBilling::Company.stubs(:settings).returns(custom_fields: [{ id: 1, name: 'Sales Rep' }, { id: 2, name: 'VIN' }])
+    QboSyncStatus.queued('Invoice')
+    admin
+    get '/settings/plugin/redmine_qbo'
+    assert_response :success
+    assert_match "grantUrl: '/qbo/authenticate'", response.body
+    assert_select 'body', text: /VIN/
+  end
+
   # ---- business report ----
 
   def test_report_needs_the_permission
