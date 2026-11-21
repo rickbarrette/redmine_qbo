@@ -17,16 +17,16 @@ module RedmineQboBilling
   # - Lines already turned into issues are shown but can't be created again
   # - Creation is all-or-nothing: if any issue fails validation, none are saved
   # - All issues created from the same estimate are related to each other, across batches
-  # - With a parent issue, the issues are created as its subtasks and take its customer, plus its vehicle and
-  #   custom field values where the page left them empty (the same rules as the subtask_field_copier plugin,
-  #   which is used when installed)
+  # - With a parent issue, the issues are created as its subtasks and take its customer, plus its custom field
+  #   values where the page left them empty (the same rules as the subtask_field_copier plugin, which is used
+  #   when installed). Plugins copy their own fields from the parent in :qbo_billing_build_issue.
   #
   # Other plugins fill in more through hooks:
-  #   :qbo_billing_issue_defaults, { estimate:, params: } => a hash of start_date, due_date, assignee,
-  #     description, project, return_path, return_label, plus anything a plugin's own fields need (e.g.
-  #     redmine_qbo_calendar's vehicle_id, when the page is opened from an appointment)
-  #   :qbo_billing_build_issue, { issue:, estimate:, defaults: } for each new issue before it's saved, to set
-  #     plugins' own fields (e.g. redmine_qbo_vehicles sets the vehicle)
+  #   :qbo_billing_issue_defaults, { estimate:, params:, parent_issue: } => a hash of start_date, due_date,
+  #     assignee, description, project, return_path, return_label, plus anything a plugin's own fields need.
+  #     Every plugin's hash is merged.
+  #   :qbo_billing_build_issue, { issue:, estimate:, defaults:, parent: } for each new issue before it's saved,
+  #     to set plugins' own fields (e.g. redmine_qbo_vehicles sets the vehicle, else the parent's)
   #   :view_qbo_estimate_issues_form, { estimate:, defaults:, project: } (view hook) draws plugins' fields on
   #     the page, applied to every issue; posted as issue_plugin_fields[name], they reach :qbo_billing_build_issue
   #     in defaults (e.g. redmine_qbo_vehicles' Vehicle, preselected from the estimate's VIN)
@@ -237,7 +237,7 @@ module RedmineQboBilling
       issue.estimate_id = estimate.id if issue.respond_to?(:estimate_id=)
 
       # Plugins set their own fields (e.g. redmine_qbo_vehicles: the vehicle)
-      Redmine::Hook.call_hook(:qbo_billing_build_issue, { issue: issue, estimate: estimate, defaults: defaults })
+      Redmine::Hook.call_hook(:qbo_billing_build_issue, { issue: issue, estimate: estimate, defaults: defaults, parent: parent })
 
       if parent
         issue.parent_issue_id = parent.id
@@ -248,7 +248,7 @@ module RedmineQboBilling
     end
 
     # Fills the subtask's empty fields from the parent: custom fields (those the author can see on the parent
-    # and edit on the subtask) and plugins' registered fields (customer, vehicle). Values entered on the page win.
+    # and edit on the subtask), and with subtask_field_copier its registered fields. Values entered on the page win.
     def copy_from_parent(issue, author)
       if defined?(::SubtaskFieldCopier)
         ::SubtaskFieldCopier.copy_from_parent(issue, parent, author, {})
@@ -263,10 +263,6 @@ module RedmineQboBilling
         values[custom_value.custom_field_id.to_s] = value
       end
       issue.custom_field_values = copied if copied.any?
-
-      if issue.respond_to?(:vehicle_id=) && issue.vehicle_id.blank? && parent.respond_to?(:vehicle_id)
-        issue.vehicle_id = parent.vehicle_id
-      end
     end
 
     def default_description

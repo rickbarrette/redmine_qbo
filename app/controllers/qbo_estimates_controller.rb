@@ -95,8 +95,8 @@ class QboEstimatesController < ApplicationController
   end
 
   # Preview of the issues that can be created from the estimate's labor lines. Each line gets a tracker and
-  # (optionally) a template before anything is created. Opened from an appointment, the appointment's dates,
-  # technician and vehicle are used (redmine_qbo_calendar's :qbo_billing_issue_defaults).
+  # (optionally) a template before anything is created. Plugins fill in defaults through
+  # :qbo_billing_issue_defaults (e.g. redmine_qbo_calendar: the appointment's dates and technician).
   def issues_preview
   end
 
@@ -227,19 +227,11 @@ class QboEstimatesController < ApplicationController
 
   # What the new issues start from:
   # - dates: another plugin's (e.g. the appointment's), else the parent issue's
-  # - vehicle: the parent issue's, else another plugin's (e.g. the appointment's)
-  # Values posted with the form (the dates, plugins' fields such as redmine_qbo_vehicles' vehicle) win.
+  # - plugins' own fields: what they return for :qbo_billing_issue_defaults (they're given the parent issue)
+  # Values posted with the form (the dates, plugins' fields) win.
   def build_defaults
-    parent_dates = {}
-    parent_vehicle = {}
-    if @parent_issue
-      parent_dates = { start_date: @parent_issue.start_date, due_date: @parent_issue.due_date }.compact
-      if @parent_issue.respond_to?(:vehicle_id) && @parent_issue.vehicle_id.present?
-        parent_vehicle = { vehicle_id: @parent_issue.vehicle_id.to_s }
-      end
-    end
-
-    parent_dates.merge(issue_defaults.compact).merge(parent_vehicle).merge(submitted_plugin_fields).merge(submitted_dates)
+    parent_dates = @parent_issue ? { start_date: @parent_issue.start_date, due_date: @parent_issue.due_date }.compact : {}
+    parent_dates.merge(issue_defaults.compact).merge(submitted_plugin_fields).merge(submitted_dates)
   end
 
   # The Start date / Due date entered on the page, only when the form was posted. A blank one means no date.
@@ -269,14 +261,15 @@ class QboEstimatesController < ApplicationController
     end
   end
 
-  # The first non-empty hash a plugin returns for :qbo_billing_issue_defaults
+  # What plugins return for :qbo_billing_issue_defaults, merged (each fills in its own keys)
   def issue_defaults
-    results = Redmine::Hook.call_hook(:qbo_billing_issue_defaults, { estimate: @estimate, params: params })
-    (results.detect { |r| r.is_a?(Hash) && r.any? } || {}).symbolize_keys
+    results = Redmine::Hook.call_hook(:qbo_billing_issue_defaults,
+                                      { estimate: @estimate, params: params, parent_issue: @parent_issue })
+    results.select { |r| r.is_a?(Hash) }.reduce({}) { |merged, r| merged.merge(r.symbolize_keys) }
   end
 
   # Plugins' own fields on the preview form (issue_plugin_fields[...], drawn by :view_qbo_estimate_issues_form),
-  # only when the form was posted: { vehicle_id: "5" }
+  # only when the form was posted, e.g. { some_plugin_field: "5" }
   def submitted_plugin_fields
     return {} unless request.post?
 

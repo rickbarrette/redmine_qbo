@@ -15,7 +15,7 @@
 </h2>
 
 <%# Target project and parent task: changing either reloads the page (the project's trackers and templates;
-    the parent's project, vehicle and custom field values) %>
+    the parent's project, custom field values and plugins' fields) %>
 <%= form_tag issues_preview_qbo_estimate_path(@estimate.id), method: :get, id: 'estimate-issues-project-form' do %>
   <% carry.each do |key, value| %><%= hidden_field_tag key, value, id: nil %><% end %>
   <p>
