@@ -103,6 +103,23 @@ class QboHelpersTest < ActiveSupport::TestCase
     end
   end
 
+  def test_refund_email_with_another_plugins_mail_settings
+    RedmineQboBilling.stubs(:mail_settings).returns(shop_name: 'Example Garage', from: 'Example Garage <shop@example.com>',
+                                                    reply_to: 'office@example.com')
+    mail = QboRefundMailer.refund_summary(refund, 'jane@example.com')
+    assert_equal ['shop@example.com'], mail.from
+    assert_equal ['office@example.com'], mail.reply_to
+    assert_match 'Example Garage', mail.subject
+  end
+
+  def test_mail_settings_from_plugins
+    Redmine::Hook.stubs(:call_hook).with(:qbo_mail_settings, {})
+                 .returns([{ shop_name: '', from: 'a@example.com' }, nil, { 'shop_name' => 'Example Garage' }])
+    assert_equal({ from: 'a@example.com', shop_name: 'Example Garage' }, RedmineQboBilling.mail_settings)
+    Redmine::Hook.stubs(:call_hook).with(:qbo_mail_settings, {}).raises(StandardError, 'boom')
+    assert_equal({}, RedmineQboBilling.mail_settings)
+  end
+
   def test_refund_email_when_delivery_is_off
     ActionMailer::Base.stubs(:perform_deliveries).returns(false)
     assert_raises(QboRefundMailer::DeliveryOff) { QboRefundMailer.refund_summary(refund, 'jane@example.com').message }

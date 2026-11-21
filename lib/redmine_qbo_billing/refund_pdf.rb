@@ -132,8 +132,7 @@ module RedmineQboBilling
     end
 
     def shop_name
-      reminders = defined?(RedmineQboReminders::Settings) ? RedmineQboReminders::Settings.current : nil
-      reminders&.[]('shop_name').to_s.presence || Setting.app_title
+      RedmineQboBilling.mail_settings[:shop_name].presence || Setting.app_title
     rescue StandardError
       Setting.app_title
     end

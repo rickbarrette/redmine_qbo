@@ -1,6 +1,6 @@
 <% html_title l(:button_create_estimate_issues) %>
-<%# Extra params to carry through (e.g. appointment_id from redmine_qbo_calendar) %>
-<% carry = request.query_parameters.merge(request.request_parameters).slice('appointment_id') %>
+<%# Params other plugins carry through the page (:qbo_billing_issue_carry_params, e.g. redmine_qbo_calendar's appointment) %>
+<% carry = request.query_parameters.merge(request.request_parameters).slice(*Redmine::Hook.call_hook(:qbo_billing_issue_carry_params, {}).flatten.compact.map(&:to_s)) %>
 
 <div class="contextual">
   <%= link_to sprite_icon('angle-left', @return_label), @return_path, class: 'icon icon-angle-left' %>

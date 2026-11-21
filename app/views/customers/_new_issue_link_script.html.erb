@@ -1,40 +1,33 @@
 <%#
-  Adds what's ticked on the customer page to its links: "New issue" (#dynamic-new-issue-link in the contextual area)
-  and redmine_qbo_calendar's "Add appointment" (#appointment_link). A checkbox takes part with
-  data-new-issue-param="issue[field]" (New issue) and data-appointment-param="field" (Add appointment); one is
-  ticked per field: this plugin's estimates (estimate_id), and other plugins' lists (e.g. redmine_qbo_vehicles'
-  vehicle_id).
+  Adds what's ticked on the customer page to its links. A checkbox takes part with data-ticked-field="field"
+  (one is ticked per field), e.g. this plugin's estimates (estimate_id) and other plugins' lists. A link takes
+  part with data-ticked-params, how each field is named in its URL: "issue[%s]" for New issue
+  (#dynamic-new-issue-link), "%s" for a plain param. Other plugins' links on the page work the same way.
 %>
 <script>
   (function () {
-    var LINKS = [['dynamic-new-issue-link', 'data-new-issue-param'], ['appointment_link', 'data-appointment-param']];
-    var ANY = 'input[data-new-issue-param], input[data-appointment-param]';
+    var BOX = 'input[data-ticked-field]';
 
-    function boxes(attr, param) {
-      return Array.prototype.filter.call(document.querySelectorAll('input[' + attr + ']'), function (cb) {
-        return !param || cb.getAttribute(attr) === param;
+    function boxes(field) {
+      return Array.prototype.filter.call(document.querySelectorAll(BOX), function (cb) {
+        return !field || cb.getAttribute('data-ticked-field') === field;
       });
     }
 
-    // Boxes for the same field (the same estimate list, the same vehicle list)
-    function sameField(box) {
-      for (var i = 0; i < LINKS.length; i++) {
-        var attr = LINKS[i][1], param = box.getAttribute(attr);
-        if (param) return boxes(attr, param);
-      }
-      return [box];
+    function fields() {
+      return boxes().map(function (cb) { return cb.getAttribute('data-ticked-field'); })
+                    .filter(function (field, i, all) { return all.indexOf(field) === i; });
     }
 
     function updateLinks() {
-      LINKS.forEach(function (pair) {
-        var link = document.getElementById(pair[0]);
-        if (!link) return;
+      Array.prototype.forEach.call(document.querySelectorAll('a[data-ticked-params]'), function (link) {
         // Cache the pristine base URL on first run
         if (!link.dataset.baseUrl) link.dataset.baseUrl = link.getAttribute('href');
         var url = new URL(link.dataset.baseUrl, window.location.origin);
-        boxes(pair[1]).forEach(function (cb) {
-          var param = cb.getAttribute(pair[1]);
-          var ticked = boxes(pair[1], param).filter(function (b) { return b.checked; })[0];
+        var format = link.getAttribute('data-ticked-params');
+        fields().forEach(function (field) {
+          var param = format.replace('%s', field);
+          var ticked = boxes(field).filter(function (b) { return b.checked; })[0];
           if (ticked) {
             url.searchParams.set(param, ticked.value);
           } else {
@@ -48,9 +41,9 @@
     // One box per field: ticking one unticks the others for the same field
     document.addEventListener('change', function (event) {
       var box = event.target;
-      if (!box.matches || !box.matches(ANY)) return;
+      if (!box.matches || !box.matches(BOX)) return;
       if (box.checked) {
-        sameField(box).forEach(function (cb) { if (cb !== box) cb.checked = false; });
+        boxes(box.getAttribute('data-ticked-field')).forEach(function (cb) { if (cb !== box) cb.checked = false; });
       }
       updateLinks();
     });

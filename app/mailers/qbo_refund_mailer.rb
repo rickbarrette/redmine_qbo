@@ -21,16 +21,16 @@ class QboRefundMailer < ActionMailer::Base
   def refund_summary(refund, email)
     @refund = refund
     @customer = refund.customer
-    reminders = defined?(RedmineQboReminders::Settings) ? RedmineQboReminders::Settings.current : nil
-    @shop_name = reminders&.[]('shop_name').to_s.presence || Setting.app_title
-    delivery = reminders ? reminders.delivery_options : {}
+    settings = RedmineQboBilling.mail_settings
+    @shop_name = settings[:shop_name].presence || Setting.app_title
+    delivery = settings[:delivery] || {}
     if delivery.empty? && !ActionMailer::Base.perform_deliveries
       raise DeliveryOff, I18n.t(:text_refund_email_off)
     end
 
-    options = { to: email, from: reminders&.from.presence || Setting.mail_from.to_s,
+    options = { to: email, from: settings[:from].presence || Setting.mail_from.to_s,
                 subject: I18n.t(:text_refund_email_subject, shop: @shop_name, amount: RedmineQboBilling::RefundWriter.money(refund.refund_amount)) }
-    options[:reply_to] = reminders.reply_to if reminders&.reply_to
+    options[:reply_to] = settings[:reply_to] if settings[:reply_to]
     message = mail(options.merge(delivery)) do |format|
       format.text
     end

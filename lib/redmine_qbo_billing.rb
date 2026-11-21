@@ -30,6 +30,18 @@ module RedmineQboBilling
   # Suggestions for the editor's custom field boxes for a customer, from plugins answering
   #   :qbo_billing_field_options, { customer: } => { field_id => [{ value:, label: }, ...] }
   # (e.g. redmine_qbo_vehicles: the customer's vehicles for its VIN field). Returns { "2" => [...] }.
+  # The shop's name and how customer emails (refund summaries) are sent, from other plugins (e.g.
+  # redmine_qbo_reminders: its shop name and SMTP server) through :qbo_mail_settings. Each returns any of
+  # shop_name:, from:, reply_to:, delivery: (options for ActionMailer's mail(), e.g. an SMTP server); blank
+  # ones fall back to Redmine's own settings.
+  def self.mail_settings
+    Redmine::Hook.call_hook(:qbo_mail_settings, {}).select { |result| result.is_a?(Hash) }
+                 .reduce({}) { |merged, result| merged.merge(result.symbolize_keys.compact_blank) }
+  rescue StandardError => e
+    Rails.logger.warn "[RedmineQboBilling] Could not read mail settings from plugins: #{e.message}"
+    {}
+  end
+
   def self.field_options(customer)
     return {} unless customer
 

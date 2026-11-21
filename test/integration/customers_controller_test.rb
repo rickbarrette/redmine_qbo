@@ -62,6 +62,13 @@ class CustomersControllerTest < Redmine::IntegrationTest
     assert_redirected_to '/customers/9101'
   end
 
+  def test_new_issue_picks_up_ticked_boxes
+    grant(:view_customers, :add_issues)
+    get '/customers/9101'
+    assert_select 'a#dynamic-new-issue-link[data-ticked-params=?]', 'issue[%s]'
+    assert_includes response.body, "a[data-ticked-params]"
+  end
+
   def test_show_lists_open_and_closed_issues
     grant(:view_customers)
     get '/customers/9101'
