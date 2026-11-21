@@ -18,6 +18,8 @@ module RedmineQbo
         belongs_to :estimate
         has_and_belongs_to_many :invoices
 
+        # {{customer}}, {{estimate}} and other plugins' macros (e.g. from an issue template)
+        before_validation { RedmineQbo::IssueMacros.fill(self) }
         before_save :titlize_subject
         after_commit :enqueue_billing, on: :update
       end
