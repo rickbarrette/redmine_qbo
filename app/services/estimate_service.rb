@@ -9,5 +9,15 @@
 #THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class EstimateService < ServiceBase
+  # Raised when an estimate can't be read from QuickBooks (e.g. QuickBooks is down or disconnected)
+  class FetchError < StandardError; end
 
+  private
+
+  # Estimates are only read here (EstimateWriter saves them). When the read fails, raise an ordinary error
+  # rather than ServiceBase's NotImplementedError, which callers' `rescue StandardError` would miss; nothing
+  # is cached, so the next read tries QuickBooks again.
+  def build_qbo_remote
+    raise FetchError, "Could not read estimate ##{@local.id} from QuickBooks"
+  end
 end

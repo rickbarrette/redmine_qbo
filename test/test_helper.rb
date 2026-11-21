@@ -12,6 +12,14 @@ require File.expand_path('../../../test/test_helper', __dir__)
 require File.expand_path('qbo_fake_service', __dir__)
 require File.expand_path('qbo_editor_test_helper', __dir__)
 
+# With redmine_qbo_reminders installed, refund emails go out through its SMTP server
+# (smtp-relay.gmail.com by default). Keep tests on Redmine's own (test) delivery.
+if defined?(RedmineQboReminders::Settings)
+  ActiveSupport::TestCase.setup do
+    Setting.plugin_redmine_qbo_reminders = { 'delivery' => 'redmine' }
+  end
+end
+
 module QboRefundTestHelper
   CUSTOMER_ID = 9101
 
