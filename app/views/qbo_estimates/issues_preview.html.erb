@@ -98,6 +98,10 @@
     <%= hidden_field_tag :parent_issue_id, @parent_issue&.id || @parent_issue_id, id: nil %>
     <% carry.each do |key, value| %><%= hidden_field_tag key, value, id: nil %><% end %>
 
+    <% if @builder.ambiguous_parts? %>
+      <p class="warning estimate-parts-ambiguous"><%= l(:warning_estimate_parts_ambiguous) %></p>
+    <% end %>
+
     <table class="list estimate-issues-preview">
       <thead>
         <tr>
@@ -132,8 +136,11 @@
             <%
               row = (@rows[proposal.line_id] || {}).to_h
               selected = row.empty? || row['selected'] == '1'
-              tracker_id = (row['tracker_id'].presence || @default_tracker&.id).to_i
-              template_key = row.key?('template') ? row['template'] : default_template_for.call(tracker_id)
+              # A template whose "Match:" note fits the line and its parts picks the tracker and template
+              suggested = templates_enabled ? @builder.suggested_template(proposal, @templates) : nil
+              suggested = nil unless suggested && @trackers.any? { |t| t.id == suggested.tracker_id }
+              tracker_id = (row['tracker_id'].presence || suggested&.tracker_id || @default_tracker&.id).to_i
+              template_key = row.key?('template') ? row['template'] : (suggested&.key || default_template_for.call(tracker_id))
               hours = row.key?('estimated_hours') ? row['estimated_hours'] : proposal.hours
             %>
             <tr class="estimate-line">
@@ -145,6 +152,12 @@
               <td class="subject">
                 <%= text_field_tag "#{field}[subject]", row['subject'] || proposal.description,
                                    maxlength: 255, class: 'estimate-line-subject', id: nil %>
+                <% if proposal.parts.present? %>
+                  <div class="estimate-line-parts"><em class="info">
+                    <%= l(:label_estimate_line_parts) %>
+                    <%= proposal.parts.map { |part| "#{part.quantity} × #{part.item_name.presence || part.description.lines.first.to_s.strip}" }.join(', ') %>
+                  </em></div>
+                <% end %>
               </td>
               <td>
                 <%= select_tag "#{field}[tracker_id]",
@@ -209,6 +222,7 @@
     <p class="estimate-issues-hint">
       <% if templates_enabled %>
         <%= l(:text_estimate_issues_template_hint) %>
+        <%= l(:text_estimate_issues_template_match_hint) %>
       <% else %>
         <%= l(:text_estimate_issues_hint) %>
       <% end %>

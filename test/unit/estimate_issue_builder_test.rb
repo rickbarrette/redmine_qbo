@@ -97,7 +97,10 @@ class EstimateIssueBuilderTest < ActiveSupport::TestCase
     builder = Builder.new(@estimate, defaults: { description: 'From the appointment' })
     created = builder.create_issues(project: @project, rows: rows(1, subject: 'Custom subject'), author: @author)
     assert_equal 'Custom Subject', created.first.subject
-    assert_equal 'From the appointment', created.first.description
+    # The default description, then the line's parts (the brake pads follow the lift kit labor line)
+    description = created.first.description.gsub("\r\n", "\n")
+    assert description.start_with?("From the appointment\n")
+    assert_match '4 × **Brake pads** — Pads', description
   end
 
   def test_unassignable_user_is_left_off
@@ -129,5 +132,90 @@ class EstimateIssueBuilderTest < ActiveSupport::TestCase
     assert_equal 2, Builder.relate_all(issues + [nil, issues[0]])
     assert_equal 0, Builder.relate_all(issues)
     assert_equal 0, Builder.relate_all([issues.first])
+  end
+
+  # ---- jobs: parts, notes and templates ----
+
+  def estimate_with_jobs
+    subtotal = qbo_subtotal_line
+    @estimate.stubs(:line_items).returns([
+      qbo_note_line(20, "Severe play in ball joints\nRecommend ball joints"),
+      qbo_sales_line(21, 10, 'Labor', 4, 190, description: 'Install Ball Joints'),
+      qbo_sales_line(22, 30, 'TF JL Ball Joints', 1, 300, description: "Ball joint kit\n3452010"),
+      subtotal,
+      qbo_sales_line(23, 31, 'Sales', 1, 315, description: 'Running boards'),
+      qbo_sales_line(24, 10, 'Labor', 2, 190, description: 'Install side steps')
+    ])
+  end
+
+  def template(key, description, note: '')
+    RedmineQboBilling::IssueTemplateSupport::Option.new(
+      key: key, title: key, tracker_id: 1, description: description,
+      match_phrases: RedmineQboBilling::TemplateMatcher.phrases(note)
+    )
+  end
+
+  def test_proposals_carry_their_job
+    estimate_with_jobs
+    builder = Builder.new(@estimate)
+    proposal = builder.proposals.first
+    assert_equal ['TF JL Ball Joints'], proposal.parts.map(&:item_name)
+    assert_equal ['Running boards'], builder.proposals.last.parts.map(&:description)
+    assert_not builder.ambiguous_parts?
+  end
+
+  def test_the_description_gets_the_estimate_notes_and_parts
+    estimate_with_jobs
+    RedmineQboBilling::IssueTemplateSupport.stubs(:find).returns(template('jl', 'Template body IAW Estimate #{{estimate}}'))
+    created = Builder.new(@estimate).create_issues(project: @project, rows: rows(21, template: 'jl'), author: @author)
+    description = created.first.reload.description
+    assert description.start_with?('Template body IAW Estimate #1068')
+    assert_match "Severe play in ball joints", description
+    assert_match "1 × **TF JL Ball Joints** — Ball joint kit; 3452010", description
+    assert_operator description.index('Template body'), :<, description.index('TF JL Ball Joints')
+  end
+
+  def test_a_template_can_place_the_notes_and_parts
+    estimate_with_jobs
+    body = "Findings:\n{{estimate_notes}}\n\nParts:\n{{estimate_parts}}\n\nEnd"
+    RedmineQboBilling::IssueTemplateSupport.stubs(:find).returns(template('jl', body))
+    description = Builder.new(@estimate).create_issues(project: @project, rows: rows(21, template: 'jl'), author: @author)
+                         .first.reload.description.gsub("\r\n", "\n")
+    assert_match(/\AFindings:\n.*Severe play.*\n\nParts:\n.*TF JL Ball Joints.*\n\nEnd\z/m, description)
+    assert_no_match(/From the estimate/, description)
+  end
+
+  def test_the_default_description_gets_them_too
+    estimate_with_jobs
+    description = Builder.new(@estimate).create_issues(project: @project, rows: rows(24), author: @author).first.reload.description
+    assert_match 'Estimate #1068', description
+    assert_match 'Running boards', description
+  end
+
+  def test_nothing_is_added_when_a_job_has_no_notes_or_parts
+    created = Builder.new(@estimate).create_issues(project: @project, rows: rows(3), author: @author)
+    assert_no_match(/From the estimate/, created.first.reload.description)
+  end
+
+  def test_suggested_template_uses_the_line_and_its_parts
+    estimate_with_jobs
+    templates = [template('jk', 'JK', note: 'Match: ball joints, tf jk ball joints'),
+                 template('jl', 'JL', note: 'Match: ball joints, tf jl ball joints'),
+                 template('steps', 'Steps', note: 'Match: side steps, running boards')]
+    builder = Builder.new(@estimate)
+    assert_equal %w[jl steps], builder.proposals.map { |p| builder.suggested_template(p, templates)&.key }
+  end
+
+  def test_a_named_labor_service_uses_its_name
+    Setting.stubs(:plugin_redmine_qbo).returns('labor_item_ids' => %w[10 40])
+    @estimate.stubs(:line_items).returns([
+      qbo_sales_line(30, 40, 'Standard Alignment', 1, 200, description: "• Load vehicle onto machine\n• Print out alignment")
+    ])
+    builder = Builder.new(@estimate)
+    proposal = builder.proposals.first
+    assert_equal 'Standard Alignment', proposal.description
+    assert_equal ["• Load vehicle onto machine\n• Print out alignment"], proposal.notes
+    templates = [template('align', 'Align', note: 'Match: standard alignment')]
+    assert_equal 'align', builder.suggested_template(proposal, templates).key
   end
 end

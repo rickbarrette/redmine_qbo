@@ -302,6 +302,11 @@ en:
   label_estimate_issue_settings: "Issues from estimates"
   label_estimate_item: "Item"
   label_estimate_line_already_created: "Already created"
+  label_estimate_issue_details: "From the estimate"
+  label_estimate_issue_notes: "Notes"
+  label_estimate_issue_parts: "Parts"
+  label_estimate_line_parts: "Parts:"
+  warning_estimate_parts_ambiguous: "This estimate lists parts before a labor line and has no subtotal between some jobs, so some parts may be listed under the wrong job. Check the parts below, or add a subtotal after each job in QuickBooks."
   label_issue_template: "Template"
   label_no_issue_template: "(no template)"
   notice_estimate_accepted: "Estimate #%{number} is now Accepted in QuickBooks."
@@ -314,6 +319,7 @@ en:
   text_default_tracker_info: "Pre-selected for each proposed issue. Leave blank to use the project's first tracker."
   text_estimate_issue_fields_info: "Entered once and applied to every created issue whose tracker uses the field. Fields marked * are required by the selected trackers."
   text_estimate_issues_hint: "The subject comes from the estimate line's description and estimated hours from its quantity. Edit anything before creating. New issues are related to each other and to issues already created from this estimate."
+  text_estimate_issues_template_match_hint: "A template whose note has a line like \"Match: ball joints, tf jl ball joints\" is picked when the estimate line or its parts' names contain one of those words; each issue's description also gets the estimate's notes and the line's parts."
   text_estimate_issues_template_hint: "The subject comes from the estimate line's description and estimated hours from its quantity. A template supplies the issue's description. New issues are related to each other and to issues already created from this estimate."
 
   # Payments

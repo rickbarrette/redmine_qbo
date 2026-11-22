@@ -13,7 +13,11 @@ module RedmineQboBilling
   # on the "Create issues from estimate" page (moved here from redmine_qbo_calendar).
   #
   # - Only lines with a labor product/service (LaborItems, e.g. "Labor") are proposed
-  # - Subject = the line's description; estimated hours = the line's quantity
+  # - Subject = the line's description; estimated hours = the line's quantity. For a named labor service
+  #   (e.g. "Standard Alignment", where the description is a list of what's included) the subject is the
+  #   product/service name and the description goes with the line's notes
+  # - Each line's parts and notes (EstimateJobs) are added to its issue's description (EstimateIssueDetails),
+  #   and #suggested_template picks a template from the line and its parts (TemplateMatcher)
   # - Lines already turned into issues are shown but can't be created again
   # - Creation is all-or-nothing: if any issue fails validation, none are saved
   # - All issues created from the same estimate are related to each other, across batches
@@ -34,7 +38,7 @@ module RedmineQboBilling
   class EstimateIssueBuilder
     include Redmine::I18n
 
-    Proposal = Struct.new(:line_id, :item_name, :description, :hours, :existing_issue, keyword_init: true) do
+    Proposal = Struct.new(:line_id, :item_name, :description, :hours, :existing_issue, :parts, :notes, keyword_init: true) do
       def created?
         existing_issue.present?
       end
@@ -110,6 +114,21 @@ module RedmineQboBilling
       @proposals ||= build_proposals
     end
 
+    # The estimate's lines grouped into jobs (each labor line's parts and notes)
+    def jobs
+      @jobs ||= EstimateJobs.new(estimate.present? ? estimate.line_items : [])
+    end
+
+    # True when parts came first and two jobs had no subtotal between them, so a job's parts may be wrong
+    def ambiguous_parts?
+      jobs.ambiguous?
+    end
+
+    # The template (an IssueTemplateSupport option) whose "Match:" phrases fit the line and its parts, or nil
+    def suggested_template(proposal, templates)
+      TemplateMatcher.best(templates, proposal.item_name, proposal.description, Array(proposal.parts).map(&:item_name))
+    end
+
     # rows: { line_id => { 'selected' => '1', 'subject' => ..., 'tracker_id' => ..., 'template' => 'global:3', 'estimated_hours' => ... } }
     # custom_field_values: { custom_field_id => value }, applied to every issue whose tracker uses the field
     # Returns the created issues, or [] with #errors filled in.
@@ -162,8 +181,10 @@ module RedmineQboBilling
       ids = LaborItems.ids
       codes = LaborItems.codes
       links = QboEstimateLineIssue.where(estimate_id: estimate.id).includes(:issue).index_by(&:line_id)
+      line_items = Array(estimate.line_items)
+      @jobs = EstimateJobs.new(line_items, labor: ->(ref) { LaborItems.match?(ref, ids: ids, codes: codes) })
 
-      Array(estimate.line_items).each_with_index.filter_map do |line, index|
+      line_items.each_with_index.filter_map do |line, index|
         detail = line.respond_to?(:sales_line_item_detail) ? line.sales_line_item_detail : nil
         next if detail.nil? || detail.item_ref.nil?
 
@@ -174,25 +195,27 @@ module RedmineQboBilling
         description = line.description.to_s.strip
         next if description.blank?
 
-        line_id = line_key(line, index)
+        line_id = EstimateJobs.line_key(line, index)
         quantity = detail.respond_to?(:quantity) ? detail.quantity.to_f : 0.0
+        job = @jobs.job(line_id)
+        notes = @jobs.notes + (job ? job.notes : [])
+
+        # A named labor service: its name is the subject, its description (what's included) a note
+        if item_name.present? && !LaborItems.name_matches?(item_name, LaborItems::DEFAULT_CODES)
+          notes += [description]
+          description = item_name.split(':').last.strip
+        end
 
         Proposal.new(
           line_id: line_id,
           item_name: item_name,
           description: description,
           hours: quantity.positive? ? quantity : nil,
-          existing_issue: links[line_id]&.issue
+          existing_issue: links[line_id]&.issue,
+          parts: job ? job.parts : [],
+          notes: notes
         )
       end
-    end
-
-    # QBO line Ids are stable for the life of the estimate; fall back to line number / position
-    def line_key(line, index)
-      key = line.respond_to?(:id) ? line.id : nil
-      key = line.line_num if key.blank? && line.respond_to?(:line_num)
-      key = "pos-#{index}" if key.blank?
-      key.to_s
     end
 
     # Relates the new issues to each other and to every issue created earlier from the same estimate,
@@ -218,7 +241,8 @@ module RedmineQboBilling
       issue.subject = (row['subject'].presence || proposal.description).to_s.strip.truncate(255)
 
       template = IssueTemplateSupport.find(row['template'], project)
-      issue.description = template&.description.presence || default_description
+      issue.description = EstimateIssueDetails.apply(template&.description.presence || default_description,
+                                                     notes: proposal.notes, parts: proposal.parts)
 
       hours = row.key?('estimated_hours') ? row['estimated_hours'] : proposal.hours
       issue.estimated_hours = hours.presence

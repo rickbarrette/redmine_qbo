@@ -247,4 +247,35 @@ class QboEstimatesControllerTest < Redmine::IntegrationTest
     post '/qbo_estimates/598/create_issues', params: { project_id: 1, lines: {} }
     assert_response :unprocessable_entity
   end
+
+  def test_issues_preview_suggests_templates_and_lists_parts
+    Estimate.where(id: 598).delete_all
+    Estimate.create!(id: 598, doc_number: '1068', customer_id: 9101)
+    Estimate.any_instance.stubs(:line_items).returns([
+      qbo_sales_line(2, 31, 'Sales', 1, 315, description: 'Running boards'),
+      qbo_sales_line(3, 10, 'Labor', 2, 190, description: 'Install side steps'),
+      qbo_sales_line(4, 32, 'Sales', 1, 99, description: 'Light bar'),
+      qbo_sales_line(5, 10, 'Labor', 1, 190, description: 'Install light bar')
+    ])
+    Setting.stubs(:plugin_redmine_qbo).returns('issue_default_project_id' => '1', 'issue_default_tracker_id' => '1')
+    option = RedmineQboBilling::IssueTemplateSupport::Option
+    RedmineQboBilling::IssueTemplateSupport.stubs(:enabled_for?).returns(true)
+    RedmineQboBilling::IssueTemplateSupport.stubs(:templates_for).returns([
+      option.new(key: 'project:1', title: 'Default', tracker_id: 1, is_default: true, group: 'project', match_phrases: []),
+      option.new(key: 'project:2', title: 'Side Steps', tracker_id: 2, is_default: false, group: 'project',
+                 match_phrases: ['side steps', 'running boards'])
+    ])
+
+    login_with(:create_estimate_issues, :add_issues)
+    get '/qbo_estimates/598/issues_preview'
+    assert_response :success
+    # Install side steps: matched template and its tracker
+    assert_select 'select[name="lines[3][tracker_id]"] option[selected][value="2"]'
+    assert_select 'select[name="lines[3][template]"] option[selected][value="project:2"]'
+    # Install light bar: no match, the tracker's default template
+    assert_select 'select[name="lines[5][template]"] option[selected][value="project:1"]'
+    assert_select '.estimate-line-parts', text: /1 × Sales/
+    # Parts first, then two labor lines with no subtotal between them
+    assert_select '.estimate-parts-ambiguous'
+  end
 end

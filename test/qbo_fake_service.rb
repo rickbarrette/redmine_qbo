@@ -167,6 +167,13 @@ module QboFakeServiceHelper
     line
   end
 
+  def qbo_subtotal_line(id = nil)
+    line = Quickbooks::Model::InvoiceLineItem.new
+    line.id = id.to_s if id
+    line.detail_type = 'SubTotalLineDetail'
+    line
+  end
+
   def qbo_discount_line(amount, percent: nil, account: nil)
     line = Quickbooks::Model::InvoiceLineItem.new
     line.amount = BigDecimal(amount.to_s)

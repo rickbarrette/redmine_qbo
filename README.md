@@ -226,7 +226,11 @@ Administration → Items lists the QuickBooks product/service list (synced from 
         * **Write estimates**: create and edit estimates
         * **Edit estimates linked to issues**: unlock an estimate an issue is linked to and change it (on top of Write estimates)
         * **Email estimates**: email estimates to customers (Save and send, and the Email link)
-        * **Create issues from estimates**: the Create issues page (was redmine_qbo_calendar's "Create issues from appointment estimates")
+        * **Create issues from estimates**: the Create issues page (was redmine_qbo_calendar's "Create issues from appointment estimates"). Each labor line becomes an issue:
+            * **Jobs:** a subtotal line ends a job. Parts and notes belong to the labor line before them, or to the job's first labor line when they come before it (parts first, then labor). Notes at the top of the estimate (e.g. the diagnosis) go with every job. With parts first and no subtotal between two jobs the page warns that some parts may be under the wrong job.
+            * **Description:** the template's (or the default) description, then "From the estimate": the notes and the job's parts. A template can place them itself with `{{estimate_notes}}` and `{{estimate_parts}}` (filled once, when the issue is created).
+            * **Subject:** the labor line's description; for a named labor service (anything but "Labor", e.g. Standard Alignment) its name, with the line's description added to the notes.
+            * **Template matching** (with redmine_issue_templates): a template whose note has a line like `Match: ball joints, tf jl ball joints` is preselected, with its tracker, when the labor line's name or text, or its parts' product names, contain one of the phrases (whole words, ignoring case, punctuation and plural "s"). The longest phrase wins, so a "TF JL Ball Joints" part picks the JL template over a plain "ball joints" one.
         * **View payments**: a customer's Payments list, the payment page and its PDF
         * **Receive payments**: the Receive payment page, plus everything View payments allows
         * **View business reports**: the Business report

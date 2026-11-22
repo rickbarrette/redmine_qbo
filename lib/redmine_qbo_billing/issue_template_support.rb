@@ -12,7 +12,7 @@ module RedmineQboBilling
   # Optional support for redmine_issue_templates (https://github.com/agileware-jp/redmine_issue_templates).
   # Everything here returns empty results when that plugin isn't installed or isn't enabled on the project.
   module IssueTemplateSupport
-    Option = Struct.new(:key, :title, :tracker_id, :is_default, :description, :group, keyword_init: true)
+    Option = Struct.new(:key, :title, :tracker_id, :is_default, :description, :group, :match_phrases, keyword_init: true)
 
     module_function
 
@@ -51,7 +51,8 @@ module RedmineQboBilling
         tracker_id: template.tracker_id,
         is_default: template.is_default?,
         description: template.description,
-        group: group
+        group: group,
+        match_phrases: TemplateMatcher.phrases(template.try(:note))
       )
     end
   end
