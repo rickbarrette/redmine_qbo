@@ -36,7 +36,7 @@ For production deployments, **use a tagged release**.
 
 *   Automatically associates a **QuickBooks Invoice** with the Issue.
 
-*   **Macros** in an issue's subject or description are filled in when it's saved, e.g. an issue template's `Estimate {{estimate}} for {{customer}}`: `{{customer}}` is the customer's name and `{{estimate}}` the estimate number. A macro without a value yet (no estimate linked) stays as typed and fills on a later save. Companion plugins add more through the `:qbo_issue_macros` hook (redmine_qbo_vehicles: `{{vehicle}}`).
+*   **Macros** in an issue's subject, description or notes are filled in when it's saved, e.g. an issue template's `Estimate {{estimate}} for {{customer}}`: `{{customer}}` is the customer's name and `{{estimate}}` the estimate number. A macro without a value yet (no estimate linked) stays as typed and fills on a later save; in a note, which isn't saved again, it stays as typed unless the note is edited. Companion plugins add more through the `:qbo_issue_macros` hook (redmine_qbo_vehicles: `{{vehicle}}`).
     
 
 ---
@@ -280,7 +280,7 @@ Hook|:qbo_billing_field_defaults, { customer:, issues: } | Return `{ field_id =>
 Hook|:qbo_billing_field_options, { customer: } | Return `{ field_id => [{ value:, label: }, ...] }` to suggest in the editor's custom field boxes for a customer (redmine_qbo_vehicles: the customer's vehicles for the VIN box)
 View|:view_qbo_estimate_form_bottom, { form:, document: } | Add your plugin's script to the estimate/invoice editor. It can use `window.qboEditor` (`field(id)`, `fieldNamed(/name/)`, `setFieldOptions(id, options)`) and listen for `qbo:customer-changed` and `qbo:imported` on the form (redmine_qbo_vehicles fills the VIN and mileage)
 View|checkboxes with `data-ticked-field="field"`, links with `data-ticked-params` on the customer page | Ticking a box adds its value to every link with `data-ticked-params`, named by that format: `issue[%s]` for the New issue link, `%s` for a plain param (e.g. redmine_qbo_calendar's Add appointment link). One box per field (redmine_qbo's estimates: `estimate_id`, redmine_qbo_vehicles' vehicles: `vehicle_id`)
-Hook|:qbo_issue_macros, { issue: } | Return `{ 'name' => text }` to fill `{{name}}` in an issue's subject and description when it's saved (redmine_qbo_vehicles: `{{vehicle}}`). Leave a name out, or give nil, while it has no value; the macro then waits for a later save
+Hook|:qbo_issue_macros, { issue: } | Return `{ 'name' => text }` to fill `{{name}}` in an issue's subject, description and notes when they're saved (redmine_qbo_vehicles: `{{vehicle}}`). Leave a name out, or give nil, while it has no value; the macro then waits for a later save
 Hook|:qbo_billing_issue_carry_params | Return names of request params the Create issues from estimate page keeps through its form (redmine_qbo_calendar: `appointment_id`)
 Hook|:qbo_mail_settings | Return any of `shop_name`, `from`, `reply_to` and `delivery` (options for ActionMailer's `mail()`, e.g. an SMTP server) for customer emails such as refund summaries (redmine_qbo_reminders: its shop name and email settings). Blank ones fall back to Redmine's settings
 View Hook|:view_qbo_estimate_contextual, { estimate_id:, customer_id:, custom_fields:, doc_number: } | Adds links to an estimate page's action area (e.g. redmine_qbo_calendar's Add appointment); `custom_fields` is `{ field_id => value }`

@@ -12,6 +12,7 @@ module RedmineQbo
   def self.setup
     # === Models ===
     Issue.prepend RedmineQbo::Patches::IssuePatch
+    Journal.prepend RedmineQbo::Patches::JournalPatch
     User.prepend RedmineQbo::Patches::UserPatch
 
     # === Queries ===

@@ -12,7 +12,7 @@ require File.expand_path('../test_helper', __dir__)
 
 # {{customer}}, {{estimate}} and hooked macros in issue subjects and descriptions (RedmineQbo::IssueMacros)
 class IssueMacrosTest < ActiveSupport::TestCase
-  fixtures :projects, :users, :issues, :trackers, :issue_statuses, :enumerations
+  fixtures :projects, :users, :issues, :trackers, :issue_statuses, :enumerations, :journals
 
   CUSTOMER_ID = 9311
   ESTIMATE_ID = 9411
@@ -83,5 +83,39 @@ class IssueMacrosTest < ActiveSupport::TestCase
     RedmineQbo::IssueMacros.expects(:values).never
     @issue.valid?
     assert_equal 'Nothing to fill', @issue.description
+  end
+
+  def test_a_new_note_is_filled_when_the_issue_is_saved
+    @issue.estimate = @estimate
+    @issue.customer = @customer
+    @issue.save!
+    @issue.init_journal(User.find(1), 'Called {{customer}} about estimate {{estimate}}')
+    @issue.save!
+    assert_equal 'Called Jane Customer about estimate 1068', @issue.journals.order(:id).last.notes
+  end
+
+  def test_a_note_uses_values_set_in_the_same_save
+    @issue.init_journal(User.find(1), 'Estimate {{estimate}}')
+    @issue.estimate = @estimate
+    @issue.save!
+    assert_equal 'Estimate 1068', @issue.journals.order(:id).last.notes
+  end
+
+  def test_an_edited_note_is_filled
+    @issue.update_columns(customer_id: CUSTOMER_ID)
+    journal = Journal.create!(journalized: @issue, user: User.find(1), notes: 'Plain note')
+    journal.update!(notes: 'Spoke with {{customer}}')
+    assert_equal 'Spoke with Jane Customer', journal.reload.notes
+  end
+
+  def test_a_note_macro_without_a_value_stays_as_typed
+    journal = Journal.create!(journalized: @issue, user: User.find(1), notes: 'Estimate {{estimate}} and {{toc}}')
+    assert_equal 'Estimate {{estimate}} and {{toc}}', journal.reload.notes
+  end
+
+  def test_hooked_macros_fill_notes
+    MacroHook.value = '2018 Jeep Wrangler'
+    journal = Journal.create!(journalized: @issue, user: User.find(1), notes: 'Test drove the {{truck}}')
+    assert_equal 'Test drove the 2018 Jeep Wrangler', journal.reload.notes
   end
 end
