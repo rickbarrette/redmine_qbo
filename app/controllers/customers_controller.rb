@@ -47,16 +47,26 @@ class CustomersController < ApplicationController
   def create
     @customer = Customer.new(allowed_params)
 
-    if @customer.save
-      log "Customer ##{@customer.id} created successfully."
-      redirect_to @customer, notice: l(:notice_successful_create)
-    else
-      render :new, status: :unprocessable_entity
+    # The calendar's New Customer modal posts here as JSON and reads back the new id and name
+    respond_to do |format|
+      if @customer.save
+        log "Customer ##{@customer.id} created successfully."
+        format.html { redirect_to @customer, notice: l(:notice_successful_create) }
+        format.json { render json: { id: @customer.id, name: @customer.name }, status: :created }
+      else
+        format.html { render :new, status: :unprocessable_entity }
+        format.json { render json: { errors: @customer.errors.full_messages }, status: :unprocessable_entity }
+      end
     end
   rescue => e
     log "Failed to create customer: #{e.message}"
-    flash[:error] = e.message
-    redirect_to new_customer_path
+    respond_to do |format|
+      format.html do
+        flash[:error] = e.message
+        redirect_to new_customer_path
+      end
+      format.json { render json: { errors: [e.message] }, status: :internal_server_error }
+    end
   end
 
   def edit

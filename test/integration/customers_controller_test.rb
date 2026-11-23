@@ -127,7 +127,7 @@ class CustomersControllerTest < Redmine::IntegrationTest
     assert_equal 'new@example.com', @fake.created.last.email_address.address
   end
 
-  # Customers are created from the page only; JSON requests are refused
+  # API-key JSON requests are refused (the controller has no accept_api_auth); the page and its modal use the session
   def test_json_create_is_refused
     Role.find(1).add_permission!(:view_customers)
     Role.find(1).add_permission!(:add_customers)
@@ -137,6 +137,25 @@ class CustomersControllerTest < Redmine::IntegrationTest
     end
     assert_includes [401, 403, 406], response.status
     assert_not Customer.exists?(name: 'Json Person')
+  end
+
+  # The calendar's New Customer modal posts the page form with the session and Accept: application/json,
+  # and reads the new customer's id and name back (an API-key .json request is still refused, above)
+  def test_modal_create_returns_json
+    grant(:view_customers, :add_customers)
+    post '/customers', params: { customer: { name: 'modal person', phone_number: '(401) 555-0123' } },
+                       headers: { 'Accept' => 'application/json' }
+    assert_response :created
+    customer = Customer.find_by(name: 'Modal Person')
+    assert customer, 'customer created'
+    assert_equal({ 'id' => customer.id, 'name' => 'Modal Person' }, JSON.parse(response.body))
+  end
+
+  def test_modal_create_returns_errors_as_json
+    grant(:view_customers, :add_customers)
+    post '/customers', params: { customer: { name: '' } }, headers: { 'Accept' => 'application/json' }
+    assert_response :unprocessable_entity
+    assert_not_empty JSON.parse(response.body)['errors']
   end
 
   def test_invalid_customer_shows_the_form_again
